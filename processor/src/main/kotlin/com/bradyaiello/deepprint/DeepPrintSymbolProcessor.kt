@@ -1,4 +1,4 @@
-package com.morfly
+package com.bradyaiello.deepprint
 
 import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -60,7 +60,6 @@ class DeepPrintProcessor(
                 stringBuilder.append("${indent0}return \"\"\"\n")
 
                 stringBuilder.append("\${\" \".repeat(indent)}$className(\n")
-//              ${" ".repeat(indent)}SamplePersonClass(
                 props.forEach { propertyDeclaration ->
                     val type: KSType = propertyDeclaration.type.resolve()
                     stringBuilder.append("\${\" \".repeat(indent + 4)}${propertyDeclaration} = ")
@@ -117,45 +116,5 @@ class DeepPrintProcessor(
         override fun visitValueParameter(valueParameter: KSValueParameter, data: Int) = ""
 
     }
-
-/*    inner class DataClassVisitor(
-        val file: OutputStream,
-        ) : KSVisitorVoid() {
-        override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-            if (classDeclaration.isDataClass()) {
-                val packageName = classDeclaration.containingFile!!.packageName.asString()
-                val className = classDeclaration.simpleName.asString()
-
-                val props = classDeclaration.getDeclaredProperties()
-                file.appendText("package $packageName\n\n")
-                file.appendText("fun ${className}.deepPrint(): String {\n")
-                file.appendText("    return \"\"\"\n")
-                file.appendText("        $className(\n")
-
-                props.forEach { propertyDeclaration ->
-                    visitPropertyDeclaration(propertyDeclaration, Unit)
-                    val type: KSType = propertyDeclaration.type.resolve()
-                    file.appendText("            ${propertyDeclaration}=")
-                    val valueToAppend = when (type.declaration.simpleName.asString()) {
-                        "String" -> "\"\$${propertyDeclaration}\""
-                        "Byte", "Short", "Int", "Long", "Float", "Double", "Int
-                       ", "Char" -> "$${propertyDeclaration}"
-                        else -> visitClassDeclaration(propertyDeclaration.closestClassDeclaration()!!, Unit)
-                    }
-                    file.appendText("$valueToAppend,\n")
-                }
-                file.appendText("        )\n")
-                file.appendText("    \"\"\"\n")
-                file.appendText("}\n")
-            }
-        }
-
-        override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
-            val propertyName = property.simpleName.asString()
-        }
-
-        private fun KSClassDeclaration.isDataClass() = modifiers.contains(Modifier.DATA)
-
-    }*/
 }
 

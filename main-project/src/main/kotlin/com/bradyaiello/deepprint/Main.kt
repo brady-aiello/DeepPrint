@@ -1,6 +1,4 @@
-package com.morfly
-
-import com.morfly.deepPrint
+package com.bradyaiello.deepprint
 
 
 fun main() {
