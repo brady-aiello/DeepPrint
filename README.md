@@ -14,7 +14,7 @@ Calling `sampleClass.toString()` results in:
 ```text
 SampleClass(x=0.5, y=2.6, name=A point)
 ``` 
-With DeepPrint, we call `.deepPrint()` and we get a constructor statement:
+If we call `sampleClass.deepPrint()` we get readable `String` that is also a valid Kotlin constructor:
 ```kotlin
 SampleClass(
     x = 0.5f,
@@ -44,7 +44,7 @@ ThreeClassesDeep(person=SamplePersonClass(name=Brady, sampleClass=SampleClass(x=
 
 If we call 
 ```kotlin
-threeClassesDeep.deepPtrint()
+threeClassesDeep.deepPrint()
 ```
 We get the output:
 ```text
@@ -66,7 +66,8 @@ ThreeClassesDeep(
 We can just copy this from a log and use it in a test without modification.
 
 ## How To Use It
-Given the previous sample classes, we just add the `@DeepPrint` annotation:
+Given the previous sample classes, we just add the `@DeepPrint` annotation,
+and DeepPrint generates the functions.
 ```kotlin
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)

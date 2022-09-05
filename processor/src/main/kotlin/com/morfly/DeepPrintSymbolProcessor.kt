@@ -56,10 +56,7 @@ class DeepPrintProcessor(
                     stringBuilder.append("package $packageName\n")
                 }
                 stringBuilder.append("\n")
-                stringBuilder.append("fun ${className}.deepPrint(indent: Int): String {\n")
-                val temp = "val comma = if (indent == 0) \"\" else \",\""
-                stringBuilder.append("$temp\n")
-
+                stringBuilder.append("fun ${className}.deepPrint(indent: Int = 0): String {\n")
                 stringBuilder.append("${indent0}return \"\"\"\n")
 
                 stringBuilder.append("\${\" \".repeat(indent)}$className(\n")
