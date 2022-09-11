@@ -6,7 +6,7 @@ plugins {
 
 // Allows running from command line using  ./gradlew :main-project:run
 application {
-    mainClass.set("com.morfly.MainKt")
+    mainClass.set("com.bradyaiello.deepprint.MainKt")
 }
 
 kotlin.sourceSets.main {

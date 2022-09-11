@@ -4,6 +4,8 @@ package com.bradyaiello.deepprint
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
 
+data class Name(val name: String)
+
 @DeepPrint
 data class SamplePersonClass(val name: String, val sampleClass: SampleClass)
 
