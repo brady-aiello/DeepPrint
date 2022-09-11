@@ -86,7 +86,7 @@ class DeepPrintProcessor(
                                 importsStringBuilder.append("import $propPackageName.deepPrint\n")
                                 "\${${propertyDeclaration}.deepPrint(indent + 8)},\n"
                             } else {
-                                "\${${propertyDeclaration}.toString()},\n"
+                                "\$$propertyDeclaration,\n"
                             }
                         }
                     }
