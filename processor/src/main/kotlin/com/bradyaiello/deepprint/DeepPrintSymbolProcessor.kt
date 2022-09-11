@@ -1,6 +1,8 @@
 package com.bradyaiello.deepprint
 
+import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getDeclaredProperties
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
@@ -43,9 +45,12 @@ class DeepPrintProcessor(
 
     inner class DataClassVisitor
      : KSVisitor<Int, String> {                                               // data = number of spaces to indent
+        @OptIn(KspExperimental::class)
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Int): String {
-            val stringBuilder = StringBuilder()
-            val propertyClasses: MutableList<KSClassDeclaration> = mutableListOf()
+            val packageStringBuilder = StringBuilder()
+            val importsStringBuilder = StringBuilder()
+            val functionStringBuilder = StringBuilder()
+
             if (classDeclaration.isDataClass()) {
                 val packageName = classDeclaration.containingFile!!.packageName.asString()
                 val className = classDeclaration.simpleName.asString()
@@ -53,16 +58,16 @@ class DeepPrintProcessor(
 
                 val indent0 = " ".repeat(data)
                 if (data == 0) {
-                    stringBuilder.append("package $packageName\n")
+                    packageStringBuilder.append("package $packageName\n\n")
                 }
-                stringBuilder.append("\n")
-                stringBuilder.append("fun ${className}.deepPrint(indent: Int = 0): String {\n")
-                stringBuilder.append("${indent0}return \"\"\"\n")
+                functionStringBuilder.append("\n")
+                functionStringBuilder.append("fun ${className}.deepPrint(indent: Int = 0): String {\n")
+                functionStringBuilder.append("${indent0}return \"\"\"\n")
 
-                stringBuilder.append("\${\" \".repeat(indent)}$className(\n")
+                functionStringBuilder.append("\${\" \".repeat(indent)}$className(\n")
                 props.forEach { propertyDeclaration ->
                     val type: KSType = propertyDeclaration.type.resolve()
-                    stringBuilder.append("\${\" \".repeat(indent + 4)}${propertyDeclaration} = ")
+                    functionStringBuilder.append("\${\" \".repeat(indent + 4)}${propertyDeclaration} = ")
                     val propertyAssignment = when (type.declaration.simpleName.asString()) {
                         "String" -> "\"\$${propertyDeclaration}\",\n"
                         "Byte",
@@ -76,17 +81,24 @@ class DeepPrintProcessor(
 
                         else -> {
                             val propClassDeclaration = type.declaration as? KSClassDeclaration
-                            propertyClasses.add(propClassDeclaration!!)
-                            "\${${propertyDeclaration}.deepPrint(indent + 8)},\n"
+                            val propPackageName = propClassDeclaration!!.packageName.asString()
+                            if (propClassDeclaration.isAnnotationPresent(DeepPrint::class)) {
+                                importsStringBuilder.append("import $propPackageName.deepPrint\n")
+                                "\${${propertyDeclaration}.deepPrint(indent + 8)},\n"
+                            } else {
+                                "\${${propertyDeclaration}.toString()},\n"
+                            }
                         }
                     }
-                    stringBuilder.append(propertyAssignment)
+                    functionStringBuilder.append(propertyAssignment)
                 }
-                stringBuilder.append("\${\" \".repeat(indent)})")
-                stringBuilder.append("$indent0\"\"\"\n}")
+                functionStringBuilder.append("\${\" \".repeat(indent)})")
+                functionStringBuilder.append("$indent0\"\"\"\n}")
             }
 
-            return stringBuilder.toString()
+            return packageStringBuilder.toString() +
+                    importsStringBuilder.toString() +
+                    functionStringBuilder.toString()
         }
 
         private fun KSClassDeclaration.isDataClass() = modifiers.contains(Modifier.DATA)

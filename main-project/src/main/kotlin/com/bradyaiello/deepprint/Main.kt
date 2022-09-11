@@ -1,5 +1,8 @@
 package com.bradyaiello.deepprint
 
+import com.bradyaiello.deepprint.otherpackage.Surfboard
+import com.bradyaiello.deepprint.otherpackage.Temperature
+
 
 fun main() {
     val sample = SampleClass(0.5f, 2.6f, "A point")
@@ -23,4 +26,23 @@ fun main() {
         sampleClass = sample
     )
     println(threeDeep2Wide.deepPrint())
+
+    val surfer = Surfer(
+        name = "Brady Aiello",
+        surfboard = Surfboard(
+            11.5F,
+            2F,
+            "longboard"
+        )
+    )
+
+    println(surfer.deepPrint())
+
+    val weather = Weather(
+        temperature = Temperature(
+            fahrenheit = 76.0F
+        )
+    )
+
+    println(weather.deepPrint())
 }

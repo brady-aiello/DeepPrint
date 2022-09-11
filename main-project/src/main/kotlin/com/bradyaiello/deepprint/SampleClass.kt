@@ -1,5 +1,8 @@
 package com.bradyaiello.deepprint
 
+import com.bradyaiello.deepprint.otherpackage.Surfboard
+import com.bradyaiello.deepprint.otherpackage.Temperature
+
 
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
@@ -30,3 +33,9 @@ data class AllTypes(
     val aFloat: Float = 1234f,
     val aDouble: Double = 56789.0
 )
+
+@DeepPrint
+data class Surfer(val name: String, val surfboard: Surfboard)
+
+@DeepPrint
+data class Weather(val temperature: Temperature)
