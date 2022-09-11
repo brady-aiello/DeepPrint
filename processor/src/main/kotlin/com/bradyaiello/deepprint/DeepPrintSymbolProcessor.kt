@@ -78,7 +78,22 @@ class DeepPrintProcessor(
                         "Boolean" -> "$${propertyDeclaration},\n"
                         "Char" -> "'$${propertyDeclaration}',\n"
                         "Float" -> "\${${propertyDeclaration}}f,\n"
-
+                        "List"-> {
+                            importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
+                            val ksTypeArg = type.arguments[0]
+                            val listType = ksTypeArg.type!!
+                            val paramHasDeepPrintAnnotation = ksTypeArg!!.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
+                            val listIndent = " ".repeat(data + 4)
+                            val opening = "listOf<${listType}>("
+                            val itemsPrint: String = if (
+                                paramHasDeepPrintAnnotation
+                            ) {
+                                "\${$propertyDeclaration.map{ it.deepPrint(indent = indent + 8) +\",\"}.reduce {acc, item -> acc + item}}\n\${\" \".repeat(indent + 4)}),\n"
+                            } else {
+                                "\${$propertyDeclaration.deepPrintContents(indent = indent + 8)}\n$listIndent)\n"
+                            }
+                            opening + itemsPrint
+                        }
                         else -> {
                             val propClassDeclaration = type.declaration as? KSClassDeclaration
                             val propPackageName = propClassDeclaration!!.packageName.asString()
@@ -128,5 +143,6 @@ class DeepPrintProcessor(
         override fun visitValueParameter(valueParameter: KSValueParameter, data: Int) = ""
 
     }
-}
+
+ }
 

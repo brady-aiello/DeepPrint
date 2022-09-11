@@ -39,3 +39,9 @@ data class Surfer(val name: String, val surfboard: Surfboard)
 
 @DeepPrint
 data class Weather(val temperature: Temperature)
+
+@DeepPrint
+data class WithAList(val name: String, val items: List<Int>)
+
+@DeepPrint
+data class WithDeepPrintableList(val name: String, val surfers: List<Surfer>)
