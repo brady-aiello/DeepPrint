@@ -1,70 +1,24 @@
 package com.bradyaiello.deepprint
 
-import com.bradyaiello.deepprint.otherpackage.Surfboard
-import com.bradyaiello.deepprint.otherpackage.Temperature
 
+@DeepPrint
+data class Response(val code: Int, val headers:List<String>, val body: String)
 
 fun main() {
-//    val sample = SampleClass(0.5f, 2.6f, "A point")
-//    println(sample.deepPrint(0))
-//    val person = SamplePersonClass(name="Dave", sampleClass=sample)
-//    //println(person.deepPrint(0))
-//
-//    val allTypes = AllTypes()
-//    //println(allTypes.deepPrint(0))
-//    val threeDeep = ThreeClassesDeep(age = 37, person = person)
-//    println(threeDeep.deepPrint(0))
-//    //println(threeDeep.toString())
-//
-//    val threeDeep2 = ThreeClassesDeep2(person = person, age = 37)
-//    println(threeDeep2.deepPrint(0))
-//    //println(sample.toString())
-//
-//    val threeDeep2Wide = ThreeClassesDeep3(
-//        person = person,
-//        age = 55,
-//        sampleClass = sample
-//    )
-//    println(threeDeep2Wide.deepPrint())
+    val response = Response(
+        200,
+        headers = listOf("header 1", "header 2", "header 3"),
+        body = "{ \"success\": true }"
+    )
+    println(response.deepPrint())
 
-    val surfer = Surfer(
-        name = "Brady Aiello",
-        surfboard = Surfboard(
-            11.5F,
-            2F,
-            "longboard"
+    /*
+    Prints:
+        Response(
+            code = 200,
+            headers = listOf<String>( "header 1", "header 2", "header 3",)
+            body = "{ "success": true }",
         )
-    )
 
-    val surfer2 = Surfer(
-        name = "Kelly Slater",
-        surfboard = Surfboard(
-            5.9f,
-            1.8F,
-            "shortboard"
-        )
-    )
-
-/*    println(surfer)
-    println(surfer.deepPrint())
-
-    val weather = Weather(
-        temperature = Temperature(
-            fahrenheit = 76.0F
-        )
-    )
-
-    println(weather)
-
-    println(weather.deepPrint())
-
-    val withAList = WithAList(
-        name = "some list",
-        items = listOf<Int>(0, 1, 2, 3, 4)
-    )
-
-    println(withAList.deepPrint())*/
-
-    val withDeepPrintableList = WithDeepPrintableList("a name", listOf(surfer, surfer2))
-    println(withDeepPrintableList.deepPrint())
+    */
 }

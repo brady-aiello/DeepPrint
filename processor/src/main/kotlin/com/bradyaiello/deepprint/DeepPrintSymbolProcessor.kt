@@ -62,7 +62,7 @@ class DeepPrintProcessor(
                 }
                 functionStringBuilder.append("\n")
                 functionStringBuilder.append("fun ${className}.deepPrint(indent: Int = 0): String {\n")
-                functionStringBuilder.append("${indent0}return \"\"\"\n")
+                functionStringBuilder.append("${indent0}return \"\"\"")
 
                 functionStringBuilder.append("\${\" \".repeat(indent)}$className(\n")
                 props.forEach { propertyDeclaration ->
@@ -82,15 +82,12 @@ class DeepPrintProcessor(
                             importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
                             val ksTypeArg = type.arguments[0]
                             val listType = ksTypeArg.type!!
-                            val paramHasDeepPrintAnnotation = ksTypeArg!!.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
-                            val listIndent = " ".repeat(data + 4)
+                            val paramHasDeepPrintAnnotation = ksTypeArg.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
                             val opening = "listOf<${listType}>("
-                            val itemsPrint: String = if (
-                                paramHasDeepPrintAnnotation
-                            ) {
-                                "\${$propertyDeclaration.map{ it.deepPrint(indent = indent + 8) +\",\"}.reduce {acc, item -> acc + item}}\n\${\" \".repeat(indent + 4)}),\n"
+                            val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
+                                "\n\${$propertyDeclaration.map{ it.deepPrint(indent = indent + 8) +\",\\n\"}.reduce {acc, item -> acc + item}}\${\" \".repeat(indent + 4)}),\n"
                             } else {
-                                "\${$propertyDeclaration.deepPrintContents(indent = indent + 8)}\n$listIndent)\n"
+                                "\${$propertyDeclaration.deepPrintContents()}),\n"
                             }
                             opening + itemsPrint
                         }
@@ -99,7 +96,7 @@ class DeepPrintProcessor(
                             val propPackageName = propClassDeclaration!!.packageName.asString()
                             if (propClassDeclaration.isAnnotationPresent(DeepPrint::class)) {
                                 importsStringBuilder.append("import $propPackageName.deepPrint\n")
-                                "\${${propertyDeclaration}.deepPrint(indent + 8)},\n"
+                                "\n\${${propertyDeclaration}.deepPrint(indent + 8)},\n"
                             } else {
                                 "\$$propertyDeclaration,\n"
                             }

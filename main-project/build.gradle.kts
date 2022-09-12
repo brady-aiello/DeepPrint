@@ -15,7 +15,18 @@ kotlin.sourceSets.main {
     )
 }
 
+kotlin.sourceSets.test {
+    kotlin.srcDirs(
+        file("$buildDir/generated/ksp/test/kotlin"),
+    )
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
 dependencies {
     implementation(project(":annotations"))
     ksp(project(":processor"))
+    testImplementation(Testing.Junit.jupiter)
 }

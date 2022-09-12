@@ -1,4 +1,4 @@
-package com.bradyaiello.deepprint.otherpackage
+package com.bradyaiello.deepprint.testclasses.otherpackage
 
 import com.bradyaiello.deepprint.DeepPrint
 

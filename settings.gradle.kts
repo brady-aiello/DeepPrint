@@ -6,11 +6,16 @@ pluginManagement {
     plugins {
         id("com.google.devtools.ksp") version kspVersion
         kotlin("jvm") version kotlinVersion
+        id("de.fayard.refreshVersions") version "0.50.0"
     }
     repositories {
         gradlePluginPortal()
         google()
     }
+}
+
+plugins {
+    id("de.fayard.refreshVersions")
 }
 
 dependencyResolutionManagement {

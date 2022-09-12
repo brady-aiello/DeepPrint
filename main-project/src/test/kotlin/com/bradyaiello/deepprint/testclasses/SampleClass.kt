@@ -1,8 +1,8 @@
-package com.bradyaiello.deepprint
+package com.bradyaiello.deepprint.testclasses
 
-import com.bradyaiello.deepprint.otherpackage.Surfboard
-import com.bradyaiello.deepprint.otherpackage.Temperature
-
+import com.bradyaiello.deepprint.DeepPrint
+import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
+import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
