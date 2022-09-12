@@ -28,16 +28,19 @@ class DeepPrintProcessor(
                 println("$declaration")
                 println("Properties: ${declaration.getDeclaredProperties()}")
                 val fileName = "DeepPrint${declaration.simpleName.asString()}"
-                if (!codeGenerator.generatedFile.any { it.path.contains(fileName) }) {
-                    val file = codeGenerator.createNewFile(
-                        dependencies = Dependencies(false),
-                        packageName = packageName,
-                        fileName = "DeepPrint${declaration.simpleName.asString()}"
-                    )
-                    val string = declaration.accept(DataClassVisitor(), 0)
-                    file.appendText(string)
-                    file.close()
+                if (codeGenerator.generatedFile.any { it.path.contains(fileName) }) {
+                    codeGenerator.generatedFile.forEach { generatedFile ->
+                        generatedFile.delete()
+                    }
                 }
+                val file = codeGenerator.createNewFile(
+                    dependencies = Dependencies(false),
+                    packageName = packageName,
+                    fileName = "DeepPrint${declaration.simpleName.asString()}"
+                )
+                val string = declaration.accept(DataClassVisitor(), 0)
+                file.appendText(string)
+                file.close()
             }
         }
         return symbols.filterNot { it.validate() }.toList()
