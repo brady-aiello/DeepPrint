@@ -7,6 +7,20 @@ import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
 
+
+@DeepPrint
+data class ThreeDimLine(
+    val start: ThreeDimCoordinate,
+    val end: ThreeDimCoordinate,
+    val lineLabel: String
+)
+
+data class ThreeDimCoordinate(
+    val x: Float,
+    val y: Float,
+    val z: Float,
+    val label: String
+)
 data class Name(val name: String)
 
 @DeepPrint

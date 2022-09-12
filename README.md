@@ -33,21 +33,17 @@ data class SamplePersonClass(val name: String, val sampleClass: SampleClass)
 
 data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 ```
-If we call
-```kotlin
-threeClassesDeep.toString()
-```
-we get the output:
+If we call `threeClassesDeep.toString()` we get this output, which is not valid code:
 ```text
 ThreeClassesDeep(person=SamplePersonClass(name=Brady, sampleClass=SampleClass(x=0.5, y=2.6, name=A point)), age=37)
 ```
 
-If we call 
+But, if we call 
 ```kotlin
 threeClassesDeep.deepPrint()
 ```
-We get the output:
-```text
+Our text output is valid Kotlin:
+```kotlin
 ThreeClassesDeep(
     person = 
         SamplePersonClass(
@@ -82,8 +78,9 @@ data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 ## Current Limitations
 - DeepPrint only works on `data class`es.
 - All classes in the hierarchy must be annotated.
-- DeepPrint does not support collections yet.
-- All hierarchically connected data classes need to be in the same package.
+- DeepPrint supports Lists, but does not support collections yet.
+
+
 
 ## Thanks
 Thank you Pavlo Stavytskyi for the sample KSP project and its accompanying article.

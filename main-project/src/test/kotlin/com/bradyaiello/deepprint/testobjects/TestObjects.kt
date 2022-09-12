@@ -9,6 +9,26 @@ val person = SamplePersonClass(name = "Dave", sampleClass = sample)
 
 val allTypes = AllTypes()
 
+val threeDimCoordinateA = ThreeDimCoordinate(
+    x = 0.7f,
+    y = 32.5f,
+    z = 92.1f,
+    label = "Point A"
+)
+
+val threeDimCoordinateB = ThreeDimCoordinate(
+    x = 99.2f,
+    y = 154.7f,
+    z = 23.3f,
+    label = "Point B"
+)
+
+val threeDimLine = ThreeDimLine(
+    start = threeDimCoordinateA,
+    end = threeDimCoordinateB,
+    lineLabel = "A -> B"
+)
+
 val threeDeep = ThreeClassesDeep(age = 37, person = person)
 
 val threeDeep2 = ThreeClassesDeep2(person = person, age = 37)

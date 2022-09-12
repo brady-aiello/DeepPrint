@@ -118,4 +118,22 @@ class BasicTest {
         val actual = withDeepPrintableList.deepPrint()
         assertEquals(expected, actual)
     }
+
+    @Test
+    fun fallbackToToStringIfNotAnnotated() {
+
+        // ThreeDimLine is annotated.
+        // ThreeDimCoordinate is not annotated.
+        // In this case, fall back to the usual toString() method.
+        val expected = """
+            ThreeDimLine(
+                start = ThreeDimCoordinate(x=0.7, y=32.5, z=92.1, label=Point A),
+                end = ThreeDimCoordinate(x=99.2, y=154.7, z=23.3, label=Point B),
+                lineLabel = "A -> B",
+            )
+        """.trimIndent()
+
+        val actual = threeDimLine.deepPrint()
+        assertEquals(expected, actual)
+    }
 }
