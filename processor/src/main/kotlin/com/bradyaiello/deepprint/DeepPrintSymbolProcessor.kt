@@ -25,8 +25,6 @@ class DeepPrintProcessor(
         symbols.forEach { declaration ->
             val packageName = declaration.containingFile?.packageName?.asString()
             if (packageName != null) {
-                println("$declaration")
-                println("Properties: ${declaration.getDeclaredProperties()}")
                 val fileName = "DeepPrint${declaration.simpleName.asString()}"
                 if (codeGenerator.generatedFile.any { it.path.contains(fileName) }) {
                     codeGenerator.generatedFile.forEach { generatedFile ->
@@ -50,16 +48,24 @@ class DeepPrintProcessor(
      : KSVisitor<Unit, String> {
         @OptIn(KspExperimental::class)
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit): String {
+            val packageName = classDeclaration.containingFile!!.packageName.asString()
+            val className = classDeclaration.simpleName.asString()
+            val props = classDeclaration.getDeclaredProperties()
+            return visitDeepPrintAnnotated(classDeclaration, packageName, className, props)
+        }
+
+        @OptIn(KspExperimental::class)
+        private fun visitDeepPrintAnnotated(
+            classDeclaration: KSClassDeclaration,
+            packageName: String,
+            className: String,
+            props: Sequence<KSPropertyDeclaration>
+        ): String {
             val packageStringBuilder = StringBuilder()
             val importsStringBuilder = StringBuilder()
             val functionStringBuilder = StringBuilder()
 
             if (classDeclaration.isDataClass()) {
-                val packageName = classDeclaration.containingFile!!.packageName.asString()
-                val className = classDeclaration.simpleName.asString()
-                val props = classDeclaration.getDeclaredProperties()
-
-
 
                 packageStringBuilder.append("package $packageName\n\n")
 
@@ -79,13 +85,15 @@ class DeepPrintProcessor(
                         "Long",
                         "Double",
                         "Boolean" -> "$${propertyDeclaration},\n"
+
                         "Char" -> "'$${propertyDeclaration}',\n"
                         "Float" -> "\${${propertyDeclaration}}f,\n"
-                        "List"-> {
+                        "List" -> {
                             importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
                             val ksTypeArg = type.arguments[0]
                             val listType = ksTypeArg.type!!
-                            val paramHasDeepPrintAnnotation = ksTypeArg.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
+                            val paramHasDeepPrintAnnotation =
+                                ksTypeArg.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
                             val opening = "listOf<${listType}>("
                             val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
                                 "\n\${$propertyDeclaration.map{ it.deepPrint(indent = indent + 8) +\",\\n\"}.reduce {acc, item -> acc + item}}\${\" \".repeat(indent + 4)}),\n"
@@ -94,6 +102,7 @@ class DeepPrintProcessor(
                             }
                             opening + itemsPrint
                         }
+
                         else -> {
                             val propClassDeclaration = type.declaration as? KSClassDeclaration
                             val propPackageName = propClassDeclaration!!.packageName.asString()
@@ -131,7 +140,25 @@ class DeepPrintProcessor(
         override fun visitParenthesizedReference(reference: KSParenthesizedReference, data: Unit) = ""
         override fun visitPropertyAccessor(accessor: KSPropertyAccessor, data: Unit) = ""
         @OptIn(KspExperimental::class)
-        override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) = ""
+        override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit): String {
+
+            return if (property.isAnnotationPresent(DeepPrint::class)) {
+                val propertyType = property.type.resolve()
+                when (val declaration = propertyType.declaration) {
+                    is KSClassDeclaration -> {
+                        val props = declaration.getDeclaredProperties()
+                        val packageName = property.packageName.asString()
+                        val className = declaration.simpleName.asString()
+                        visitDeepPrintAnnotated(declaration, packageName, className, props)
+                    } else -> {
+                        ""
+                    }
+                }
+            } else {
+                ""
+            }
+        }
+
         override fun visitPropertyGetter(getter: KSPropertyGetter, data: Unit) = ""
         override fun visitPropertySetter(setter: KSPropertySetter, data: Unit) = ""
         override fun visitReferenceElement(element: KSReferenceElement, data: Unit) = ""
@@ -143,5 +170,21 @@ class DeepPrintProcessor(
         override fun visitValueParameter(valueParameter: KSValueParameter, data: Unit) = ""
     }
 
+
+    fun isPrimitive(type: KSType): Boolean {
+        return (type.declaration.simpleName.asString() in
+            listOf(
+                "String",
+                "Byte",
+                "Short",
+                "Int",
+                "Long",
+                "Double",
+                "Boolean",
+                "Char",
+                "Float"
+            )
+        )
+    }
  }
 
