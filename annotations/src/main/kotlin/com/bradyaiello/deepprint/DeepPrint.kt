@@ -1,7 +1,34 @@
 package com.bradyaiello.deepprint
 
-@Target(AnnotationTarget.CLASS)
+import kotlin.reflect.KClass
+
+@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.SOURCE)
 annotation class DeepPrint()
+
+
+@Target(AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.SOURCE)
+annotation class DeepPrintWith(val deepPrinter: KClass<out DeepPrinter<*>>)
+
+interface DeepPrinter<T> {
+    fun deepPrintWith(data: T): String
+}
+
+data class Something(val id: String, val number: Int)
+
+
+class SomethingDeepPrinter: DeepPrinter<Something> {
+    override fun deepPrintWith(data: Something): String {
+        return ""
+    }
+}
+
+data class SomeTestClass(
+    val name: String,
+    @DeepPrintWith(deepPrinter = SomethingDeepPrinter::class)
+    val something: Something
+)
 
 fun <T> List<T>.deepPrintContents(): String {
     val stringBuilder = StringBuilder()

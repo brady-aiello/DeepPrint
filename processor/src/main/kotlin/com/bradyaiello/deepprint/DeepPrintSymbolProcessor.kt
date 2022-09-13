@@ -38,7 +38,7 @@ class DeepPrintProcessor(
                     packageName = packageName,
                     fileName = "DeepPrint${declaration.simpleName.asString()}"
                 )
-                val string = declaration.accept(DataClassVisitor(), 0)
+                val string = declaration.accept(DataClassVisitor(), Unit)
                 file.appendText(string)
                 file.close()
             }
@@ -47,9 +47,9 @@ class DeepPrintProcessor(
     }
 
     inner class DataClassVisitor
-     : KSVisitor<Int, String> {                                               // data = number of spaces to indent
+     : KSVisitor<Unit, String> {
         @OptIn(KspExperimental::class)
-        override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Int): String {
+        override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit): String {
             val packageStringBuilder = StringBuilder()
             val importsStringBuilder = StringBuilder()
             val functionStringBuilder = StringBuilder()
@@ -59,13 +59,13 @@ class DeepPrintProcessor(
                 val className = classDeclaration.simpleName.asString()
                 val props = classDeclaration.getDeclaredProperties()
 
-                val indent0 = " ".repeat(data)
-                if (data == 0) {
-                    packageStringBuilder.append("package $packageName\n\n")
-                }
+
+
+                packageStringBuilder.append("package $packageName\n\n")
+
                 functionStringBuilder.append("\n")
                 functionStringBuilder.append("fun ${className}.deepPrint(indent: Int = 0): String {\n")
-                functionStringBuilder.append("${indent0}return \"\"\"")
+                functionStringBuilder.append("return \"\"\"")
 
                 functionStringBuilder.append("\${\" \".repeat(indent)}$className(\n")
                 props.forEach { propertyDeclaration ->
@@ -108,7 +108,7 @@ class DeepPrintProcessor(
                     functionStringBuilder.append(propertyAssignment)
                 }
                 functionStringBuilder.append("\${\" \".repeat(indent)})")
-                functionStringBuilder.append("$indent0\"\"\"\n}")
+                functionStringBuilder.append("\"\"\"\n}")
             }
 
             return packageStringBuilder.toString() +
@@ -117,31 +117,30 @@ class DeepPrintProcessor(
         }
 
         private fun KSClassDeclaration.isDataClass() = modifiers.contains(Modifier.DATA)
-
-        override fun visitAnnotated(annotated: KSAnnotated, data: Int) = ""
-        override fun visitAnnotation(annotation: KSAnnotation, data: Int) = ""
-        override fun visitCallableReference(reference: KSCallableReference, data: Int) = ""
-        override fun visitClassifierReference(reference: KSClassifierReference, data: Int) = ""
-        override fun visitDeclaration(declaration: KSDeclaration, data: Int) = ""
-        override fun visitDeclarationContainer(declarationContainer: KSDeclarationContainer, data: Int) = ""
-        override fun visitDynamicReference(reference: KSDynamicReference, data: Int) = ""
-        override fun visitFile(file: KSFile, data: Int) = ""
-        override fun visitFunctionDeclaration(function: KSFunctionDeclaration, data: Int) = ""
-        override fun visitModifierListOwner(modifierListOwner: KSModifierListOwner, data: Int) = ""
-        override fun visitNode(node: KSNode, data: Int) = ""
-        override fun visitParenthesizedReference(reference: KSParenthesizedReference, data: Int) = ""
-        override fun visitPropertyAccessor(accessor: KSPropertyAccessor, data: Int) = ""
-        override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Int) = ""
-        override fun visitPropertyGetter(getter: KSPropertyGetter, data: Int) = ""
-        override fun visitPropertySetter(setter: KSPropertySetter, data: Int) = ""
-        override fun visitReferenceElement(element: KSReferenceElement, data: Int) = ""
-        override fun visitTypeAlias(typeAlias: KSTypeAlias, data: Int) = ""
-        override fun visitTypeArgument(typeArgument: KSTypeArgument, data: Int) = ""
-        override fun visitTypeParameter(typeParameter: KSTypeParameter, data: Int) = ""
-        override fun visitTypeReference(typeReference: KSTypeReference, data: Int) = ""
-        override fun visitValueArgument(valueArgument: KSValueArgument, data: Int) = ""
-        override fun visitValueParameter(valueParameter: KSValueParameter, data: Int) = ""
-
+        override fun visitAnnotated(annotated: KSAnnotated, data: Unit) = ""
+        override fun visitAnnotation(annotation: KSAnnotation, data: Unit) = ""
+        override fun visitCallableReference(reference: KSCallableReference, data: Unit) = ""
+        override fun visitClassifierReference(reference: KSClassifierReference, data: Unit) = ""
+        override fun visitDeclaration(declaration: KSDeclaration, data: Unit) = ""
+        override fun visitDeclarationContainer(declarationContainer: KSDeclarationContainer, data: Unit) = ""
+        override fun visitDynamicReference(reference: KSDynamicReference, data: Unit) = ""
+        override fun visitFile(file: KSFile, data: Unit) = ""
+        override fun visitFunctionDeclaration(function: KSFunctionDeclaration, data: Unit) = ""
+        override fun visitModifierListOwner(modifierListOwner: KSModifierListOwner, data: Unit) = ""
+        override fun visitNode(node: KSNode, data: Unit) = ""
+        override fun visitParenthesizedReference(reference: KSParenthesizedReference, data: Unit) = ""
+        override fun visitPropertyAccessor(accessor: KSPropertyAccessor, data: Unit) = ""
+        @OptIn(KspExperimental::class)
+        override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) = ""
+        override fun visitPropertyGetter(getter: KSPropertyGetter, data: Unit) = ""
+        override fun visitPropertySetter(setter: KSPropertySetter, data: Unit) = ""
+        override fun visitReferenceElement(element: KSReferenceElement, data: Unit) = ""
+        override fun visitTypeAlias(typeAlias: KSTypeAlias, data: Unit) = ""
+        override fun visitTypeArgument(typeArgument: KSTypeArgument, data: Unit) = ""
+        override fun visitTypeParameter(typeParameter: KSTypeParameter, data: Unit) = ""
+        override fun visitTypeReference(typeReference: KSTypeReference, data: Unit) = ""
+        override fun visitValueArgument(valueArgument: KSValueArgument, data: Unit) = ""
+        override fun visitValueParameter(valueParameter: KSValueParameter, data: Unit) = ""
     }
 
  }
