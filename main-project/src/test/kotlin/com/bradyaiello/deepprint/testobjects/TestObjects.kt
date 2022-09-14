@@ -2,6 +2,7 @@ package com.bradyaiello.deepprint.testobjects
 import com.bradyaiello.deepprint.testclasses.*
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
+import kotlinx.datetime.Instant
 
 val sample = SampleClass(0.5f, 2.6f, "A point")
 
@@ -69,3 +70,8 @@ val withAList = WithAList(
 )
 
 val withDeepPrintableList = WithDeepPrintableList("a name", listOf(surfer, surfer2))
+
+val withAnnotatedProperty = WithAnnotatedProperty(
+    label = "some label",
+    name = Name("some name")
+)

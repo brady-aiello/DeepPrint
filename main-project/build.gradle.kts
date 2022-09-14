@@ -29,4 +29,5 @@ dependencies {
     implementation(project(":annotations"))
     ksp(project(":processor"))
     testImplementation(Testing.Junit.jupiter)
+    testImplementation(KotlinX.datetime)
 }

@@ -1,14 +1,11 @@
 package com.bradyaiello.deepprint
 
-import com.google.devtools.ksp.KspExperimental
-import com.google.devtools.ksp.getDeclaredProperties
-import com.google.devtools.ksp.isAnnotationPresent
+import com.google.devtools.ksp.*
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.*
-import com.google.devtools.ksp.validate
 import java.io.OutputStream
 
 fun OutputStream.appendText(str: String) {
@@ -20,12 +17,24 @@ class DeepPrintProcessor(
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
-            .filterIsInstance<KSClassDeclaration>()
+//        val classSymbols = symbols.filterIsInstance<KSClassDeclaration>()
+//        val propertySymbols = symbols.filterIsInstance<KSPropertyDeclaration>()
         if (!symbols.iterator().hasNext()) return emptyList()
         symbols.forEach { declaration ->
             val packageName = declaration.containingFile?.packageName?.asString()
-            if (packageName != null) {
-                val fileName = "DeepPrint${declaration.simpleName.asString()}"
+            val fileName: String? = when(declaration) {
+                is KSClassDeclaration -> {
+                    declaration.simpleName.asString()
+                }
+                is KSPropertyDeclaration -> {
+                    declaration.simpleName.asString()
+                }
+                else -> {null}
+            }
+
+
+            if (packageName != null && fileName != null) {
+                val fileName = "DeepPrint${fileName}"
                 if (codeGenerator.generatedFile.any { it.path.contains(fileName) }) {
                     codeGenerator.generatedFile.forEach { generatedFile ->
                         generatedFile.delete()
@@ -34,7 +43,7 @@ class DeepPrintProcessor(
                 val file = codeGenerator.createNewFile(
                     dependencies = Dependencies(false),
                     packageName = packageName,
-                    fileName = "DeepPrint${declaration.simpleName.asString()}"
+                    fileName = "DeepPrint${fileName}"
                 )
                 val string = declaration.accept(DataClassVisitor(), Unit)
                 file.appendText(string)
@@ -105,11 +114,14 @@ class DeepPrintProcessor(
 
                         else -> {
                             val propClassDeclaration = type.declaration as? KSClassDeclaration
+
+                            // Failing this not-null assertion
                             val propPackageName = propClassDeclaration!!.packageName.asString()
-                            if (propClassDeclaration.isAnnotationPresent(DeepPrint::class)) {
+                            if (propClassDeclaration.isAnnotationPresent(DeepPrint::class) ||
+                                    propertyDeclaration.isAnnotationPresent(DeepPrint::class)) {
                                 importsStringBuilder.append("import $propPackageName.deepPrint\n")
                                 "\n\${${propertyDeclaration}.deepPrint(indent + 8)},\n"
-                            } else {
+                            } else { /* no annotation on property or class */
                                 "\$$propertyDeclaration,\n"
                             }
                         }

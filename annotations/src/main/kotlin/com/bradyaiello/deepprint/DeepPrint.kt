@@ -6,6 +6,8 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.SOURCE)
 annotation class DeepPrint()
 
+/*
+TODO(Custom Deep Printer feature?)
 
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.SOURCE)
@@ -16,7 +18,6 @@ interface DeepPrinter<T> {
 }
 
 data class Something(val id: String, val number: Int)
-
 
 class SomethingDeepPrinter: DeepPrinter<Something> {
     override fun deepPrintWith(data: Something): String {
@@ -29,6 +30,7 @@ data class SomeTestClass(
     @DeepPrintWith(deepPrinter = SomethingDeepPrinter::class)
     val something: Something
 )
+*/
 
 fun <T> List<T>.deepPrintContents(): String {
     val stringBuilder = StringBuilder()

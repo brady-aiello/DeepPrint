@@ -136,4 +136,10 @@ class BasicTest {
         val actual = threeDimLine.deepPrint()
         assertEquals(expected, actual)
     }
+
+    @Test
+    fun annotatedProperty() {
+        val actual = withAnnotatedProperty.deepPrint()
+        println(actual)
+    }
 }
