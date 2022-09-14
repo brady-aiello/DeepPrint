@@ -17,7 +17,7 @@ kotlin.sourceSets.main {
 
 kotlin.sourceSets.test {
     kotlin.srcDirs(
-        file("$buildDir/generated/ksp/test"),
+        file("$buildDir/generated/ksp/test/kotlin"),
     )
 }
 

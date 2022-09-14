@@ -6,11 +6,13 @@ pluginManagement {
     plugins {
         id("com.google.devtools.ksp") version kspVersion
         kotlin("jvm") version kotlinVersion
+        kotlin("multiplatform") version kotlinVersion apply false
         id("de.fayard.refreshVersions") version "0.50.0"
     }
     repositories {
         gradlePluginPortal()
         google()
+        mavenCentral()
     }
 }
 
