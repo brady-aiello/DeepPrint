@@ -139,7 +139,23 @@ class BasicTest {
 
     @Test
     fun annotatedProperty() {
+        val expected = """
+            WithAnnotatedProperty(
+                label = "some label",
+                name = 
+                    Name(
+                        name = "some name",
+                    ),
+            )
+        """.trimIndent()
         val actual = withAnnotatedProperty.deepPrint()
-        println(actual)
+        assertEquals(expected, actual)
     }
+
+/*  TODO(finish this test when external data classes supported)
+    @Test
+    fun externalDataClass() {
+        val actual = usingUnannotatedDataClassFromExternalModule.deepPrint()
+        println(actual)
+    }*/
 }

@@ -3,6 +3,7 @@ package com.bradyaiello.deepprint.testclasses
 import com.bradyaiello.deepprint.DeepPrint
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
+import com.module.external.ExternalDataClass
 import kotlinx.datetime.Instant
 
 @DeepPrint
@@ -66,4 +67,10 @@ data class WithAnnotatedProperty(
     val label: String,
     @property:DeepPrint
     val name: Name
+)
+
+@DeepPrint
+data class UsingUnannotatedDataClassFromExternalModule(
+    val externalDataClass: ExternalDataClass,
+    val id: String
 )

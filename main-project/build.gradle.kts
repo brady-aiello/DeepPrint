@@ -27,6 +27,7 @@ tasks.test {
 
 dependencies {
     implementation(project(":annotations"))
+    implementation(project(":externalModule"))
     ksp(project(":processor"))
     testImplementation(Testing.Junit.jupiter)
     testImplementation(KotlinX.datetime)

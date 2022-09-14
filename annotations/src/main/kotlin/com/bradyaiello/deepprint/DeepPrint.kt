@@ -1,7 +1,5 @@
 package com.bradyaiello.deepprint
 
-import kotlin.reflect.KClass
-
 @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.SOURCE)
 annotation class DeepPrint()

@@ -31,3 +31,4 @@ rootProject.name = "deep-print"
 include(":annotations")
 include(":processor")
 include(":main-project")
+include("externalModule")

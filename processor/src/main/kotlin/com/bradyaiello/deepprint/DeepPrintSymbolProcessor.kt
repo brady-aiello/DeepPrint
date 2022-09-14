@@ -17,8 +17,6 @@ class DeepPrintProcessor(
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
-//        val classSymbols = symbols.filterIsInstance<KSClassDeclaration>()
-//        val propertySymbols = symbols.filterIsInstance<KSPropertyDeclaration>()
         if (!symbols.iterator().hasNext()) return emptyList()
         symbols.forEach { declaration ->
             val packageName = declaration.containingFile?.packageName?.asString()
@@ -43,7 +41,7 @@ class DeepPrintProcessor(
                 val file = codeGenerator.createNewFile(
                     dependencies = Dependencies(false),
                     packageName = packageName,
-                    fileName = "DeepPrint${fileName}"
+                    fileName = fileName
                 )
                 val string = declaration.accept(DataClassVisitor(), Unit)
                 file.appendText(string)
@@ -75,7 +73,6 @@ class DeepPrintProcessor(
             val functionStringBuilder = StringBuilder()
 
             if (classDeclaration.isDataClass()) {
-
                 packageStringBuilder.append("package $packageName\n\n")
 
                 functionStringBuilder.append("\n")
@@ -94,7 +91,6 @@ class DeepPrintProcessor(
                         "Long",
                         "Double",
                         "Boolean" -> "$${propertyDeclaration},\n"
-
                         "Char" -> "'$${propertyDeclaration}',\n"
                         "Float" -> "\${${propertyDeclaration}}f,\n"
                         "List" -> {
@@ -114,11 +110,13 @@ class DeepPrintProcessor(
 
                         else -> {
                             val propClassDeclaration = type.declaration as? KSClassDeclaration
-
-                            // Failing this not-null assertion
-                            val propPackageName = propClassDeclaration!!.packageName.asString()
-                            if (propClassDeclaration.isAnnotationPresent(DeepPrint::class) ||
-                                    propertyDeclaration.isAnnotationPresent(DeepPrint::class)) {
+                            val propPackage = propClassDeclaration!!.packageName
+                            val propPackageName = propPackage.asString()
+                            // TODO(Support properties that are data classes, and outside of the module)
+                            if (propClassDeclaration.isDataClass() &&
+                                (propClassDeclaration.isAnnotationPresent(DeepPrint::class) ||
+                                    propertyDeclaration.isAnnotationPresent(DeepPrint::class))
+                            ) {
                                 importsStringBuilder.append("import $propPackageName.deepPrint\n")
                                 "\n\${${propertyDeclaration}.deepPrint(indent + 8)},\n"
                             } else { /* no annotation on property or class */
