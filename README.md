@@ -61,6 +61,13 @@ ThreeClassesDeep(
 
 We can just copy this from a log and use it in a test without modification.
 
+You can see more examples in [tests](./main-project/src/test/kotlin/com/bradyaiello/deepprint/BasicTest.kt)
+
+## Consume as a Dependency?
+This is still in its early stages, so it hasn't been published.
+So you will need to clone the project to try it out.
+This should be tighter before then, and it will need some automated testing in Github CI.
+
 ## How To Use It
 Given the previous sample classes, we just add the `@DeepPrint` annotation,
 and DeepPrint generates the functions.
@@ -78,9 +85,9 @@ data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 ## Current Limitations
 - DeepPrint only works on `data class`es.
 - All classes in the hierarchy must be annotated.
-- DeepPrint supports Lists, but does not support collections yet.
-
-
+- This implies that external modules are not supported yet.
+- DeepPrint supports `List`, `MutableList`, and `Array` but does not support all collections yet.
+- Project needs a `gradlew clean` before regenerating `deepPrint()` extension functions.
 
 ## Thanks
 Thank you Pavlo Stavytskyi for the sample KSP project and its accompanying article.
