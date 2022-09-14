@@ -42,7 +42,7 @@ val threeDeep2Wide = ThreeClassesDeep3(
 )
 
 val surfer = Surfer(
-    name = "Brady Aiello",
+    name = "Honolua Blomfield",
     surfboard = Surfboard(
         11.5F,
         2F,
@@ -70,7 +70,21 @@ val withAList = WithAList(
     items = listOf<Int>(0, 1, 2, 3, 4)
 )
 
+val withAMutableList = WithAMutableList(
+    name = "some list",
+    items = mutableListOf<Int>(0, 1, 2, 3, 4)
+)
+
+val withAnArray = WithAnArray(
+    name = "some list",
+    items = arrayOf<Int>(0, 1, 2, 3, 4)
+)
+
 val withDeepPrintableList = WithDeepPrintableList("a name", listOf(surfer, surfer2))
+
+val withDeepPrintableMutableList = WithDeepPrintableMutableList("a name", mutableListOf(surfer, surfer2))
+
+val withDeepPrintableArray = WithDeepPrintableArray("a name", arrayOf(surfer, surfer2))
 
 val withAnnotatedProperty = WithAnnotatedProperty(
     label = "some label",

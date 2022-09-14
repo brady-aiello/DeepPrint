@@ -60,7 +60,28 @@ data class Weather(val temperature: Temperature)
 data class WithAList(val name: String, val items: List<Int>)
 
 @DeepPrint
-data class WithDeepPrintableList(val name: String, val surfers: List<Surfer>)
+data class WithAMutableList(val name: String, val items: MutableList<Int>)
+
+@DeepPrint
+data class WithAnArray(val name: String, val items: Array<Int>)
+
+@DeepPrint
+data class WithDeepPrintableList(
+    val name: String,
+    val surfers: List<Surfer>
+)
+
+@DeepPrint
+data class WithDeepPrintableMutableList(
+    val name: String,
+    val surfers: MutableList<Surfer>
+)
+
+@DeepPrint
+data class WithDeepPrintableArray(
+    val name: String,
+    val surfers: Array<Surfer>
+)
 
 @DeepPrint
 data class WithAnnotatedProperty(

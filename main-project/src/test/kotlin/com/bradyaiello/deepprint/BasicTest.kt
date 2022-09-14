@@ -88,13 +88,49 @@ class BasicTest {
     }
 
     @Test
+    fun deepPrintableIntList() {
+        val expected = """
+            WithAList(
+                name = "some list",
+                items = listOf<Int>( 0, 1, 2, 3, 4,),
+            )
+        """.trimIndent()
+        val actual = withAList.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun deepPrintableIntMutableList() {
+        val expected = """
+            WithAMutableList(
+                name = "some list",
+                items = mutableListOf<Int>( 0, 1, 2, 3, 4,),
+            )
+        """.trimIndent()
+        val actual = withAMutableList.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun deepPrintableIntArray() {
+        val expected = """
+            WithAnArray(
+                name = "some list",
+                items = arrayOf<Int>( 0, 1, 2, 3, 4,),
+            )
+        """.trimIndent()
+        val actual = withAnArray.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
     fun deepPrintableList() {
         val expected = """
             WithDeepPrintableList(
                 name = "a name",
                 surfers = listOf<Surfer>(
                     Surfer(
-                        name = "Brady Aiello",
+                        name = "Honolua Blomfield",
                         surfboard = 
                             Surfboard(
                                 length = 11.5f,
@@ -116,6 +152,70 @@ class BasicTest {
         """.trimIndent()
 
         val actual = withDeepPrintableList.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun deepPrintableMutableList() {
+        val expected = """
+            WithDeepPrintableMutableList(
+                name = "a name",
+                surfers = mutableListOf<Surfer>(
+                    Surfer(
+                        name = "Honolua Blomfield",
+                        surfboard = 
+                            Surfboard(
+                                length = 11.5f,
+                                width = 2.0f,
+                                style = "longboard",
+                            ),
+                    ),
+                    Surfer(
+                        name = "Kelly Slater",
+                        surfboard = 
+                            Surfboard(
+                                length = 5.9f,
+                                width = 1.8f,
+                                style = "shortboard",
+                            ),
+                    ),
+                ),
+            )
+        """.trimIndent()
+
+        val actual = withDeepPrintableMutableList.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun deepPrintableArray() {
+        val expected = """
+            WithDeepPrintableArray(
+                name = "a name",
+                surfers = arrayOf<Surfer>(
+                    Surfer(
+                        name = "Honolua Blomfield",
+                        surfboard = 
+                            Surfboard(
+                                length = 11.5f,
+                                width = 2.0f,
+                                style = "longboard",
+                            ),
+                    ),
+                    Surfer(
+                        name = "Kelly Slater",
+                        surfboard = 
+                            Surfboard(
+                                length = 5.9f,
+                                width = 1.8f,
+                                style = "shortboard",
+                            ),
+                    ),
+                ),
+            )
+        """.trimIndent()
+
+        val actual = withDeepPrintableArray.deepPrint()
         assertEquals(expected, actual)
     }
 

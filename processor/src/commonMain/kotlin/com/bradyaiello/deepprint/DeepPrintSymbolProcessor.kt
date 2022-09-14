@@ -93,13 +93,18 @@ class DeepPrintProcessor(
                         "Boolean" -> "$${propertyDeclaration},\n"
                         "Char" -> "'$${propertyDeclaration}',\n"
                         "Float" -> "\${${propertyDeclaration}}f,\n"
-                        "List" -> {
+                        "List", "Array", "MutableList" -> {
                             importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
                             val ksTypeArg = type.arguments[0]
                             val listType = ksTypeArg.type!!
                             val paramHasDeepPrintAnnotation =
                                 ksTypeArg.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
-                            val opening = "listOf<${listType}>("
+                            val collectionConstructor = when (type.declaration.simpleName.asString()) {
+                                "MutableList" -> "mutableListOf"
+                                "List" -> "listOf"
+                                else -> "arrayOf"
+                            }
+                            val opening = "$collectionConstructor<${listType}>("
                             val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
                                 "\n\${$propertyDeclaration.map{ it.deepPrint(indent = indent + 8) +\",\\n\"}.reduce {acc, item -> acc + item}}\${\" \".repeat(indent + 4)}),\n"
                             } else {

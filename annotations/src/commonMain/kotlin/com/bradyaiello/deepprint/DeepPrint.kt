@@ -30,6 +30,8 @@ data class SomeTestClass(
 )
 */
 
+fun <T> Array<T>.deepPrintContents(): String = this.toList().deepPrintContents()
+
 fun <T> List<T>.deepPrintContents(): String {
     val stringBuilder = StringBuilder()
     this.forEach { value ->
