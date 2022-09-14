@@ -32,8 +32,8 @@ class DeepPrintProcessor(
 
 
             if (packageName != null && fileName != null) {
-                val fileName = "DeepPrint${fileName}"
-                if (codeGenerator.generatedFile.any { it.path.contains(fileName) }) {
+                val fullFileName = "DeepPrint${fileName}"
+                if (codeGenerator.generatedFile.any { it.path.contains(fullFileName) }) {
                     codeGenerator.generatedFile.forEach { generatedFile ->
                         generatedFile.delete()
                     }
@@ -41,7 +41,7 @@ class DeepPrintProcessor(
                 val file = codeGenerator.createNewFile(
                     dependencies = Dependencies(false),
                     packageName = packageName,
-                    fileName = fileName
+                    fileName = fullFileName
                 )
                 val string = declaration.accept(DataClassVisitor(), Unit)
                 file.appendText(string)

@@ -4,7 +4,7 @@ import com.bradyaiello.deepprint.DeepPrint
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 import com.module.external.ExternalDataClass
-import kotlinx.datetime.Instant
+
 
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
