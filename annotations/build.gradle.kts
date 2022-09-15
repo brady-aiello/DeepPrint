@@ -1,3 +1,8 @@
+repositories {
+    google()
+    mavenCentral()
+}
+
 plugins {
     kotlin("multiplatform")
 }

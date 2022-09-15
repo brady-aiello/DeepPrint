@@ -1,13 +1,18 @@
+repositories {
+    google()
+    mavenCentral()
+}
+
 plugins {
     kotlin("jvm")
     id("com.google.devtools.ksp")
-    application
+    //application
 }
 
 // Allows running from command line using  ./gradlew :main-project:run
-application {
-    mainClass.set("com.bradyaiello.deepprint.MainKt")
-}
+//application {
+//    mainClass.set("com.bradyaiello.deepprint.MainKt")
+//}
 
 kotlin.sourceSets.main {
     kotlin.srcDirs(
@@ -28,7 +33,11 @@ tasks.test {
 dependencies {
     implementation(project(":annotations"))
     implementation(project(":external-module"))
+    implementation(project(":processor"))
     ksp(project(":processor"))
+//    implementation(":annotations")
+//    implementation(":external-module")
+//    ksp(":processor")
     testImplementation(Testing.Junit.jupiter)
     testImplementation(KotlinX.datetime)
 }
