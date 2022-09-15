@@ -1,9 +1,11 @@
+import de.fayard.refreshVersions.core.versionFor
+
 plugins {
     kotlin("multiplatform")
 }
 
 // Versions are declared in 'gradle.properties' file
-val kspVersion: String by project
+val kspVersion = versionFor("plugin.com.google.devtools.ksp")
 
 kotlin {
     jvm()
@@ -11,7 +13,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":annotations"))
-                implementation("com.google.devtools.ksp:symbol-processing-api:1.7.10-1.0.6")
+                implementation("com.google.devtools.ksp:symbol-processing-api:$kspVersion")
             }
         }
         val jvmTest by getting {
