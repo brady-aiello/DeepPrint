@@ -87,7 +87,6 @@ data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 - All classes in the hierarchy must be annotated.
 - This implies that external modules are not supported yet.
 - DeepPrint supports `List`, `MutableList`, and `Array` but does not support all collections yet.
-- Project needs a `gradlew clean` before regenerating `deepPrint()` extension functions.
 
 ## Thanks
 Thank you Pavlo Stavytskyi for the sample KSP project and its accompanying article.
