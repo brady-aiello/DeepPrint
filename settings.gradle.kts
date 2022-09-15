@@ -1,31 +1,18 @@
 pluginManagement {
-    // Versions are declared in 'gradle.properties' file
-    val kotlinVersion: String by settings
     val kspVersion: String by settings
-
-    plugins {
-        id("com.google.devtools.ksp") version kspVersion
-        kotlin("jvm") version kotlinVersion
-        kotlin("multiplatform") version kotlinVersion apply false
-        id("de.fayard.refreshVersions") version "0.50.0"
-    }
     repositories {
         gradlePluginPortal()
         google()
         mavenCentral()
     }
+    plugins {
+        id("com.google.devtools.ksp") version kspVersion
+        id("de.fayard.refreshVersions") version "0.50.1"
+    }
 }
 
 plugins {
     id("de.fayard.refreshVersions")
-}
-
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-    }
 }
 
 rootProject.name = "deep-print"

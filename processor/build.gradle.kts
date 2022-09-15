@@ -11,7 +11,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":annotations"))
-                implementation("com.google.devtools.ksp:symbol-processing-api:$kspVersion")
+                implementation("com.google.devtools.ksp:symbol-processing-api:1.7.10-1.0.6")
             }
         }
         val jvmTest by getting {
