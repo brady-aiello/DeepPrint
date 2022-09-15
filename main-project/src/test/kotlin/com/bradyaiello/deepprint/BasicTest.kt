@@ -5,7 +5,6 @@ import com.bradyaiello.deepprint.testobjects.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-
 class BasicTest {
 
     @Test

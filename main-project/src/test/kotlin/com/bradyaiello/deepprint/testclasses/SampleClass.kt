@@ -5,10 +5,8 @@ import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 import com.module.external.ExternalDataClass
 
-
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
-
 
 @DeepPrint
 data class ThreeDimLine(
@@ -62,6 +60,7 @@ data class WithAList(val name: String, val items: List<Int>)
 @DeepPrint
 data class WithAMutableList(val name: String, val items: MutableList<Int>)
 
+@Suppress("ArrayPrimitive")
 @DeepPrint
 data class WithAnArray(val name: String, val items: Array<Int>)
 

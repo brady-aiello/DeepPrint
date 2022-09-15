@@ -2,6 +2,7 @@ import de.fayard.refreshVersions.core.versionFor
 
 plugins {
     kotlin("multiplatform")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 // Versions are declared in 'gradle.properties' file

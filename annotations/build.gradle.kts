@@ -5,6 +5,7 @@ repositories {
 
 plugins {
     kotlin("multiplatform")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 kotlin{

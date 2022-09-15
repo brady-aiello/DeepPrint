@@ -10,6 +10,7 @@ plugins {
     kotlin("jvm") apply false
     kotlin("multiplatform") apply false
     id("com.google.devtools.ksp") apply false
+    id("io.gitlab.arturbosch.detekt") apply false
 }
 
 repositories {

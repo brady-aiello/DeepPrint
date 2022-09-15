@@ -1,12 +1,11 @@
 package com.bradyaiello.deepprint
 
-
-@DeepPrint
-data class Response(val code: Int, val headers:List<String>, val body: String)
+const val RESPONSE_CODE = 200
 
 fun main() {
+
     val response = Response(
-        200,
+        code = RESPONSE_CODE,
         headers = listOf("header 1", "header 2", "header 3"),
         body = "{ \"success\": true }"
     )
