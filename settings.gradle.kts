@@ -15,6 +15,8 @@ plugins {
     id("de.fayard.refreshVersions")
 }
 
+
+
 rootProject.name = "deep-print"
 
 include(":annotations")

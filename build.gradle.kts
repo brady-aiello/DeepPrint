@@ -12,6 +12,11 @@ plugins {
     id("com.google.devtools.ksp") apply false
 }
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 allprojects {
     repositories {
         gradlePluginPortal()
