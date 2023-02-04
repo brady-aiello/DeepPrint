@@ -1,7 +1,18 @@
 package com.bradyaiello.deepprint
 
 import com.bradyaiello.deepprint.testclasses.deepPrint
-import com.bradyaiello.deepprint.testobjects.*
+import com.bradyaiello.deepprint.testobjects.allTypes
+import com.bradyaiello.deepprint.testobjects.person
+import com.bradyaiello.deepprint.testobjects.sample
+import com.bradyaiello.deepprint.testobjects.threeDeep2Wide
+import com.bradyaiello.deepprint.testobjects.threeDimLine
+import com.bradyaiello.deepprint.testobjects.withAList
+import com.bradyaiello.deepprint.testobjects.withAMutableList
+import com.bradyaiello.deepprint.testobjects.withAnArray
+import com.bradyaiello.deepprint.testobjects.withAnnotatedProperty
+import com.bradyaiello.deepprint.testobjects.withDeepPrintableArray
+import com.bradyaiello.deepprint.testobjects.withDeepPrintableList
+import com.bradyaiello.deepprint.testobjects.withDeepPrintableMutableList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

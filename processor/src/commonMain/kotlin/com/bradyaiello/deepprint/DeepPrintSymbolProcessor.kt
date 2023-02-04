@@ -183,6 +183,7 @@ class DeepPrintProcessor(
         override fun visitTypeReference(typeReference: KSTypeReference, data: Unit) = ""
         override fun visitValueArgument(valueArgument: KSValueArgument, data: Unit) = ""
         override fun visitValueParameter(valueParameter: KSValueParameter, data: Unit) = ""
+        override fun visitDefNonNullReference(reference: KSDefNonNullReference, data: Unit) = ""
     }
 
 

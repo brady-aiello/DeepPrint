@@ -5,7 +5,6 @@ plugins {
     id("io.gitlab.arturbosch.detekt")
 }
 
-// Versions are declared in 'gradle.properties' file
 val kspVersion = versionFor("plugin.com.google.devtools.ksp")
 
 kotlin {

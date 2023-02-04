@@ -1,9 +1,26 @@
 package com.bradyaiello.deepprint.testobjects
-import com.bradyaiello.deepprint.testclasses.*
+import com.bradyaiello.deepprint.testclasses.AllTypes
+import com.bradyaiello.deepprint.testclasses.Name
+import com.bradyaiello.deepprint.testclasses.SampleClass
+import com.bradyaiello.deepprint.testclasses.SamplePersonClass
+import com.bradyaiello.deepprint.testclasses.Surfer
+import com.bradyaiello.deepprint.testclasses.ThreeClassesDeep
+import com.bradyaiello.deepprint.testclasses.ThreeClassesDeep2
+import com.bradyaiello.deepprint.testclasses.ThreeClassesDeep3
+import com.bradyaiello.deepprint.testclasses.ThreeDimCoordinate
+import com.bradyaiello.deepprint.testclasses.ThreeDimLine
+import com.bradyaiello.deepprint.testclasses.UsingUnannotatedDataClassFromExternalModule
+import com.bradyaiello.deepprint.testclasses.Weather
+import com.bradyaiello.deepprint.testclasses.WithAList
+import com.bradyaiello.deepprint.testclasses.WithAMutableList
+import com.bradyaiello.deepprint.testclasses.WithAnArray
+import com.bradyaiello.deepprint.testclasses.WithAnnotatedProperty
+import com.bradyaiello.deepprint.testclasses.WithDeepPrintableArray
+import com.bradyaiello.deepprint.testclasses.WithDeepPrintableList
+import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 import com.module.external.ExternalDataClass
-import kotlinx.datetime.Instant
 
 val sample = SampleClass(0.5f, 2.6f, "A point")
 
@@ -91,6 +108,7 @@ val withAnnotatedProperty = WithAnnotatedProperty(
     name = Name("some name")
 )
 
+/* TODO(finish this test when external data classes supported)
 val usingUnannotatedDataClassFromExternalModule = UsingUnannotatedDataClassFromExternalModule(
     externalDataClass = ExternalDataClass(
         name = "Bruce Wayne",
@@ -99,3 +117,4 @@ val usingUnannotatedDataClassFromExternalModule = UsingUnannotatedDataClassFromE
     ),
     id = "985270457834522"
 )
+*/
