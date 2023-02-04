@@ -9,7 +9,6 @@ import com.bradyaiello.deepprint.testclasses.ThreeClassesDeep2
 import com.bradyaiello.deepprint.testclasses.ThreeClassesDeep3
 import com.bradyaiello.deepprint.testclasses.ThreeDimCoordinate
 import com.bradyaiello.deepprint.testclasses.ThreeDimLine
-import com.bradyaiello.deepprint.testclasses.UsingUnannotatedDataClassFromExternalModule
 import com.bradyaiello.deepprint.testclasses.Weather
 import com.bradyaiello.deepprint.testclasses.WithAList
 import com.bradyaiello.deepprint.testclasses.WithAMutableList
@@ -20,7 +19,6 @@ import com.bradyaiello.deepprint.testclasses.WithDeepPrintableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
-import com.module.external.ExternalDataClass
 
 val sample = SampleClass(0.5f, 2.6f, "A point")
 

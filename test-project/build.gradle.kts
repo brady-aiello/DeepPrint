@@ -1,6 +1,7 @@
 repositories {
     google()
     mavenCentral()
+    mavenLocal()
 }
 
 plugins {
@@ -32,10 +33,14 @@ tasks.test {
 }
 
 dependencies {
+    val useLocal = true
+
     implementation(project(":annotations"))
     implementation(project(":external-module"))
-    implementation(project(":processor"))
-    ksp(project(":processor"))
+    implementation(project(":deep-print-processor"))
+    ksp(project(":deep-print-processor"))
+//    implementation("io.github.brady-aiello:deep-print-processor:0.1.0")
+//    ksp(project("io.github.brady-aiello:deep-print-processor:0.1.0"))
     testImplementation(Testing.Junit.jupiter)
     testImplementation(KotlinX.datetime)
 }

@@ -3,6 +3,7 @@ buildscript {
         gradlePluginPortal()
         google()
         mavenCentral()
+        mavenLocal()
     }
 }
 
@@ -16,12 +17,14 @@ plugins {
 repositories {
     google()
     mavenCentral()
+    mavenLocal()
 }
 
 allprojects {
     repositories {
         gradlePluginPortal()
         mavenCentral()
+        mavenLocal()
         google()
     }
 }
