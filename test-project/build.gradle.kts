@@ -33,8 +33,6 @@ tasks.test {
 }
 
 dependencies {
-    val useLocal = true
-
     implementation(project(":annotations"))
     implementation(project(":external-module"))
     implementation(project(":deep-print-processor"))

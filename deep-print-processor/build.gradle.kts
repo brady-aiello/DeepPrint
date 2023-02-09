@@ -13,7 +13,7 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
             dependencies {
-                api(project(":annotations"))
+                implementation(project(":annotations"))
                 implementation("com.google.devtools.ksp:symbol-processing-api:$kspVersion")
             }
         }

@@ -11,11 +11,18 @@ plugins {
 
 kotlin{
     jvm()
-    ios()
-    js(IR) {
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    // Only Legacy working for now
+    js(LEGACY) {
         browser()
         nodejs()
     }
+    macosArm64()
+    macosX64()
+    //watchos()
+    //mingwX64()
 }
 
 group = "com.bradyaiello.deepprint"

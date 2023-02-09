@@ -15,7 +15,10 @@ plugins {
 
 rootProject.name = "deep-print"
 
-include(":annotations")
-include(":deep-print-processor")
-include(":test-project")
-include(":external-module")
+include(
+    ":annotations",
+    ":deep-print-processor",
+    ":test-project",
+    ":test-project-multiplatform",
+    ":external-module"
+)

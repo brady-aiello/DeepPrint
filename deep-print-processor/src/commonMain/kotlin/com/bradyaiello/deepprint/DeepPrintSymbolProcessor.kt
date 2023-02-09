@@ -1,11 +1,43 @@
 package com.bradyaiello.deepprint
 
-import com.google.devtools.ksp.*
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.containingFile
+import com.google.devtools.ksp.getDeclaredProperties
+import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
-import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSAnnotation
+import com.google.devtools.ksp.symbol.KSCallableReference
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSClassifierReference
+import com.google.devtools.ksp.symbol.KSDeclaration
+import com.google.devtools.ksp.symbol.KSDeclarationContainer
+import com.google.devtools.ksp.symbol.KSDefNonNullReference
+import com.google.devtools.ksp.symbol.KSDynamicReference
+import com.google.devtools.ksp.symbol.KSFile
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSModifierListOwner
+import com.google.devtools.ksp.symbol.KSNode
+import com.google.devtools.ksp.symbol.KSParenthesizedReference
+import com.google.devtools.ksp.symbol.KSPropertyAccessor
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyGetter
+import com.google.devtools.ksp.symbol.KSPropertySetter
+import com.google.devtools.ksp.symbol.KSReferenceElement
+import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSTypeAlias
+import com.google.devtools.ksp.symbol.KSTypeArgument
+import com.google.devtools.ksp.symbol.KSTypeParameter
+import com.google.devtools.ksp.symbol.KSTypeReference
+import com.google.devtools.ksp.symbol.KSValueArgument
+import com.google.devtools.ksp.symbol.KSValueParameter
+import com.google.devtools.ksp.symbol.KSVisitor
+import com.google.devtools.ksp.symbol.Modifier
+import com.google.devtools.ksp.validate
+import kotlin.math.floor
 import java.io.OutputStream
 
 fun OutputStream.appendText(str: String) {
@@ -77,22 +109,29 @@ class DeepPrintProcessor(
 
                 functionStringBuilder.append("\n")
                 functionStringBuilder.append("fun ${className}.deepPrint(indent: Int = 0): String {\n")
+                functionStringBuilder.append("val indentA = 4\n")
                 functionStringBuilder.append("return \"\"\"")
 
                 functionStringBuilder.append("\${\" \".repeat(indent)}$className(\n")
                 props.forEach { propertyDeclaration ->
                     val type: KSType = propertyDeclaration.type.resolve()
-                    functionStringBuilder.append("\${\" \".repeat(indent + 4)}${propertyDeclaration} = ")
+                    functionStringBuilder.append("\${\" \".repeat(indent + indentA)}${propertyDeclaration} = ")
                     val propertyAssignment = when (type.declaration.simpleName.asString()) {
                         "String" -> "\"\$${propertyDeclaration}\",\n"
                         "Byte",
                         "Short",
                         "Int",
                         "Long",
-                        "Double",
                         "Boolean" -> "$${propertyDeclaration},\n"
                         "Char" -> "'$${propertyDeclaration}',\n"
-                        "Float" -> "\${${propertyDeclaration}}f,\n"
+                        "Double", -> {
+                            importsStringBuilder.append("import com.bradyaiello.deepprint.formatForJS\n")
+                            "\${${(propertyDeclaration)}.formatForJS()},\n"
+                        }
+                        "Float" -> {
+                            importsStringBuilder.append("import com.bradyaiello.deepprint.formatForJS\n")
+                            "\${${(propertyDeclaration)}.formatForJS()}f,\n"
+                        }
                         "List", "Array", "MutableList" -> {
                             importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
                             val ksTypeArg = type.arguments[0]
@@ -106,7 +145,7 @@ class DeepPrintProcessor(
                             }
                             val opening = "$collectionConstructor<${listType}>("
                             val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
-                                "\n\${$propertyDeclaration.map{ it.deepPrint(indent = indent + 8) +\",\\n\"}.reduce {acc, item -> acc + item}}\${\" \".repeat(indent + 4)}),\n"
+                                "\n\${$propertyDeclaration.map{ it.deepPrint(indent = indent + indentA + indentA) +\",\\n\"}.reduce {acc, item -> acc + item}}\${\" \".repeat(indent + indentA)}),\n"
                             } else {
                                 "\${$propertyDeclaration.deepPrintContents()}),\n"
                             }
@@ -123,7 +162,7 @@ class DeepPrintProcessor(
                                     propertyDeclaration.isAnnotationPresent(DeepPrint::class))
                             ) {
                                 importsStringBuilder.append("import $propPackageName.deepPrint\n")
-                                "\n\${${propertyDeclaration}.deepPrint(indent + 8)},\n"
+                                "\n\${${propertyDeclaration}.deepPrint(indent + indentA + indentA)},\n"
                             } else { /* no annotation on property or class */
                                 "\$$propertyDeclaration,\n"
                             }
@@ -133,6 +172,7 @@ class DeepPrintProcessor(
                 }
                 functionStringBuilder.append("\${\" \".repeat(indent)})")
                 functionStringBuilder.append("\"\"\"\n}")
+                functionStringBuilder.append("\n")
             }
 
             return packageStringBuilder.toString() +

@@ -1,0 +1,73 @@
+import de.fayard.refreshVersions.core.versionFor
+
+repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
+}
+
+plugins {
+    kotlin("multiplatform")
+    id("com.google.devtools.ksp")
+    id("io.gitlab.arturbosch.detekt")
+}
+
+val kspVersion = versionFor("plugin.com.google.devtools.ksp")
+
+kotlin {
+    jvm()
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    // Only Legacy working for now
+    js(LEGACY) {
+        browser()
+        nodejs()
+    }
+    macosArm64()
+    macosX64()
+    //watchos()
+    //mingwX64()
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(project(":annotations"))
+                implementation(project(":external-module"))
+            }
+            kotlin.srcDir("$buildDir/generated/ksp/metadata/commonMain/kotlin")
+
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+            kotlin.srcDir("$buildDir/generated/ksp/metadata/commonTest/kotlin")
+        }
+//        val jvmMain by getting {
+//            dependencies {
+//
+//            }
+//            kotlin.srcDirs(file("$buildDir/generated/ksp/jvm/kotlin"))
+//        }
+//        val jvmTest by getting {
+//            dependencies {
+//                implementation(Testing.Junit.jupiter)
+//            }
+//            kotlin.srcDirs(file("$buildDir/generated/ksp/jvmTest/kotlin"))
+//        }
+    }
+}
+
+// https://github.com/evant/kotlin-inject/issues/193#issuecomment-1112930931
+tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
+    if (name != "kspCommonMainKotlinMetadata") {
+        dependsOn("kspCommonMainKotlinMetadata")
+    }
+    kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
+}
+
+dependencies {
+    add("kspCommonMainMetadata", project(":deep-print-processor"))
+//    add("kspJvm", project(":deep-print-processor"))
+//    add("kspJvmTest", project(":deep-print-processor"))
+}
