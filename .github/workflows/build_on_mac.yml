@@ -1,4 +1,4 @@
-name: Build Project
+name: Build on Mac
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -21,5 +21,5 @@ jobs:
           distribution: corretto
           java-version: 11
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Test mac-only targets
+        run: ./gradlew iosX64Test macosX64Test

@@ -1,4 +1,4 @@
-name: Test Sample Project
+name: Build on Linux
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       - "**.md"
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,5 +21,5 @@ jobs:
           distribution: corretto
           java-version: 11
 
-      - name: Run tests on the Sample Project
-        run: ./gradlew :test-project:test
+      - name: Test non-mac targets on Linux
+        run: ./gradlew build
