@@ -1,5 +1,3 @@
-import de.fayard.refreshVersions.core.versionFor
-
 repositories {
     google()
     mavenCentral()
@@ -11,8 +9,6 @@ plugins {
     id("com.google.devtools.ksp")
     id("io.gitlab.arturbosch.detekt")
 }
-
-val kspVersion = versionFor("plugin.com.google.devtools.ksp")
 
 kotlin {
     jvm()
@@ -41,7 +37,6 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
             }
-            kotlin.srcDir("$buildDir/generated/ksp/metadata/commonTest/kotlin")
         }
     }
 }
