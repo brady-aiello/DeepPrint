@@ -94,3 +94,7 @@ data class UsingUnannotatedDataClassFromExternalModule(
     val externalDataClass: ExternalDataClass,
     val id: String
 )
+
+data class SomeExternalClass(val name: String, val age: Int)
+
+data class MyClass(val externalClass: SomeExternalClass)

@@ -43,18 +43,6 @@ kotlin {
             }
             kotlin.srcDir("$buildDir/generated/ksp/metadata/commonTest/kotlin")
         }
-//        val jvmMain by getting {
-//            dependencies {
-//
-//            }
-//            kotlin.srcDirs(file("$buildDir/generated/ksp/jvm/kotlin"))
-//        }
-//        val jvmTest by getting {
-//            dependencies {
-//                implementation(Testing.Junit.jupiter)
-//            }
-//            kotlin.srcDirs(file("$buildDir/generated/ksp/jvmTest/kotlin"))
-//        }
     }
 }
 
@@ -66,8 +54,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
     kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
 }
 
+ksp {
+    arg("indent", "2")
+}
+
 dependencies {
     add("kspCommonMainMetadata", project(":deep-print-processor"))
-//    add("kspJvm", project(":deep-print-processor"))
-//    add("kspJvmTest", project(":deep-print-processor"))
 }

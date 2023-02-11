@@ -22,15 +22,15 @@ class BasicTest {
     fun primitives()    {
         val expected = """
             AllTypes(
-                aString = "Hello",
-                aChar = 'A',
-                anInt = 0,
-                aByte = -1,
-                aShort = 2,
-                aLong = 1000,
-                aBoolean = true,
-                aFloat = 1234.0f,
-                aDouble = 56789.0,
+              aString = "Hello",
+              aChar = 'A',
+              anInt = 0,
+              aByte = -1,
+              aShort = 2,
+              aLong = 1000,
+              aBoolean = true,
+              aFloat = 1234.0f,
+              aDouble = 56789.0,
             )
         """.trimIndent()
         val actual = allTypes.deepPrint()
@@ -41,9 +41,9 @@ class BasicTest {
     fun simpleClass() {
         val expected = """
             SampleClass(
-                x = 0.5f,
-                y = 2.6f,
-                name = "A point",
+              x = 0.5f,
+              y = 2.6f,
+              name = "A point",
             )
         """.trimIndent()
 
@@ -55,13 +55,13 @@ class BasicTest {
     fun annotatedClassWithAnnotatedProperty() {
         val expected = """
             SamplePersonClass(
-                name = "Dave",
-                sampleClass = 
-                    SampleClass(
-                        x = 0.5f,
-                        y = 2.6f,
-                        name = "A point",
-                    ),
+              name = "Dave",
+              sampleClass = 
+                SampleClass(
+                  x = 0.5f,
+                  y = 2.6f,
+                  name = "A point",
+                ),
             )
         """.trimIndent()
 
@@ -73,23 +73,23 @@ class BasicTest {
     fun threeAnnotatedClassesDeepTwoAnnotatedClassesWide() {
         val expected = """
             ThreeClassesDeep3(
-                age = 55,
-                person = 
-                    SamplePersonClass(
-                        name = "Dave",
-                        sampleClass = 
-                            SampleClass(
-                                x = 0.5f,
-                                y = 2.6f,
-                                name = "A point",
-                            ),
-                    ),
-                sampleClass = 
+              age = 55,
+              person = 
+                SamplePersonClass(
+                  name = "Dave",
+                  sampleClass = 
                     SampleClass(
-                        x = 0.5f,
-                        y = 2.6f,
-                        name = "A point",
+                      x = 0.5f,
+                      y = 2.6f,
+                      name = "A point",
                     ),
+                ),
+              sampleClass = 
+                SampleClass(
+                  x = 0.5f,
+                  y = 2.6f,
+                  name = "A point",
+                ),
             )
         """.trimIndent()
 
@@ -101,32 +101,32 @@ class BasicTest {
     fun deepPrintableIntList() {
         val expected = """
             WithAList(
-                name = "some list",
-                items = listOf<Int>( 0, 1, 2, 3, 4,),
+              name = "some list",
+              items = listOf<Int>( 0, 1, 2, 3, 4,),
             )
         """.trimIndent()
         val actual = withAList.deepPrint()
         assertEquals(expected, actual)
     }
 
-    @Test
-    fun deepPrintableIntMutableList() {
-        val expected = """
-            WithAMutableList(
-                name = "some list",
-                items = mutableListOf<Int>( 0, 1, 2, 3, 4,),
-            )
-        """.trimIndent()
-        val actual = withAMutableList.deepPrint()
-        assertEquals(expected, actual)
-    }
+   @Test
+   fun deepPrintableIntMutableList() {
+       val expected = """
+           WithAMutableList(
+             name = "some list",
+             items = mutableListOf<Int>( 0, 1, 2, 3, 4,),
+           )
+       """.trimIndent()
+       val actual = withAMutableList.deepPrint()
+       assertEquals(expected, actual)
+   }
 
     @Test
     fun deepPrintableIntArray() {
         val expected = """
             WithAnArray(
-                name = "some list",
-                items = arrayOf<Int>( 0, 1, 2, 3, 4,),
+              name = "some list",
+              items = arrayOf<Int>( 0, 1, 2, 3, 4,),
             )
         """.trimIndent()
         val actual = withAnArray.deepPrint()
@@ -137,27 +137,27 @@ class BasicTest {
     fun deepPrintableList() {
         val expected = """
             WithDeepPrintableList(
-                name = "a name",
-                surfers = listOf<Surfer>(
-                    Surfer(
-                        name = "Honolua Blomfield",
-                        surfboard = 
-                            Surfboard(
-                                length = 11.5f,
-                                width = 2.0f,
-                                style = "longboard",
-                            ),
-                    ),
-                    Surfer(
-                        name = "Kelly Slater",
-                        surfboard = 
-                            Surfboard(
-                                length = 5.9f,
-                                width = 1.8f,
-                                style = "shortboard",
-                            ),
+              name = "a name",
+              surfers = listOf<Surfer>(
+                Surfer(
+                  name = "Honolua Blomfield",
+                  surfboard = 
+                    Surfboard(
+                      length = 11.5f,
+                      width = 2.0f,
+                      style = "longboard",
                     ),
                 ),
+                Surfer(
+                  name = "Kelly Slater",
+                  surfboard = 
+                    Surfboard(
+                      length = 5.9f,
+                      width = 1.8f,
+                      style = "shortboard",
+                    ),
+                ),
+              ),
             )
         """.trimIndent()
 
@@ -169,27 +169,27 @@ class BasicTest {
     fun deepPrintableMutableList() {
         val expected = """
             WithDeepPrintableMutableList(
-                name = "a name",
-                surfers = mutableListOf<Surfer>(
-                    Surfer(
-                        name = "Honolua Blomfield",
-                        surfboard = 
-                            Surfboard(
-                                length = 11.5f,
-                                width = 2.0f,
-                                style = "longboard",
-                            ),
-                    ),
-                    Surfer(
-                        name = "Kelly Slater",
-                        surfboard = 
-                            Surfboard(
-                                length = 5.9f,
-                                width = 1.8f,
-                                style = "shortboard",
-                            ),
+              name = "a name",
+              surfers = mutableListOf<Surfer>(
+                Surfer(
+                  name = "Honolua Blomfield",
+                  surfboard = 
+                    Surfboard(
+                      length = 11.5f,
+                      width = 2.0f,
+                      style = "longboard",
                     ),
                 ),
+                Surfer(
+                  name = "Kelly Slater",
+                  surfboard = 
+                    Surfboard(
+                      length = 5.9f,
+                      width = 1.8f,
+                      style = "shortboard",
+                    ),
+                ),
+              ),
             )
         """.trimIndent()
 
@@ -201,27 +201,27 @@ class BasicTest {
     fun deepPrintableArray() {
         val expected = """
             WithDeepPrintableArray(
-                name = "a name",
-                surfers = arrayOf<Surfer>(
-                    Surfer(
-                        name = "Honolua Blomfield",
-                        surfboard = 
-                            Surfboard(
-                                length = 11.5f,
-                                width = 2.0f,
-                                style = "longboard",
-                            ),
-                    ),
-                    Surfer(
-                        name = "Kelly Slater",
-                        surfboard = 
-                            Surfboard(
-                                length = 5.9f,
-                                width = 1.8f,
-                                style = "shortboard",
-                            ),
+              name = "a name",
+              surfers = arrayOf<Surfer>(
+                Surfer(
+                  name = "Honolua Blomfield",
+                  surfboard = 
+                    Surfboard(
+                      length = 11.5f,
+                      width = 2.0f,
+                      style = "longboard",
                     ),
                 ),
+                Surfer(
+                  name = "Kelly Slater",
+                  surfboard = 
+                    Surfboard(
+                      length = 5.9f,
+                      width = 1.8f,
+                      style = "shortboard",
+                    ),
+                ),
+              ),
             )
         """.trimIndent()
 
@@ -237,9 +237,9 @@ class BasicTest {
         // In this case, fall back to the usual toString() method.
         val expected = """
             ThreeDimLine(
-                start = ThreeDimCoordinate(x=0.7, y=32.5, z=92.1, label=Point A),
-                end = ThreeDimCoordinate(x=99.2, y=154.7, z=23.3, label=Point B),
-                lineLabel = "A -> B",
+              start = ThreeDimCoordinate(x=0.7, y=32.5, z=92.1, label=Point A),
+              end = ThreeDimCoordinate(x=99.2, y=154.7, z=23.3, label=Point B),
+              lineLabel = "A -> B",
             )
         """.trimIndent()
 
@@ -251,11 +251,11 @@ class BasicTest {
     fun annotatedProperty() {
         val expected = """
             WithAnnotatedProperty(
-                label = "some label",
-                name = 
-                    Name(
-                        name = "some name",
-                    ),
+              label = "some label",
+              name = 
+                Name(
+                  name = "some name",
+                ),
             )
         """.trimIndent()
         val actual = withAnnotatedProperty.deepPrint()
