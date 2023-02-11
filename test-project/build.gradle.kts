@@ -34,7 +34,7 @@ tasks.test {
 }
 
 dependencies {
-    implementation(project(":annotations"))
+    implementation(project(":deep-print-annotations"))
     implementation(project(":deep-print-processor"))
     ksp(project(":deep-print-processor"))
     implementation(project(":external-module"))
