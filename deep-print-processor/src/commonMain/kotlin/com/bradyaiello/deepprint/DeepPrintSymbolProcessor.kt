@@ -37,7 +37,6 @@ import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.KSVisitor
 import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
-import kotlin.math.floor
 import java.io.OutputStream
 
 fun OutputStream.appendText(str: String) {
@@ -46,6 +45,7 @@ fun OutputStream.appendText(str: String) {
 
 class DeepPrintProcessor(
     val codeGenerator: CodeGenerator,
+    val indent: Int = 4
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
@@ -109,7 +109,7 @@ class DeepPrintProcessor(
 
                 functionStringBuilder.append("\n")
                 functionStringBuilder.append("fun ${className}.deepPrint(indent: Int = 0): String {\n")
-                functionStringBuilder.append("val indentA = 4\n")
+                functionStringBuilder.append("val indentA = $indent\n")
                 functionStringBuilder.append("return \"\"\"")
 
                 functionStringBuilder.append("\${\" \".repeat(indent)}$className(\n")
@@ -225,7 +225,6 @@ class DeepPrintProcessor(
         override fun visitValueParameter(valueParameter: KSValueParameter, data: Unit) = ""
         override fun visitDefNonNullReference(reference: KSDefNonNullReference, data: Unit) = ""
     }
-
 
     fun isPrimitive(type: KSType): Boolean {
         return (type.declaration.simpleName.asString() in
