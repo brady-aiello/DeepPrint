@@ -6,11 +6,11 @@
 1. Data classes are easier to read in logs, as they now look like pretty JSON.
 2. Creating a replica object just involves copying and pasting.
 
-Don't print this in your logs:
+Don't print with the default `toString()` like this in your logs:
 ```kotlin
-
+ThreeClassesDeep3(age=55, person=SamplePersonClass(name=Dave, sampleClass=SampleClass(x=0.5, y=2.6, name=A point)), sampleClass=SampleClass(x=0.5, y=2.6, name=A point))
 ```
-Print this:
+Use `deepPrint()` to print this instead:
 ```kotlin
 ThreeClassesDeep3(
   age = 55,
@@ -32,14 +32,12 @@ ThreeClassesDeep3(
     ),
 )
 ```
-
 ## Simple Example
 For a simple example, we'll use a small class `SampleClass`:
 ```kotlin
 data class SampleClass(val x: Float, val y: Float, val name: String)
 ```
 Calling `sampleClass.toString()` results in:
-
 ```text
 SampleClass(x=0.5, y=2.6, name=A point)
 ``` 
@@ -100,9 +98,7 @@ data class SamplePersonClass(val name: String, val sampleClass: SampleClass)
 @DeepPrint
 data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 ```
-
 ## Current Limitations
-
 - DeepPrint only works on `data class`es.
 - For the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
 - If an annotated data class has a property of a non-annotated class, the property's value is printed with a standard `toString()`.
