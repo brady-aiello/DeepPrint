@@ -27,7 +27,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":annotations"))
+                implementation(project(":deep-print-annotations"))
                 implementation(project(":external-module"))
             }
             kotlin.srcDir("$buildDir/generated/ksp/metadata/commonMain/kotlin")
