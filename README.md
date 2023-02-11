@@ -1,10 +1,37 @@
 # DeepPrint
-## A utility for printing kotlin data classes with the same syntax as their primary constructor. 
+## A utility for printing kotlin data classes with the same syntax as their primary constructor, using [ksp](https://github.com/google/ksp.) 
 
-Benefits:
+## Benefits:
 
 1. Data classes are easier to read in logs, as they now look like pretty JSON.
 2. Creating a replica object just involves copying and pasting.
+
+Don't print this in your logs:
+```kotlin
+
+```
+Print this:
+```kotlin
+ThreeClassesDeep3(
+  age = 55,
+  person = 
+    SamplePersonClass(
+      name = "Dave",
+      sampleClass = 
+        SampleClass(
+          x = 0.5f,
+          y = 2.6f,
+          name = "A point",
+        ),
+    ),
+  sampleClass = 
+    SampleClass(
+      x = 0.5f,
+      y = 2.6f,
+      name = "A point",
+    ),
+)
+```
 
 ## Simple Example
 For a simple example, we'll use a small class `SampleClass`:
@@ -83,6 +110,24 @@ data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 
 ## Quick Start
 
+### Add KSP
+You can reference the [KSP quickstart docs](https://kotlinlang.org/docs/ksp-quickstart.html#use-your-own-processor-in-a-project) for this, or check out the sample projects, [test-project](./test-project/src/test/kotlin/com/bradyaiello/deepprint/BasicTest.kt)
+and [test-project-multiplatform](./test-project-multiplatform/src/commonTest/kotlin/com/bradyaiello/deepprint/BasicTest.kt)
+
+1. Let Gradle know where it can find the KSP Gradle plugin in `settings.gradle.kts`:
+```kotlin
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+```
+2. And tell it which version you want in `build.gradle.kts`:
+```kotlin
+plugins {
+    id("com.google.devtools.ksp") version "1.8.0-1.0.8"
+}
+```
 ### Single Platform
 1. Apply the KSP Plugin in `build.gradle.kts`
 ```kotlin
@@ -172,7 +217,6 @@ ksp {
 ## Consume as a Dependency?
 For now, you will need to clone the project to try it out.
 I will try to publish this as soon as I can.
-
 ## Thanks
 Thank you Pavlo Stavytskyi for the sample KSP project and its accompanying article.
 https://github.com/Morfly/ksp-sample
