@@ -52,24 +52,11 @@ class DeepPrintProcessor(
         if (!symbols.iterator().hasNext()) return emptyList()
         symbols.forEach { declaration ->
             val packageName = declaration.containingFile?.packageName?.asString()
-            val fileName: String? = when(declaration) {
-                is KSClassDeclaration -> {
-                    declaration.simpleName.asString()
-                }
-                is KSPropertyDeclaration -> {
-                    declaration.simpleName.asString()
-                }
-                else -> {null}
-            }
-
+            val fileName: String? = getFileName(declaration)
 
             if (packageName != null && fileName != null) {
                 val fullFileName = "DeepPrint${fileName}"
-                if (codeGenerator.generatedFile.any { it.path.contains(fullFileName) }) {
-                    codeGenerator.generatedFile.forEach { generatedFile ->
-                        generatedFile.delete()
-                    }
-                }
+                conditionallyDeleteDuplicates(fullFileName)
                 val file = codeGenerator.createNewFile(
                     dependencies = Dependencies(false),
                     packageName = packageName,
@@ -83,6 +70,23 @@ class DeepPrintProcessor(
         return symbols.filterNot { it.validate() }.toList()
     }
 
+    private fun conditionallyDeleteDuplicates(fullFileName: String) {
+        if (codeGenerator.generatedFile.any { it.path.contains(fullFileName) }) {
+            codeGenerator.generatedFile.forEach { generatedFile ->
+                generatedFile.delete()
+            }
+        }
+    }
+
+    private fun getFileName(declaration: KSAnnotated): String? { 
+        return when (declaration) {
+            is KSClassDeclaration ->  declaration.simpleName.asString()
+            is KSPropertyDeclaration -> declaration.simpleName.asString() 
+            else -> null
+        }
+    }
+
+    @Suppress("TooManyFunctions")
     inner class DataClassVisitor
      : KSVisitor<Unit, String> {
         @OptIn(KspExperimental::class)
@@ -118,11 +122,7 @@ class DeepPrintProcessor(
                     functionStringBuilder.append("\${\" \".repeat(indent + indentA)}${propertyDeclaration} = ")
                     val propertyAssignment = when (type.declaration.simpleName.asString()) {
                         "String" -> "\"\$${propertyDeclaration}\",\n"
-                        "Byte",
-                        "Short",
-                        "Int",
-                        "Long",
-                        "Boolean" -> "$${propertyDeclaration},\n"
+                        "Byte", "Short", "Int", "Long", "Boolean" -> "$${propertyDeclaration},\n"
                         "Char" -> "'$${propertyDeclaration}',\n"
                         "Double", -> {
                             importsStringBuilder.append("import com.bradyaiello.deepprint.formatForJS\n")
@@ -133,39 +133,11 @@ class DeepPrintProcessor(
                             "\${${(propertyDeclaration)}.formatForJS()}f,\n"
                         }
                         "List", "Array", "MutableList" -> {
-                            importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
-                            val ksTypeArg = type.arguments[0]
-                            val listType = ksTypeArg.type!!
-                            val paramHasDeepPrintAnnotation =
-                                ksTypeArg.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
-                            val collectionConstructor = when (type.declaration.simpleName.asString()) {
-                                "MutableList" -> "mutableListOf"
-                                "List" -> "listOf"
-                                else -> "arrayOf"
-                            }
-                            val opening = "$collectionConstructor<${listType}>("
-                            val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
-                                "\n\${$propertyDeclaration.map{ it.deepPrint(indent = indent + indentA + indentA) +\",\\n\"}.reduce {acc, item -> acc + item}}\${\" \".repeat(indent + indentA)}),\n"
-                            } else {
-                                "\${$propertyDeclaration.deepPrintContents()}),\n"
-                            }
-                            opening + itemsPrint
+                            processCollection(importsStringBuilder, type, propertyDeclaration)
                         }
-
+                        // Property assignment is an annotated data class (can deep print), or not (cannot deep print)
                         else -> {
-                            val propClassDeclaration = type.declaration as? KSClassDeclaration
-                            val propPackage = propClassDeclaration!!.packageName
-                            val propPackageName = propPackage.asString()
-                            // TODO(Support properties that are data classes, and outside of the module)
-                            if (propClassDeclaration.isDataClass() &&
-                                (propClassDeclaration.isAnnotationPresent(DeepPrint::class) ||
-                                    propertyDeclaration.isAnnotationPresent(DeepPrint::class))
-                            ) {
-                                importsStringBuilder.append("import $propPackageName.deepPrint\n")
-                                "\n\${${propertyDeclaration}.deepPrint(indent + indentA + indentA)},\n"
-                            } else { /* no annotation on property or class */
-                                "\$$propertyDeclaration,\n"
-                            }
+                            processAnnotatedDataClassOrNotSupported(type, propertyDeclaration, importsStringBuilder)
                         }
                     }
                     functionStringBuilder.append(propertyAssignment)
@@ -180,6 +152,59 @@ class DeepPrintProcessor(
                     functionStringBuilder.toString()
         }
 
+        @OptIn(KspExperimental::class)
+        private fun processAnnotatedDataClassOrNotSupported(
+            type: KSType,
+            propertyDeclaration: KSPropertyDeclaration,
+            importsStringBuilder: StringBuilder
+        ): String {
+            val propClassDeclaration = type.declaration as? KSClassDeclaration
+            val propPackage = propClassDeclaration!!.packageName
+            val propPackageName = propPackage.asString()
+            // TODO(Support properties defined outside of the module)
+            return if (propClassDeclaration.isDataClass() &&
+                (propClassDeclaration.isAnnotationPresent(DeepPrint::class) ||
+                        propertyDeclaration.isAnnotationPresent(DeepPrint::class))
+            ) {
+                importsStringBuilder.append("import $propPackageName.deepPrint\n")
+                "\n\${${propertyDeclaration}.deepPrint(indent + indentA + indentA)},\n"
+            } else { /* no annotation on property or class */
+                "\$$propertyDeclaration,\n"
+            }
+        }
+
+        /**
+         * Processes collection types List, MutableList, Array
+         * Returns the expression as {listOf(), mutableListOf(), 
+         * or arrayOf() function calls.
+         */
+        @OptIn(KspExperimental::class)
+        private fun processCollection(
+            importsStringBuilder: StringBuilder,
+            type: KSType,
+            propertyDeclaration: KSPropertyDeclaration
+        ): String {
+            importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
+            val ksTypeArg = type.arguments[0]
+            val listType = ksTypeArg.type!!
+            val paramHasDeepPrintAnnotation =
+                ksTypeArg.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
+            val collectionConstructor = when (type.declaration.simpleName.asString()) {
+                "MutableList" -> "mutableListOf"
+                "List" -> "listOf"
+                else -> "arrayOf"
+            }
+            val opening = "$collectionConstructor<${listType}>("
+            val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
+                "\n\${$propertyDeclaration.map{ it.deepPrint(indent = " +
+                        "indent + indentA + indentA) +\",\\n\"}" +
+                        ".reduce {acc, item -> acc + item}}\${\" \".repeat(indent + indentA)}),\n"
+            } else {
+                "\${$propertyDeclaration.deepPrintContents()}),\n"
+            }
+            return opening + itemsPrint
+        }
+        
         private fun KSClassDeclaration.isDataClass() = modifiers.contains(Modifier.DATA)
         override fun visitAnnotated(annotated: KSAnnotated, data: Unit) = ""
         override fun visitAnnotation(annotation: KSAnnotation, data: Unit) = ""
@@ -225,21 +250,6 @@ class DeepPrintProcessor(
         override fun visitValueParameter(valueParameter: KSValueParameter, data: Unit) = ""
         override fun visitDefNonNullReference(reference: KSDefNonNullReference, data: Unit) = ""
     }
-
-    fun isPrimitive(type: KSType): Boolean {
-        return (type.declaration.simpleName.asString() in
-            listOf(
-                "String",
-                "Byte",
-                "Short",
-                "Int",
-                "Long",
-                "Double",
-                "Boolean",
-                "Char",
-                "Float"
-            )
-        )
-    }
+    
  }
 
