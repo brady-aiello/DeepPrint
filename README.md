@@ -7,7 +7,7 @@
 2. Creating a replica object just involves copying and pasting.
 
 Don't print with the default `toString()` like this in your logs:
-```kotlin
+```
 ThreeClassesDeep3(age=55, person=SamplePersonClass(name=Dave, sampleClass=SampleClass(x=0.5, y=2.6, name=A point)), sampleClass=SampleClass(x=0.5, y=2.6, name=A point))
 ```
 Use `deepPrint()` to print this instead:
