@@ -107,8 +107,8 @@ data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 ## Quick Start
 
 ### Add KSP
-You can reference the [KSP quickstart docs](https://kotlinlang.org/docs/ksp-quickstart.html#use-your-own-processor-in-a-project) for this, or check out the sample projects, [test-project](./test-project/src/test/kotlin/com/bradyaiello/deepprint/BasicTest.kt)
-and [test-project-multiplatform](./test-project-multiplatform/src/commonTest/kotlin/com/bradyaiello/deepprint/BasicTest.kt)
+You can reference the [KSP quickstart docs](https://kotlinlang.org/docs/ksp-quickstart.html#use-your-own-processor-in-a-project) for this, or check out the sample projects, [test-project](./test-project/build.gradle.kts)
+and [test-project-multiplatform](./test-project-multiplatform/build.gradle.kts)
 
 1. Let Gradle know where it can find the KSP Gradle plugin in `settings.gradle.kts`:
 ```kotlin
