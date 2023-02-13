@@ -1,5 +1,3 @@
-import AndroidX.browser
-
 repositories {
     google()
     mavenCentral()
@@ -8,7 +6,7 @@ repositories {
 plugins {
     kotlin("multiplatform")
     id("io.gitlab.arturbosch.detekt")
-    id("convention.publication")
+    id("kmp.convention.publication")
 }
 
 kotlin{
@@ -28,4 +26,4 @@ kotlin{
 }
 
 group = "com.bradyaiello.deepprint"
-version = "0.1.0"
+version = "0.1.0-SNAPSHOT"

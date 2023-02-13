@@ -17,7 +17,7 @@ ext["ossrhUsername"] = null
 ext["ossrhPassword"] = null
 
 // Grabbing secrets from local.properties file or from environment variables, which could be used on CI
-val secretPropsFile = project.rootProject.file("local.properties")
+val secretPropsFile: File = project.rootProject.file("local.properties")
 if (secretPropsFile.exists()) {
     secretPropsFile.reader().use {
         Properties().apply {
@@ -54,7 +54,7 @@ publishing {
     }
 
     // Configure all publications
-    publications.withType<MavenPublication> {
+    publications.create<MavenPublication>("maven") {
         // Stub javadoc.jar artifact
         artifact(javadocJar.get())
 
@@ -85,6 +85,11 @@ publishing {
 }
 
 // Signing artifacts. Signing.* extra properties values will be used
-signing {
-    sign(publishing.publications)
+getExtraString("signing.keyId")?.let { keyId ->
+    signing {
+        getExtraString("signing.secretKey")?.let { secretKey ->
+            useInMemoryPgpKeys(keyId, secretKey, getExtraString("signing.password"))
+        }
+        sign(publishing.publications)
+    }
 }

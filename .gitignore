@@ -28,4 +28,5 @@ hs_err_pid*
 **/build/
 
 local.properties
-private_key_ring.txt
+*.gpg
+
