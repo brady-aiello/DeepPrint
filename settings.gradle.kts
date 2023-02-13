@@ -20,5 +20,7 @@ include(
     ":deep-print-processor",
     ":test-project",
     ":test-project-multiplatform",
-    ":external-module"
+    ":external-module",
 )
+
+includeBuild("convention-plugins")

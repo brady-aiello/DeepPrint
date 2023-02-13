@@ -26,3 +26,6 @@ hs_err_pid*
 .gradle/
 .idea/
 **/build/
+
+local.properties
+private_key_ring.txt

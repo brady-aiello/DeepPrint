@@ -1,3 +1,5 @@
+import AndroidX.browser
+
 repositories {
     google()
     mavenCentral()
@@ -6,7 +8,7 @@ repositories {
 plugins {
     kotlin("multiplatform")
     id("io.gitlab.arturbosch.detekt")
-    `maven-publish`
+    id("convention.publication")
 }
 
 kotlin{
