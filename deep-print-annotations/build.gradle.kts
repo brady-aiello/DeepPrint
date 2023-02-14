@@ -26,4 +26,4 @@ kotlin{
 }
 
 group = "com.bradyaiello.deepprint"
-version = "0.1.0-SNAPSHOT"
+version = properties["version"]!!
