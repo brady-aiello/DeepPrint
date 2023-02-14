@@ -98,17 +98,12 @@ data class SamplePersonClass(val name: String, val sampleClass: SampleClass)
 @DeepPrint
 data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 ```
-## Current Limitations
-- DeepPrint only works on `data class`es.
-- For the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
-- If an annotated data class has a property of a non-annotated class, the property's value is printed with a standard `toString()`.
-- DeepPrint supports `List`, `MutableList`, and `Array` but does not support all collections yet.
-
 ## Quick Start
 
 ### Add KSP
-You can reference the [KSP quickstart docs](https://kotlinlang.org/docs/ksp-quickstart.html#use-your-own-processor-in-a-project) for this, or check out the sample projects, [test-project](./test-project/build.gradle.kts)
-and [test-project-multiplatform](./test-project-multiplatform/build.gradle.kts)
+You can reference the [KSP quickstart docs](https://kotlinlang.org/docs/ksp-quickstart.html#use-your-own-processor-in-a-project) for this, or check out the sample projects:
+[test-project](./test-project/build.gradle.kts) is for Kotlin for the JVM
+and [test-project-multiplatform](./test-project-multiplatform/build.gradle.kts) tests all targets DeepPrint supports.
 
 1. Let Gradle know where it can find the KSP Gradle plugin in `settings.gradle.kts`:
 ```kotlin
@@ -128,20 +123,19 @@ plugins {
 1. Apply the KSP Plugin in `build.gradle.kts`
 ```kotlin
 plugins {
-    kotlin("jvm") // or other platform
+    kotlin("jvm") // or another platform
     id("com.google.devtools.ksp")
 }
 ```
 2. Add the dependencies
 ```kotlin
-// These will change after publishing
 dependencies {
     // @DeepPrint annotation and a few helper functions
-    implementation(project(":annotations"))
+    implementation(project("com.bradyaiello.deepprint:deep-print-annotations:0.1.0-alpha"))
     // Where all the DeepPrint code generation logic resides
-    implementation(project(":deep-print-processor"))
+    implementation("com.bradyaiello.deepprint:deep-print-processor:0.1.0-alpha")
     // Apply the KSP plugin to the processor
-    ksp(project(":deep-print-processor"))
+    ksp(implementation("com.bradyaiello.deepprint:deep-print-processor:0.1.0-alpha"))
 }
 ```
 3. Tell Gradle where to find the KSP-generated code.
@@ -180,7 +174,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":annotations"))
+                implementation("com.bradyaiello.deepprint:deep-print-annotations:0.1.0-alpha")
             }
             kotlin.srcDir("$buildDir/generated/ksp/metadata/commonMain/kotlin")
         }
@@ -210,9 +204,21 @@ ksp {
     arg("indent", "2")
 }
 ```
-## Consume as a Dependency?
-For now, you will need to clone the project to try it out.
-I will try to publish this as soon as I can.
+## Multiplatform Support 
+This project supports JVM, iOS, macos, linux, windows, NodeJS and JS for the browser.
+Check out [test-project-multiplatform](./test-project-multiplatform) and the docs above for setup.
+The classes for the KMP example are defined in the `commonMain` source set because KSP does not yet support the `commonTest` source set.
+That is not true for single source projects, like [test-project](./test-project).
+
+## Current Limitations
+- DeepPrint only works on `data class`es.
+- KSP [does not support](https://github.com/google/ksp/issues/1056) using the IR Kotlin JS compiler, so we're using Legacy.
+- For the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
+- If an annotated data class has a property of a non-annotated class, the property's value is printed with a standard `toString()`.
+- DeepPrint supports `List`, `MutableList`, and `Array` but does not support all collections yet.
+- In KMP projects, KSP [does not yet support](https://github.com/google/ksp/issues/567) generating code from the `commonTest` source set. 
+Hence, test classes for the KMP test project are in `commonMain`.
+
 ## Thanks
 Thank you Pavlo Stavytskyi for the sample KSP project and its accompanying article.
 https://github.com/Morfly/ksp-sample
