@@ -15,15 +15,17 @@ kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    // Only Legacy working for now
+    // Only Legacy working with KSP for now
     js(LEGACY) {
         browser()
         nodejs()
     }
     macosArm64()
     macosX64()
-    //watchos()
-    //mingwX64()
+    watchos()
+    mingwX64()
+    linuxX64()
+    linuxArm64()
     sourceSets {
         val commonMain by getting {
             dependencies {

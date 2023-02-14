@@ -6,7 +6,7 @@ repositories {
 plugins {
     kotlin("multiplatform")
     id("io.gitlab.arturbosch.detekt")
-    `maven-publish`
+    id("kmp.convention.publication")
 }
 
 kotlin{
@@ -14,16 +14,18 @@ kotlin{
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    // Only Legacy working for now
+    // Only Legacy working with KSP for now
     js(LEGACY) {
         browser()
         nodejs()
     }
     macosArm64()
     macosX64()
-    //watchos()
-    //mingwX64()
+    watchos()
+    mingwX64()
+    linuxX64()
+    linuxArm64()
 }
 
 group = "com.bradyaiello.deepprint"
-version = "0.1.0"
+version = properties["version"]!!

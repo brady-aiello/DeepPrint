@@ -1,9 +1,14 @@
 import de.fayard.refreshVersions.core.versionFor
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 plugins {
     kotlin("jvm")
     id("io.gitlab.arturbosch.detekt")
-    `maven-publish`
+    id("jvm.convention.publication")
 }
 
 val kspVersion = versionFor("plugin.com.google.devtools.ksp")
@@ -15,4 +20,5 @@ dependencies {
 }
 
 group = "com.bradyaiello.deepprint"
-version = "0.1.0"
+version = properties["version"]!!
+
