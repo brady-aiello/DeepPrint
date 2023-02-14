@@ -1,4 +1,4 @@
-name: Build on Mac
+name: Test Windows Target
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -21,5 +21,5 @@ jobs:
           distribution: corretto
           java-version: 11
 
-      - name: Test mac-only targets
-        run: ./gradlew iosX64Test macosX64Test
+      - name: Test windows-only targets
+        run: ./gradlew mingwX64Test

@@ -1,4 +1,4 @@
-name: Build on Linux
+name: Test Apple Targets
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -21,5 +21,5 @@ jobs:
           distribution: corretto
           java-version: 11
 
-      - name: Test non-mac targets on Linux
-        run: ./gradlew build
+      - name: Test Apple targets
+        run: ./gradlew iosX64Test macosX64Test watchosX64Test
