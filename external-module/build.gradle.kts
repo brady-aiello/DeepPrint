@@ -16,13 +16,13 @@ kotlin {
     jvm()
     ios()
     iosSimulatorArm64()
-    // Only Legacy working for now
+    // Only Legacy working with KSP for now
     js(LEGACY) {
         browser()
         nodejs()
     }
     macosArm64()
     macosX64()
-    //watchos()
-    //mingwX64()
+    watchos()
+    mingwX64()
 }
