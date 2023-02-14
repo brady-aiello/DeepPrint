@@ -24,6 +24,8 @@ kotlin {
     macosX64()
     watchos()
     mingwX64()
+    linuxX64()
+    linuxArm64()
     sourceSets {
         val commonMain by getting {
             dependencies {

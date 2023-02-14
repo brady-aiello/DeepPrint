@@ -1,4 +1,4 @@
-name: Test JVM and JS
+name: Test JVM, JS, and Linux
 
 on:
   workflow_dispatch:
@@ -21,5 +21,5 @@ jobs:
           distribution: corretto
           java-version: 11
 
-      - name: Test jvm and js(node + browser) on Linux
-        run: ./gradlew jvmTest jsTest
+      - name: Test jvm, js(node + browser), linux on Linux
+        run: ./gradlew jvmTest jsTest linuxX64Test

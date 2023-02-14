@@ -23,6 +23,8 @@ kotlin{
     macosX64()
     watchos()
     mingwX64()
+    linuxX64()
+    linuxArm64()
 }
 
 group = "com.bradyaiello.deepprint"
