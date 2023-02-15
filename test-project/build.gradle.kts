@@ -39,5 +39,4 @@ dependencies {
     ksp(project(":deep-print-processor"))
     implementation(project(":external-module"))
     testImplementation(Testing.Junit.jupiter)
-    testImplementation(KotlinX.datetime)
 }
