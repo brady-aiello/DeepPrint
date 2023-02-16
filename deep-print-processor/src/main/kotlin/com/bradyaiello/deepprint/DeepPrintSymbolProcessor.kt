@@ -1,3 +1,5 @@
+@file:OptIn(KspExperimental::class, KspExperimental::class)
+
 package com.bradyaiello.deepprint
 
 import com.google.devtools.ksp.KspExperimental
@@ -106,6 +108,7 @@ class DeepPrintProcessor(
         ): String {
             val packageStringBuilder = StringBuilder()
             val importsStringBuilder = StringBuilder()
+            importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrint\n")
             val functionStringBuilder = StringBuilder()
 
             if (classDeclaration.isDataClass()) {
@@ -121,21 +124,13 @@ class DeepPrintProcessor(
                     val type: KSType = propertyDeclaration.type.resolve()
                     functionStringBuilder.append("\${\" \".repeat(indent + indentA)}${propertyDeclaration} = ")
                     val propertyAssignment = when (type.declaration.simpleName.asString()) {
-                        "String" -> "\"\$${propertyDeclaration}\",\n"
-                        "Byte", "Short", "Int", "Long", "Boolean" -> "$${propertyDeclaration},\n"
-                        "Char" -> "'$${propertyDeclaration}',\n"
-                        "Double", -> {
-                            importsStringBuilder.append("import com.bradyaiello.deepprint.formatForJS\n")
-                            "\${${(propertyDeclaration)}.formatForJS()},\n"
-                        }
-                        "Float" -> {
-                            importsStringBuilder.append("import com.bradyaiello.deepprint.formatForJS\n")
-                            "\${${(propertyDeclaration)}.formatForJS()}f,\n"
-                        }
+                        "String", "Byte", "Short", "Int", "Long", "Boolean", "Char",
+                        "Double", "Float" -> "\${${propertyDeclaration}.deepPrint()},\n"
                         "List", "Array", "MutableList" -> {
-                            processCollection(importsStringBuilder, type, propertyDeclaration)
+                            processList(importsStringBuilder, type, propertyDeclaration)
                         }
-                        // Property assignment is an annotated data class (can deep print), or not (cannot deep print)
+                        // Property assignment is an annotated data class (can deep print), 
+                        // or not (cannot deep print)
                         else -> {
                             processAnnotatedDataClassOrNotSupported(type, propertyDeclaration, importsStringBuilder)
                         }
@@ -179,7 +174,7 @@ class DeepPrintProcessor(
          * or arrayOf() function calls.
          */
         @OptIn(KspExperimental::class)
-        private fun processCollection(
+        private fun processList(
             importsStringBuilder: StringBuilder,
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration
@@ -189,12 +184,12 @@ class DeepPrintProcessor(
             val listType = ksTypeArg.type!!
             val paramHasDeepPrintAnnotation =
                 ksTypeArg.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
-            val collectionConstructor = when (type.declaration.simpleName.asString()) {
+            val listConstructor = when (type.declaration.simpleName.asString()) {
                 "MutableList" -> "mutableListOf"
                 "List" -> "listOf"
                 else -> "arrayOf"
             }
-            val opening = "$collectionConstructor<${listType}>("
+            val opening = "$listConstructor<${listType}>("
             val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
                 "\n\${$propertyDeclaration.map{ it.deepPrint(indent = " +
                         "indent + indentA + indentA) +\",\\n\"}" +
