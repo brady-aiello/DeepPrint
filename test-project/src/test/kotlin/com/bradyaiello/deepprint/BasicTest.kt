@@ -3,10 +3,12 @@ package com.bradyaiello.deepprint
 import com.bradyaiello.deepprint.testclasses.deepPrint
 import com.bradyaiello.deepprint.testobjects.allTypes
 import com.bradyaiello.deepprint.testobjects.person
+import com.bradyaiello.deepprint.testobjects.primitivesMap
 import com.bradyaiello.deepprint.testobjects.sample
 import com.bradyaiello.deepprint.testobjects.threeDeep2Wide
 import com.bradyaiello.deepprint.testobjects.threeDimLine
 import com.bradyaiello.deepprint.testobjects.withAList
+import com.bradyaiello.deepprint.testobjects.withAMap
 import com.bradyaiello.deepprint.testobjects.withAMutableList
 import com.bradyaiello.deepprint.testobjects.withAnArray
 import com.bradyaiello.deepprint.testobjects.withAnnotatedProperty
@@ -259,6 +261,37 @@ class BasicTest {
             )
         """.trimIndent()
         val actual = withAnnotatedProperty.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun mapStandalonePrimitives() {
+        val expected = """
+            mapOf(
+                1 to "Hi",
+                2 to "By",
+                3 to "Aloha",
+            )
+        """.trimIndent()
+        val actual = primitivesMap.deepPrint({it.deepPrint()}, {it.deepPrint()})
+        println(actual)
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun withAMapPrimitives() {
+        val expected = """
+            WithAMap(
+                id = 123,
+                someMap = mapOf<Int,String>(
+                    1 to "Hi",
+                    2 to "By",
+                    3 to "Aloha",
+                ),
+            )
+        """.trimIndent()
+        val actual = withAMap.deepPrint()
+        println(actual)
         assertEquals(expected, actual)
     }
 

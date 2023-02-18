@@ -1,4 +1,6 @@
 package com.bradyaiello.deepprint.testobjects
+
+import com.bradyaiello.deepprint.DeepPrint
 import com.bradyaiello.deepprint.testclasses.AllTypes
 import com.bradyaiello.deepprint.testclasses.Name
 import com.bradyaiello.deepprint.testclasses.SampleClass
@@ -11,6 +13,7 @@ import com.bradyaiello.deepprint.testclasses.ThreeDimCoordinate
 import com.bradyaiello.deepprint.testclasses.ThreeDimLine
 import com.bradyaiello.deepprint.testclasses.Weather
 import com.bradyaiello.deepprint.testclasses.WithAList
+import com.bradyaiello.deepprint.testclasses.WithAMap
 import com.bradyaiello.deepprint.testclasses.WithAMutableList
 import com.bradyaiello.deepprint.testclasses.WithAnArray
 import com.bradyaiello.deepprint.testclasses.WithAnnotatedProperty
@@ -94,6 +97,10 @@ val withAnArray = WithAnArray(
     name = "some list",
     items = arrayOf<Int>(0, 1, 2, 3, 4)
 )
+
+val primitivesMap = mapOf(1 to "Hi", 2 to "By", 3 to "Aloha")
+
+val withAMap = WithAMap(123, primitivesMap)
 
 val withDeepPrintableList = WithDeepPrintableList("a name", listOf(surfer, surfer2))
 

@@ -11,12 +11,10 @@ fun <T>deepPrintPrimitive(value: T): String {
         is Int,
         is Long,
         is Double,
-        is Boolean -> "${value}"
+        is Boolean -> "$value"
         is Char -> "'${value}'"
         is Float -> "${value.formatForJS()}f"
-        else -> {
-            "$value"
-        }
+        else -> "$value"
     }
 }
 
@@ -37,6 +35,30 @@ fun Boolean.deepPrint(): String = toString()
 fun Char.deepPrint(): String = "'${this}'"
 
 fun Float.deepPrint(): String = "${this.formatForJS()}f"
+
+fun Int.indent(): String = " ".repeat(this)
+
+fun <K, V> Map<K, V>.deepPrint(
+    keyTransform: (K) -> String,
+    valueTransform: (V) -> String,
+    indent: Int = 4,
+): String {
+    val indentSpace = " ".repeat(indent)
+    return "mapOf(\n${deepPrintContents({indentSpace + keyTransform(it)},{valueTransform(it)})})"
+}
+
+fun <K, V> Map<K, V>.deepPrintContents(
+    keyTransform: (K) -> String,
+    valueTransform: (V) -> String,
+): String {
+    val stringBuilder = StringBuilder()
+    entries.forEach { (key, value) ->
+        val keyString = keyTransform(key)
+        val valueString = valueTransform(value)
+        stringBuilder.append("$keyString to $valueString,\n")
+    }
+    return stringBuilder.toString()
+}
 
 fun <T> List<T>.deepPrintContents(): String {
     val stringBuilder = StringBuilder()
