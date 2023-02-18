@@ -83,6 +83,12 @@ data class WithDeepPrintableArray(
 )
 
 @DeepPrint
+data class WithAMap(
+    val id: Long,
+    val someMap: Map<Int, String>
+)
+
+@DeepPrint
 data class WithAnnotatedProperty(
     val label: String,
     @property:DeepPrint

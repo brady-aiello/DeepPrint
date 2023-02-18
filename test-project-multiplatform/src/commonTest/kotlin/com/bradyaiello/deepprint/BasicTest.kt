@@ -3,10 +3,12 @@ package com.bradyaiello.deepprint
 import com.bradyaiello.deepprint.testclasses.deepPrint
 import com.bradyaiello.deepprint.testobjects.allTypes
 import com.bradyaiello.deepprint.testobjects.person
+import com.bradyaiello.deepprint.testobjects.primitivesMap
 import com.bradyaiello.deepprint.testobjects.sample
 import com.bradyaiello.deepprint.testobjects.threeDeep2Wide
 import com.bradyaiello.deepprint.testobjects.threeDimLine
 import com.bradyaiello.deepprint.testobjects.withAList
+import com.bradyaiello.deepprint.testobjects.withAMap
 import com.bradyaiello.deepprint.testobjects.withAMutableList
 import com.bradyaiello.deepprint.testobjects.withAnArray
 import com.bradyaiello.deepprint.testobjects.withAnnotatedProperty
@@ -19,7 +21,7 @@ import kotlin.test.assertEquals
 class BasicTest {
 
     @Test
-    fun primitives()    {
+    fun primitives() {
         val expected = """
             AllTypes(
               aString = "Hello",
@@ -109,17 +111,17 @@ class BasicTest {
         assertEquals(expected, actual)
     }
 
-   @Test
-   fun deepPrintableIntMutableList() {
-       val expected = """
-           WithAMutableList(
-             name = "some list",
-             items = mutableListOf<Int>( 0, 1, 2, 3, 4,),
-           )
-       """.trimIndent()
-       val actual = withAMutableList.deepPrint()
-       assertEquals(expected, actual)
-   }
+    @Test
+    fun deepPrintableIntMutableList() {
+        val expected = """
+            WithAMutableList(
+              name = "some list",
+              items = mutableListOf<Int>( 0, 1, 2, 3, 4,),
+            )
+        """.trimIndent()
+        val actual = withAMutableList.deepPrint()
+        assertEquals(expected, actual)
+    }
 
     @Test
     fun deepPrintableIntArray() {
@@ -262,11 +264,41 @@ class BasicTest {
         assertEquals(expected, actual)
     }
 
-/*  TODO(finish this test when external data classes supported)
     @Test
-    fun externalDataClass() {
-        val actual = usingUnannotatedDataClassFromExternalModule.deepPrint()
+    fun mapStandalonePrimitives() {
+        val expected = """
+            mapOf(
+              1 to "Hi",
+              2 to "By",
+              3 to "Aloha",
+            )
+        """.trimIndent()
+        val actual = primitivesMap.deepPrint( { it.deepPrint() }, { it.deepPrint() }, indent = 2)
         println(actual)
-    }*/
+        assertEquals(expected, actual)
+    }
 
+    @Test
+    fun withAMapPrimitives() {
+        val expected = """
+            WithAMap(
+              id = 123,
+              someMap = mapOf<Int,String>(
+                1 to "Hi",
+                2 to "By",
+                3 to "Aloha",
+              ),
+            )
+        """.trimIndent()
+        val actual = withAMap.deepPrint()
+        println(actual)
+        assertEquals(expected, actual)
+    }
+
+    /*  TODO(finish this test when external data classes supported)
+        @Test
+        fun externalDataClass() {
+            val actual = usingUnannotatedDataClassFromExternalModule.deepPrint()
+            println(actual)
+        }*/
 }

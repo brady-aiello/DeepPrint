@@ -5,12 +5,6 @@ import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 import com.module.external.ExternalDataClass
 
-// These test classes are in the commonMain source set because
-// commonTest is not supported for ksp. Individual targets work.
-// They're generated in target specific tasks kspIosX64Test,
-// kspJvmTest, etc. But there is no `kspCommonTestMetadata` task
-// for common test code.
-
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
 
@@ -27,6 +21,7 @@ data class ThreeDimCoordinate(
     val z: Float,
     val label: String
 )
+
 data class Name(val name: String)
 
 @DeepPrint
@@ -89,6 +84,12 @@ data class WithDeepPrintableArray(
 )
 
 @DeepPrint
+data class WithAMap(
+    val id: Long,
+    val someMap: Map<Int, String>
+)
+
+@DeepPrint
 data class WithAnnotatedProperty(
     val label: String,
     @property:DeepPrint
@@ -100,3 +101,7 @@ data class UsingUnannotatedDataClassFromExternalModule(
     val externalDataClass: ExternalDataClass,
     val id: String
 )
+
+data class SomeExternalClass(val name: String, val age: Int)
+
+data class MyClass(val externalClass: SomeExternalClass)

@@ -1,4 +1,4 @@
-@file:OptIn(KspExperimental::class, KspExperimental::class)
+@file:OptIn(KspExperimental::class, KspExperimental::class, KspExperimental::class)
 
 package com.bradyaiello.deepprint
 
@@ -109,6 +109,7 @@ class DeepPrintProcessor(
             val packageStringBuilder = StringBuilder()
             val importsStringBuilder = StringBuilder()
             importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrint\n")
+            importsStringBuilder.append("import com.bradyaiello.deepprint.indent\n")
             val functionStringBuilder = StringBuilder()
 
             if (classDeclaration.isDataClass()) {
@@ -129,6 +130,9 @@ class DeepPrintProcessor(
                         "List", "Array", "MutableList" -> {
                             processList(importsStringBuilder, type, propertyDeclaration)
                         }
+                        "Map", "MutableMap" -> {
+                            processMap(importsStringBuilder, type, propertyDeclaration)
+                        }
                         // Property assignment is an annotated data class (can deep print), 
                         // or not (cannot deep print)
                         else -> {
@@ -137,7 +141,8 @@ class DeepPrintProcessor(
                     }
                     functionStringBuilder.append(propertyAssignment)
                 }
-                functionStringBuilder.append("\${\" \".repeat(indent)})")
+                functionStringBuilder.append("\${indent.indent()})")
+                //functionStringBuilder.append("\${\" \".repeat(indent)})")
                 functionStringBuilder.append("\"\"\"\n}")
                 functionStringBuilder.append("\n")
             }
@@ -166,6 +171,26 @@ class DeepPrintProcessor(
             } else { /* no annotation on property or class */
                 "\$$propertyDeclaration,\n"
             }
+        }
+
+        private fun processMap(
+            importsStringBuilder: StringBuilder,
+            type: KSType,
+            propertyDeclaration: KSPropertyDeclaration
+        ): String {
+            importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
+            val ksKeyTypeRef: KSTypeReference = type.arguments[0].type!!
+            val ksValueTypeRef: KSTypeReference = type.arguments[1].type!!
+            val mapConstructor = when (type.declaration.simpleName.asString()) {
+                "Map" -> "mapOf"
+                else  -> "mutableMapOf"
+            }
+            val opening = "$mapConstructor<$ksKeyTypeRef,$ksValueTypeRef>(\n"
+
+            // myMap.deepPrintContents({ it.deepPrint() }, { it.deepPrint() }
+            val entriesPrint =  "\${${propertyDeclaration}.deepPrintContents({(indent + 2 * indentA).indent() + " +
+                    "it.deepPrint() }, { it.deepPrint()})}\${(indent + indentA).indent()}),\n"
+            return opening + entriesPrint
         }
 
         /**
