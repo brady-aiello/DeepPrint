@@ -291,7 +291,6 @@ class BasicTest {
             )
         """.trimIndent()
         val actual = withAMap.deepPrint()
-        println(actual)
         assertEquals(expected, actual)
     }
 
