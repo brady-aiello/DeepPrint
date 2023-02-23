@@ -18,23 +18,23 @@ fun <T>deepPrintPrimitive(value: T): String {
     }
 }
 
-fun String.deepPrint(): String = "\"$this\""
+fun String.deepPrint(indent: Int = 0): String = "${indent.indent()}\"$this\""
 
-fun Byte.deepPrint(): String = toString()
+fun Byte.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
 
-fun Short.deepPrint(): String = toString()
+fun Short.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
 
-fun Int.deepPrint(): String = toString()
+fun Int.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
 
-fun Long.deepPrint(): String = toString()
+fun Long.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
 
-fun Double.deepPrint(): String = formatForJS()
+fun Double.deepPrint(indent: Int = 0): String = "${indent.indent()}${formatForJS()}"
 
-fun Boolean.deepPrint(): String = toString()
+fun Boolean.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
 
-fun Char.deepPrint(): String = "'${this}'"
+fun Char.deepPrint(indent: Int = 0): String = "${indent.indent()}'${this}'"
 
-fun Float.deepPrint(): String = "${this.formatForJS()}f"
+fun Float.deepPrint(indent: Int = 0): String = "${indent.indent()}${formatForJS()}f"
 
 fun Int.indent(): String = " ".repeat(this)
 

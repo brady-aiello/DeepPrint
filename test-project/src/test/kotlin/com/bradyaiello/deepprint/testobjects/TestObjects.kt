@@ -1,5 +1,4 @@
 package com.bradyaiello.deepprint.testobjects
-import com.bradyaiello.deepprint.DeepPrint
 import com.bradyaiello.deepprint.testclasses.AllTypes
 import com.bradyaiello.deepprint.testclasses.Name
 import com.bradyaiello.deepprint.testclasses.SampleClass
@@ -19,6 +18,7 @@ import com.bradyaiello.deepprint.testclasses.WithAnnotatedProperty
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableArray
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
+import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 
@@ -101,6 +101,13 @@ val primitivesMap = mapOf(1 to "Hi", 2 to "By", 3 to "Aloha")
 
 val withAMap = WithAMap(123, primitivesMap)
 
+val classesMap = mapOf(1 to surfer, 2 to surfer2)
+
+val withAMapDataClasses = WithMapDataClasses(
+    id = 204,
+    someMap = classesMap
+)
+
 val withDeepPrintableList = WithDeepPrintableList("a name", listOf(surfer, surfer2))
 
 val withDeepPrintableMutableList = WithDeepPrintableMutableList("a name", mutableListOf(surfer, surfer2))
@@ -122,3 +129,4 @@ val usingUnannotatedDataClassFromExternalModule = UsingUnannotatedDataClassFromE
     id = "985270457834522"
 )
 */
+

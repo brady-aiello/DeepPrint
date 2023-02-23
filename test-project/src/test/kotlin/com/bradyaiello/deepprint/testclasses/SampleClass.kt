@@ -89,6 +89,12 @@ data class WithAMap(
 )
 
 @DeepPrint
+data class WithMapDataClasses(
+    val id: Long,
+    val someMap: Map<Int, Surfer>
+)
+
+@DeepPrint
 data class WithAnnotatedProperty(
     val label: String,
     @property:DeepPrint

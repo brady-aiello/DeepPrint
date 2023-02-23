@@ -1,4 +1,4 @@
-@file:OptIn(KspExperimental::class, KspExperimental::class, KspExperimental::class)
+@file:OptIn(KspExperimental::class)
 
 package com.bradyaiello.deepprint
 
@@ -37,7 +37,6 @@ import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.KSVisitor
-import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.symbol.Modifier.DATA
 import com.google.devtools.ksp.validate
 import java.io.OutputStream
@@ -50,6 +49,11 @@ class DeepPrintProcessor(
     val codeGenerator: CodeGenerator,
     val indent: Int = 4
 ) : SymbolProcessor {
+
+    companion object {
+        private const val DATACLASS_MAP_VAL_INDENT_MULTIPLIER = 3
+        private const val PRIMITIVE_MAP_VAL_INDENT_MUTILPLIER = 2
+    }
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
         if (!symbols.iterator().hasNext()) return emptyList()
@@ -92,6 +96,7 @@ class DeepPrintProcessor(
     @Suppress("TooManyFunctions")
     inner class DataClassVisitor
      : KSVisitor<Unit, String> {
+        
         @OptIn(KspExperimental::class)
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit): String {
             val packageName = classDeclaration.containingFile!!.packageName.asString()
@@ -181,15 +186,23 @@ class DeepPrintProcessor(
             importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
             val ksKeyTypeRef: KSTypeReference = type.arguments[0].type!!
             val ksValueTypeRef: KSTypeReference = type.arguments[1].type!!
+            val valueDecl = ksValueTypeRef.resolve().declaration
             val mapConstructor = when (type.declaration.simpleName.asString()) {
                 "Map" -> "mapOf"
                 else  -> "mutableMapOf"
             }
             val opening = "$mapConstructor<$ksKeyTypeRef,$ksValueTypeRef>(\n"
-            val valueTransform = if (ksValueTypeRef.isDataClass()) "it.deepPrint(currentIndent + 2 * indentWidth)" 
+
+            val indentMultiplier = if (valueDecl.isDeepPrintAnnotatedDataClass()) 
+                DATACLASS_MAP_VAL_INDENT_MULTIPLIER 
+            else PRIMITIVE_MAP_VAL_INDENT_MUTILPLIER
+            
+            val valueTransform = if (valueDecl.isDeepPrintAnnotatedDataClass()) 
+                "\"\\n\" + it.deepPrint(currentIndent + $indentMultiplier * indentWidth)" 
                 else "it.deepPrint()"
-            val entriesPrint =  "\${${propertyDeclaration}.deepPrintContents({(currentIndent + 2 * indentWidth).indent() + " +
-                    "it.deepPrint() }, { $valueTransform })}\${(currentIndent + indentWidth).indent()}),\n"
+            val entriesPrint =  "\${${propertyDeclaration}.deepPrintContents(\nkeyTransform = " +
+                    "{(currentIndent + 2 * indentWidth).indent() + it.deepPrint() },\n" +
+                    "valueTransform = { $valueTransform })}\${(currentIndent + indentWidth).indent()}),\n"
             return opening + entriesPrint
         }
 
@@ -224,9 +237,18 @@ class DeepPrintProcessor(
             }
             return opening + itemsPrint
         }
+
+        private fun KSDeclaration.isDeepPrintAnnotatedDataClass(): Boolean {
+            return isDataClass() && isAnnotationPresent(DeepPrint::class)
+        }
         
-        private fun KSClassDeclaration.isDataClass() = modifiers.contains(Modifier.DATA)
-        private fun KSTypeReference.isDataClass() = modifiers.contains(Modifier.DATA)
+//        private fun KSClassDeclaration.isDeepPrintAnnotatedDataClass(): Boolean {
+//            return isDataClass() && isAnnotationPresent(DeepPrint::class) 
+//        }
+        
+        private fun KSDeclaration.isDataClass() = modifiers.contains(DATA)
+        private fun KSClassDeclaration.isDataClass() = modifiers.contains(DATA)
+        private fun KSTypeReference.isDataClass() = modifiers.contains(DATA)
 
         override fun visitAnnotated(annotated: KSAnnotated, data: Unit) = ""
         override fun visitAnnotation(annotation: KSAnnotation, data: Unit) = ""

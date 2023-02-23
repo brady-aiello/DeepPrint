@@ -9,6 +9,7 @@ import com.bradyaiello.deepprint.testobjects.threeDeep2Wide
 import com.bradyaiello.deepprint.testobjects.threeDimLine
 import com.bradyaiello.deepprint.testobjects.withAList
 import com.bradyaiello.deepprint.testobjects.withAMap
+import com.bradyaiello.deepprint.testobjects.withAMapDataClasses
 import com.bradyaiello.deepprint.testobjects.withAMutableList
 import com.bradyaiello.deepprint.testobjects.withAnArray
 import com.bradyaiello.deepprint.testobjects.withAnnotatedProperty
@@ -292,6 +293,40 @@ class BasicTest {
         """.trimIndent()
         val actual = withAMap.deepPrint()
         assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun withAMapWithDataClasses() {
+        val expected = """
+            WithMapDataClasses(
+                id = 204,
+                someMap = mapOf<Int,Surfer>(
+                    1 to 
+                        Surfer(
+                            name = "Honolua Blomfield",
+                            surfboard = 
+                                Surfboard(
+                                    length = 11.5f,
+                                    width = 2.0f,
+                                    style = "longboard",
+                                ),
+                        ),
+                    2 to 
+                        Surfer(
+                            name = "Kelly Slater",
+                            surfboard = 
+                                Surfboard(
+                                    length = 5.9f,
+                                    width = 1.8f,
+                                    style = "shortboard",
+                                ),
+                        ),
+                ),
+            )
+        """.trimIndent()
+        val actual = withAMapDataClasses.deepPrint()
+        assertEquals(expected, actual)
+        println(actual)
     }
 
 /*  TODO(finish this test when external data classes supported)
