@@ -14,12 +14,14 @@ import com.bradyaiello.deepprint.testclasses.Weather
 import com.bradyaiello.deepprint.testclasses.WithAList
 import com.bradyaiello.deepprint.testclasses.WithAMap
 import com.bradyaiello.deepprint.testclasses.WithAMutableList
+import com.bradyaiello.deepprint.testclasses.WithAMutableMap
 import com.bradyaiello.deepprint.testclasses.WithAnArray
 import com.bradyaiello.deepprint.testclasses.WithAnnotatedProperty
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableArray
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
 import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
+import com.bradyaiello.deepprint.testclasses.WithMutableMapDataClasses
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 
@@ -99,14 +101,22 @@ val withAnArray = WithAnArray(
 )
 
 val primitivesMap = mapOf(1 to "Hi", 2 to "By", 3 to "Aloha")
+val primitivesMutableMap = mutableMapOf(1 to "Hi", 2 to "By", 3 to "Aloha")
 
 val withAMap = WithAMap(123, primitivesMap)
+val withAMutableMap = WithAMutableMap(123, primitivesMutableMap)
 
 val classesMap = mapOf(1 to surfer, 2 to surfer2)
+val classesMutableMap = mutableMapOf(1 to surfer, 2 to surfer2)
 
 val withAMapDataClasses = WithMapDataClasses(
     id = 204,
     someMap = classesMap
+)
+
+val withAMutableMapDataClasses = WithMutableMapDataClasses(
+    id = 204,
+    someMutableMap = classesMutableMap
 )
 
 val withDeepPrintableList = WithDeepPrintableList("a name", listOf(surfer, surfer2))

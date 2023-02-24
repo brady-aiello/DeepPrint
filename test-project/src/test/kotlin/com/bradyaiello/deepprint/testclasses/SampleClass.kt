@@ -89,9 +89,21 @@ data class WithAMap(
 )
 
 @DeepPrint
+data class WithAMutableMap(
+    val id: Long,
+    val someMutableMap: MutableMap<Int, String>
+)
+
+@DeepPrint
 data class WithMapDataClasses(
     val id: Long,
     val someMap: Map<Int, Surfer>
+)
+
+@DeepPrint
+data class WithMutableMapDataClasses(
+    val id: Long,
+    val someMutableMap: MutableMap<Int, Surfer>
 )
 
 @DeepPrint
