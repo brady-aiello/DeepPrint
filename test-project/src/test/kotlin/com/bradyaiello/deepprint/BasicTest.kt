@@ -9,14 +9,17 @@ import com.bradyaiello.deepprint.testobjects.threeDeep2Wide
 import com.bradyaiello.deepprint.testobjects.threeDimLine
 import com.bradyaiello.deepprint.testobjects.withAList
 import com.bradyaiello.deepprint.testobjects.withAMap
+import com.bradyaiello.deepprint.testobjects.withAMapDataClasses
 import com.bradyaiello.deepprint.testobjects.withAMutableList
+import com.bradyaiello.deepprint.testobjects.withAMutableMap
+import com.bradyaiello.deepprint.testobjects.withAMutableMapDataClasses
 import com.bradyaiello.deepprint.testobjects.withAnArray
 import com.bradyaiello.deepprint.testobjects.withAnnotatedProperty
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableArray
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableList
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableMutableList
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class BasicTest {
 
@@ -274,7 +277,6 @@ class BasicTest {
             )
         """.trimIndent()
         val actual = primitivesMap.deepPrint({it.deepPrint()}, {it.deepPrint()})
-        println(actual)
         assertEquals(expected, actual)
     }
     
@@ -291,14 +293,94 @@ class BasicTest {
             )
         """.trimIndent()
         val actual = withAMap.deepPrint()
-        println(actual)
+        assertEquals(expected, actual)
+    }
+    
+    @Test
+    fun withAMapWithDataClasses() {
+        val expected = """
+            WithMapDataClasses(
+                id = 204,
+                someMap = mapOf<Int,Surfer>(
+                    1 to 
+                        Surfer(
+                            name = "Honolua Blomfield",
+                            surfboard = 
+                                Surfboard(
+                                    length = 11.5f,
+                                    width = 2.0f,
+                                    style = "longboard",
+                                ),
+                        ),
+                    2 to 
+                        Surfer(
+                            name = "Kelly Slater",
+                            surfboard = 
+                                Surfboard(
+                                    length = 5.9f,
+                                    width = 1.8f,
+                                    style = "shortboard",
+                                ),
+                        ),
+                ),
+            )
+        """.trimIndent()
+        val actual = withAMapDataClasses.deepPrint()
         assertEquals(expected, actual)
     }
 
-/*  TODO(finish this test when external data classes supported)
     @Test
-    fun externalDataClass() {
-        val actual = usingUnannotatedDataClassFromExternalModule.deepPrint()
-        println(actual)
-    }*/
+    fun withAMutableMapPrimitives() {
+        val expected = """
+            WithAMutableMap(
+                id = 123,
+                someMutableMap = mutableMapOf<Int,String>(
+                    1 to "Hi",
+                    2 to "By",
+                    3 to "Aloha",
+                ),
+            )
+        """.trimIndent()
+        val actual = withAMutableMap.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun withAMutableMapWithDataClasses() {
+        val expected = """
+            WithMutableMapDataClasses(
+                id = 204,
+                someMutableMap = mutableMapOf<Int,Surfer>(
+                    1 to 
+                        Surfer(
+                            name = "Honolua Blomfield",
+                            surfboard = 
+                                Surfboard(
+                                    length = 11.5f,
+                                    width = 2.0f,
+                                    style = "longboard",
+                                ),
+                        ),
+                    2 to 
+                        Surfer(
+                            name = "Kelly Slater",
+                            surfboard = 
+                                Surfboard(
+                                    length = 5.9f,
+                                    width = 1.8f,
+                                    style = "shortboard",
+                                ),
+                        ),
+                ),
+            )
+        """.trimIndent()
+        val actual = withAMutableMapDataClasses.deepPrint()
+        assertEquals(expected, actual)
+    }
+    /*  TODO(finish this test when external data classes supported)
+        @Test
+        fun externalDataClass() {
+            val actual = usingUnannotatedDataClassFromExternalModule.deepPrint()
+            println(actual)
+        }*/
 }

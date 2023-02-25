@@ -1,4 +1,4 @@
-@file:OptIn(KspExperimental::class, KspExperimental::class, KspExperimental::class)
+@file:OptIn(KspExperimental::class)
 
 package com.bradyaiello.deepprint
 
@@ -37,7 +37,7 @@ import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.KSVisitor
-import com.google.devtools.ksp.symbol.Modifier
+import com.google.devtools.ksp.symbol.Modifier.DATA
 import com.google.devtools.ksp.validate
 import java.io.OutputStream
 
@@ -49,6 +49,11 @@ class DeepPrintProcessor(
     val codeGenerator: CodeGenerator,
     val indent: Int = 4
 ) : SymbolProcessor {
+
+    companion object {
+        private const val DATACLASS_MAP_VAL_INDENT_MULTIPLIER = 3
+        private const val PRIMITIVE_MAP_VAL_INDENT_MUTILPLIER = 2
+    }
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
         if (!symbols.iterator().hasNext()) return emptyList()
@@ -91,6 +96,7 @@ class DeepPrintProcessor(
     @Suppress("TooManyFunctions")
     inner class DataClassVisitor
      : KSVisitor<Unit, String> {
+        
         @OptIn(KspExperimental::class)
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit): String {
             val packageName = classDeclaration.containingFile!!.packageName.asString()
@@ -116,14 +122,14 @@ class DeepPrintProcessor(
                 packageStringBuilder.append("package $packageName\n\n")
 
                 functionStringBuilder.append("\n")
-                functionStringBuilder.append("fun ${className}.deepPrint(indent: Int = 0): String {\n")
-                functionStringBuilder.append("val indentA = $indent\n")
+                functionStringBuilder.append("fun ${className}.deepPrint(currentIndent: Int = 0): String {\n")
+                functionStringBuilder.append("val indentWidth = $indent\n")
                 functionStringBuilder.append("return \"\"\"")
 
-                functionStringBuilder.append("\${\" \".repeat(indent)}$className(\n")
+                functionStringBuilder.append("\${currentIndent.indent()}$className(\n")
                 props.forEach { propertyDeclaration ->
                     val type: KSType = propertyDeclaration.type.resolve()
-                    functionStringBuilder.append("\${\" \".repeat(indent + indentA)}${propertyDeclaration} = ")
+                    functionStringBuilder.append("\${(currentIndent + indentWidth).indent()}${propertyDeclaration} = ")
                     val propertyAssignment = when (type.declaration.simpleName.asString()) {
                         "String", "Byte", "Short", "Int", "Long", "Boolean", "Char",
                         "Double", "Float" -> "\${${propertyDeclaration}.deepPrint()},\n"
@@ -141,8 +147,7 @@ class DeepPrintProcessor(
                     }
                     functionStringBuilder.append(propertyAssignment)
                 }
-                functionStringBuilder.append("\${indent.indent()})")
-                //functionStringBuilder.append("\${\" \".repeat(indent)})")
+                functionStringBuilder.append("\${currentIndent.indent()})")
                 functionStringBuilder.append("\"\"\"\n}")
                 functionStringBuilder.append("\n")
             }
@@ -167,7 +172,7 @@ class DeepPrintProcessor(
                         propertyDeclaration.isAnnotationPresent(DeepPrint::class))
             ) {
                 importsStringBuilder.append("import $propPackageName.deepPrint\n")
-                "\n\${${propertyDeclaration}.deepPrint(indent + indentA + indentA)},\n"
+                "\n\${${propertyDeclaration}.deepPrint(currentIndent + 2 * indentWidth)},\n"
             } else { /* no annotation on property or class */
                 "\$$propertyDeclaration,\n"
             }
@@ -181,15 +186,23 @@ class DeepPrintProcessor(
             importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
             val ksKeyTypeRef: KSTypeReference = type.arguments[0].type!!
             val ksValueTypeRef: KSTypeReference = type.arguments[1].type!!
+            val valueDecl = ksValueTypeRef.resolve().declaration
             val mapConstructor = when (type.declaration.simpleName.asString()) {
                 "Map" -> "mapOf"
                 else  -> "mutableMapOf"
             }
             val opening = "$mapConstructor<$ksKeyTypeRef,$ksValueTypeRef>(\n"
 
-            // myMap.deepPrintContents({ it.deepPrint() }, { it.deepPrint() }
-            val entriesPrint =  "\${${propertyDeclaration}.deepPrintContents({(indent + 2 * indentA).indent() + " +
-                    "it.deepPrint() }, { it.deepPrint()})}\${(indent + indentA).indent()}),\n"
+            val indentMultiplier = if (valueDecl.isDeepPrintAnnotatedDataClass()) 
+                DATACLASS_MAP_VAL_INDENT_MULTIPLIER 
+            else PRIMITIVE_MAP_VAL_INDENT_MUTILPLIER
+            
+            val valueTransform = if (valueDecl.isDeepPrintAnnotatedDataClass()) 
+                "\"\\n\" + it.deepPrint(currentIndent + $indentMultiplier * indentWidth)" 
+                else "it.deepPrint()"
+            val entriesPrint =  "\${${propertyDeclaration}.deepPrintContents(\nkeyTransform = " +
+                    "{(currentIndent + 2 * indentWidth).indent() + it.deepPrint() },\n" +
+                    "valueTransform = { $valueTransform })}\${(currentIndent + indentWidth).indent()}),\n"
             return opening + entriesPrint
         }
 
@@ -216,16 +229,27 @@ class DeepPrintProcessor(
             }
             val opening = "$listConstructor<${listType}>("
             val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
-                "\n\${$propertyDeclaration.map{ it.deepPrint(indent = " +
-                        "indent + indentA + indentA) +\",\\n\"}" +
-                        ".reduce {acc, item -> acc + item}}\${\" \".repeat(indent + indentA)}),\n"
+                "\n\${$propertyDeclaration.map{ it.deepPrint(currentIndent = " +
+                        "currentIndent + 2 * indentWidth) +\",\\n\"}" +
+                        ".reduce {acc, item -> acc + item}}\${(currentIndent + indentWidth).indent()}),\n"
             } else {
                 "\${$propertyDeclaration.deepPrintContents()}),\n"
             }
             return opening + itemsPrint
         }
+
+        private fun KSDeclaration.isDeepPrintAnnotatedDataClass(): Boolean {
+            return isDataClass() && isAnnotationPresent(DeepPrint::class)
+        }
         
-        private fun KSClassDeclaration.isDataClass() = modifiers.contains(Modifier.DATA)
+//        private fun KSClassDeclaration.isDeepPrintAnnotatedDataClass(): Boolean {
+//            return isDataClass() && isAnnotationPresent(DeepPrint::class) 
+//        }
+        
+        private fun KSDeclaration.isDataClass() = modifiers.contains(DATA)
+        private fun KSClassDeclaration.isDataClass() = modifiers.contains(DATA)
+        private fun KSTypeReference.isDataClass() = modifiers.contains(DATA)
+
         override fun visitAnnotated(annotated: KSAnnotated, data: Unit) = ""
         override fun visitAnnotation(annotation: KSAnnotation, data: Unit) = ""
         override fun visitCallableReference(reference: KSCallableReference, data: Unit) = ""
@@ -272,4 +296,3 @@ class DeepPrintProcessor(
     }
     
  }
-

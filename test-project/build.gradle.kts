@@ -29,14 +29,10 @@ kotlin.sourceSets {
     }
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(project(":deep-print-annotations"))
     implementation(project(":deep-print-processor"))
     ksp(project(":deep-print-processor"))
     implementation(project(":external-module"))
-    testImplementation(Testing.Junit.jupiter)
+    testImplementation(kotlin("test"))
 }
