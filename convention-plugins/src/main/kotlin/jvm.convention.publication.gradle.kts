@@ -28,10 +28,10 @@ if (secretPropsFile.exists()) {
     }
 } else {
     ext["signing.keyId"] = System.getenv("SIGNING_KEY_ID")
-    ext["signing.password"] = System.getenv("SIGNING_PASSWORD")
-    ext["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
-    ext["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
-    ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
+    ext["signing.password"] = System.getenv("SIGNING_KEY_PASSWORD")
+    ext["signing.secretKey"] = System.getenv("SIGNING_SECRET_KEY")
+    ext["mavenCentralUsername"] = System.getenv("MAVEN_CENTRAL_USERNAME")
+    ext["mavenCentralPassword"] = System.getenv("MAVEN_CENTRAL_PASSWORD")
 }
 
 val javadocJar by tasks.registering(Jar::class) {
@@ -47,8 +47,8 @@ publishing {
             name = "sonatype"
             setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
-                username = getExtraString("ossrhUsername")
-                password = getExtraString("ossrhPassword")
+                username = getExtraString("mavenCentralUsername")
+                password = getExtraString("mavenCentralPassword")
             }
         }
     }

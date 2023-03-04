@@ -28,10 +28,10 @@ if (secretPropsFile.exists()) {
     }
 } else {
     ext["signing.keyId"] = System.getenv("SIGNING_KEY_ID")
-    ext["signing.password"] = System.getenv("SIGNING_PASSWORD")
-    ext["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
-    ext["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
-    ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
+    ext["signing.password"] = System.getenv("SIGNING_KEY_PASSWORD")
+    ext["signing.secretKey"] = System.getenv("SIGNING_SECRET_KEY")
+    ext["mavenCentralUsername"] = System.getenv("MAVEN_CENTRAL_USERNAME")
+    ext["mavenCentralPassword"] = System.getenv("MAVEN_CENTRAL_PASSWORD")
 }
 
 val javadocJar by tasks.registering(Jar::class) {
@@ -47,8 +47,8 @@ publishing {
             name = "sonatype"
             setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
-                username = getExtraString("ossrhUsername")
-                password = getExtraString("ossrhPassword")
+                username = getExtraString("mavenCentralUsername")
+                password = getExtraString("mavenCentralPassword")
             }
         }
     }
@@ -93,3 +93,33 @@ getExtraString("signing.keyId")?.let { keyId ->
         sign(publishing.publications)
     }
 }
+
+val dependsOnTasks = mutableListOf<String>()
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    dependsOnTasks.add(this.name.replace("publish", "sign")
+        .replaceAfter("Publication", ""))
+    dependsOn(dependsOnTasks)
+}
+/* ^
+Solution provided here:
+https://youtrack.jetbrains.com/issue/KT-46466/Kotlin-MPP-publishing-Gradle-7-disables-optimizations-because-of-task-dependencies#focus=Comments-27-6476492.0-0
+
+Without this, there are some weird publishing errors around implicit dependencies:
+
+> Task :deep-print-annotations:signIosSimulatorArm64Publication FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem was found with the configuration of task ':deep-print-annotations:signIosSimulatorArm64Publication' (type 'Sign').
+  - Gradle detected a problem with the following location: '/Users/bradyaiello/IdeaProjects/DeepPrint/deep-print-annotations/build/libs/deep-print-annotations-0.1.0-alpha-javadoc.jar.asc'.
+
+    Reason: Task ':deep-print-annotations:publishIosArm64PublicationToMavenLocal' uses this output of task ':deep-print-annotations:signIosSimulatorArm64Publication' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+
+    Possible solutions:
+      1. Declare task ':deep-print-annotations:signIosSimulatorArm64Publication' as an input of ':deep-print-annotations:publishIosArm64PublicationToMavenLocal'.
+      2. Declare an explicit dependency on ':deep-print-annotations:signIosSimulatorArm64Publication' from ':deep-print-annotations:publishIosArm64PublicationToMavenLocal' using Task#dependsOn.
+      3. Declare an explicit dependency on ':deep-print-annotations:signIosSimulatorArm64Publication' from ':deep-print-annotations:publishIosArm64PublicationToMavenLocal' using Task#mustRunAfter.
+
+    Please refer to https://docs.gradle.org/8.0/userguide/validation_problems.html#implicit_dependency for more details about this problem.
+ */
