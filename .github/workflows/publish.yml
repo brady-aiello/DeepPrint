@@ -1,0 +1,35 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+  concurrency:
+    group: "release"
+    cancel-in-progress: false
+
+jobs:
+  publish-all:
+    runs-on: macos-12
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: corretto
+          java-version: 11
+          
+      - name: Setup gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Publish the macOS artifacts
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          SIGNING_SECRET_KEY: ${{ secrets.SIGNING_SECRET_KEY }}
+        run: ./gradlew publishAllPublicationsToSonatypeRepository --no-parallel
