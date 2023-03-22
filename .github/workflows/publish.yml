@@ -26,9 +26,9 @@ jobs:
       - name: Cache Konan
         uses: ./.github/actions/cache-konan
 
-      - name: Publish the macOS artifacts
+      - name: Publish all artifacts
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           SIGNING_SECRET_KEY: ${{ secrets.SIGNING_SECRET_KEY }}
-        run: ./gradlew publishAllPublicationsToSonatypeRepository --no-parallel
+        run: ./gradlew build publishAllPublicationsToSonatypeRepository --no-parallel
