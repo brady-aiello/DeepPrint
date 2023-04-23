@@ -24,3 +24,4 @@ include(
 )
 
 includeBuild("convention-plugins")
+include("reflection")
