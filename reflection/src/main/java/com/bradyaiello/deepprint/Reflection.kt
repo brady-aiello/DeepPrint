@@ -8,13 +8,10 @@ fun Any?.deepPrintReflection(
     initialIndentLength: Int = 0,
     indentIncrementLength: Int = 4,
 ) : String {
-    if (this == null) {
+    if (this == null || !this::class.isData) {
         return ""
     }
     val kClass = this::class
-    if (!kClass.isData) {
-        return ""
-    }
     
     val initialIndent = if (initialIndentLength == 0) ""
     else initialIndentLength.indent()
@@ -32,6 +29,25 @@ fun Any?.deepPrintReflection(
         val propValue = this.getPropertyValue(kParam)!!
         if (propValue::class.isPrimitive()) {
             builder.append("$initialIndent$indentIncrement$propName = ${deepPrintPrimitive(propValue)},\n")
+        }  else if (propValue is List<*>) {
+            /*
+                List and MutableList look identical at runtime. 
+                They both are implemented by Java Arraylist.
+                So we must default to using the constructor for mutableListOf(),
+                which works for List and MutableList.
+                https://youtrack.jetbrains.com/issue/KT-23652/Reflection-Classifier-for-MutableListT-same-as-for-ListT
+                https://youtrack.jetbrains.com/issue/KT-11754/Support-special-KClass-instances-for-mutable-collection-interfaces
+             */
+            builder.append(
+                "$initialIndent$indentIncrement$propName = ${
+                    propValue.deepPrintListReflect(
+                        startingIndent = initialIndentLength + indentIncrementLength,
+                        indentSize = indentIncrementLength,
+                        standalone = false,
+                        constructor = "mutableListOf",
+                    )
+                },\n"
+            )
         } else {
             builder.append(
                 propValue.deepPrintReflection(
@@ -73,3 +89,45 @@ fun <T : Any>KClass<T>.isPrimitive(): Boolean {
     }
 }
 
+fun <T> MutableList<T>.deepPrintMutableListReflect(
+    startingIndent: Int = 0,
+    indentSize: Int = 4,
+    standalone: Boolean = true,
+): String {
+    return this.deepPrintListReflect(
+        startingIndent = startingIndent,
+        indentSize = indentSize,
+        constructor = "mutableListOf",
+        standalone = standalone,
+    )
+}
+
+fun <T> List<T>.deepPrintListReflect(
+    startingIndent: Int = 0,
+    indentSize: Int = 4,
+    constructor: String = "listOf",
+    standalone: Boolean = true,
+): String {
+    val stringBuilder = StringBuilder()
+    val start = startingIndent.indent()
+    val indent = indentSize.indent()
+    val prefix = if (standalone) start else " "
+    stringBuilder.append("${prefix}$constructor(\n")
+    val totalIndent = start + indent
+    this.forEach { value ->
+        if (value == null) {
+            stringBuilder.append("${totalIndent}null,\n")
+        } else if (value!!::class.isPrimitive()) {
+            stringBuilder.append("${totalIndent}${deepPrintPrimitive(value)},\n")
+        } else {
+            stringBuilder.append(
+                value.deepPrintReflection(
+                    initialIndentLength = startingIndent + indentSize,
+                    indentIncrementLength = indentSize,
+                ) + "\n"
+            )
+        }
+    }
+    stringBuilder.append("${start})")
+    return stringBuilder.toString()
+}

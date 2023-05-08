@@ -21,7 +21,7 @@ include(
     ":test-project",
     ":test-project-multiplatform",
     ":external-module",
+    "reflection"
 )
 
 includeBuild("convention-plugins")
-include("reflection")

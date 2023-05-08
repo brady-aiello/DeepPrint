@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 group = "com.bradyaiello.deepprint"
