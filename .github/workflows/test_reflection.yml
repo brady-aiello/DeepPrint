@@ -8,9 +8,9 @@ on:
   pull_request:
     paths-ignore:
       - "**.md"
-      - "external-module"
-      - "test-project"
-      - "test-project-multiplatform"
+      - "external-module/**"
+      - "test-project/**"
+      - "test-project-multiplatform/**"
 
 jobs:
   build:
