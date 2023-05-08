@@ -1,4 +1,4 @@
-name: Test Apple Targets
+name: Reflection Test
 
 on:
   workflow_dispatch:
@@ -8,11 +8,13 @@ on:
   pull_request:
     paths-ignore:
       - "**.md"
-      - "reflection"
+      - "external-module"
+      - "test-project"
+      - "test-project-multiplatform"
 
 jobs:
   build:
-    runs-on: macos-12
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
@@ -22,5 +24,5 @@ jobs:
           distribution: corretto
           java-version: 11
 
-      - name: Test Apple targets
-        run: ./gradlew iosX64Test macosX64Test watchosX64Test
+      - name: Test jvm, js(node + browser), linux on Linux
+        run: ./gradlew :reflection:check
