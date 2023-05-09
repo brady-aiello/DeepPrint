@@ -25,4 +25,4 @@ jobs:
           java-version: 11
 
       - name: Test jvm, js(node + browser), linux on Linux
-        run: ./gradlew :reflection:check
+        run: ./gradlew :deep-print-reflection:check
