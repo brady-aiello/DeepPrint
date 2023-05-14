@@ -99,7 +99,7 @@ class ReflectionTest {
                 5,
             )
         """.trimIndent()
-        val actual = myList.deepPrintListReflect()
+        val actual = myList.deepPrintListReflection()
         assertEquals(expected, actual)
     }
 
@@ -137,7 +137,7 @@ class ReflectionTest {
                 5.0f,
             )
         """.trimIndent()
-        val actual = myList.deepPrintListReflect()
+        val actual = myList.deepPrintListReflection()
         assertEquals(expected, actual)
     }
 
@@ -153,7 +153,7 @@ class ReflectionTest {
                 5.0,
             )
         """.trimIndent()
-        val actual = myList.deepPrintListReflect()
+        val actual = myList.deepPrintListReflection()
         assertEquals(expected, actual)
     }
 
@@ -169,7 +169,7 @@ class ReflectionTest {
                 "Hello",
             )
         """.trimIndent()
-        val actual = myList.deepPrintListReflect()
+        val actual = myList.deepPrintListReflection()
         assertEquals(expected, actual)
     }
 
@@ -185,7 +185,7 @@ class ReflectionTest {
                 "Hello",
             )
         """.trimIndent()
-        val actual = myList.deepPrintListReflect()
+        val actual = myList.deepPrintListReflection()
         assertEquals(expected, actual)
     }
     
@@ -209,10 +209,10 @@ class ReflectionTest {
                         name = "Brady",
                         age = 38,
                         Address(
-                            streetAddress = "19 Jolley Way",
-                            city = "Scotts Valley",
+                            streetAddress = "414 Koshland Way",
+                            city = "Santa Cruz",
                             state = "CA",
-                            zipCode = "95066",
+                            zipCode = "95064",
                         ),
                     ),
                     Person(
@@ -260,10 +260,10 @@ class ReflectionTest {
                         name = "Brady",
                         age = 38,
                         Address(
-                            streetAddress = "19 Jolley Way",
-                            city = "Scotts Valley",
+                            streetAddress = "414 Koshland Way",
+                            city = "Santa Cruz",
                             state = "CA",
-                            zipCode = "95066",
+                            zipCode = "95064",
                         ),
                     ),
                     Person(
@@ -292,16 +292,130 @@ class ReflectionTest {
         val actual = listOfDataClasses.deepPrintReflection()
         assertEquals(expected, actual)
     }
+    
+    @Test
+    fun `deep print Map standalone primitives`() {
+        val map = mapOf(
+            1 to "a", 
+            2 to "b", 
+            3 to "c"
+        )
+        val expected = """
+            mapOf(
+                1 to "a",
+                2 to "b",
+                3 to "c",
+            )
+        """.trimIndent()
+        val actual = map.deepPrintMapReflection()
+        assertEquals(expected, actual)
+    }
 
+    @Test
+    fun `deep print MutableMap standalone primitives`() {
+        val mutableMap: MutableMap<Int, String?> = mutableMapOf(
+            1 to "a",
+            2 to "b",
+            3 to "c"
+        )
+        val expected = """
+            mutableMapOf(
+                1 to "a",
+                2 to "b",
+                3 to "c",
+            )
+        """.trimIndent()
+        val actual = mutableMap.deepPrintMutableMapReflection()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `deep print MutableMap standalone data class values`() {
+        val map = listOf(1, 2).zip(createMutableListOfPeople()).toMap().toMutableMap()
+        val expected = """
+            mutableMapOf(
+                1 to
+                    Person(
+                        name = "Brady",
+                        age = 38,
+                        Address(
+                            streetAddress = "414 Koshland Way",
+                            city = "Santa Cruz",
+                            state = "CA",
+                            zipCode = "95064",
+                        ),
+                    ),
+                2 to
+                    Person(
+                        name = "Joe",
+                        age = 80,
+                        Address(
+                            streetAddress = "1600 Pennsylvania Avenue, N.W.",
+                            city = "Washington",
+                            state = "DC",
+                            zipCode = "20500",
+                        ),
+                    ),
+            )
+        """.trimIndent()
+        
+        val actual = map.deepPrintMutableMapReflection()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `deep print Map standalone data class values`() {
+        val dishes = listOf(
+            Dish(
+                name = "Pizza",
+                ingredients = listOf("dough", "tomato sauce", "cheese")
+            ),
+            Dish(
+                name = "Mac n Cheese",
+                ingredients = listOf("mac", "cheese")
+            )
+        )
+        val days = listOf("Monday", "Tuesday")
+        val dayDishMap = days.zip(dishes).toMap().toMutableMap()
+        val expected = """
+            mapOf(
+                "Monday" to
+                    Dish(
+                        name = "Pizza",
+                        ingredients =  mutableListOf(
+                            "dough",
+                            "tomato sauce",
+                            "cheese",
+                        ),
+                    ),
+                "Tuesday" to
+                    Dish(
+                        name = "Mac n Cheese",
+                        ingredients =  mutableListOf(
+                            "mac",
+                            "cheese",
+                        ),
+                    ),
+            )
+        """.trimIndent()
+        val actual = dayDishMap.deepPrintMapReflection()
+        assertEquals(expected, actual)
+    }
+
+    data class Dish(
+        val name: String,
+        val ingredients: List<String>,
+    )
+    
     private fun createMutableListOfPeople(): MutableList<Person> {
         val brady = Person(
             name = "Brady",
             age = 38,
             Address(
-                streetAddress = "19 Jolley Way",
-                city = "Scotts Valley",
+                streetAddress = "414 Koshland Way",
+                city = "Santa Cruz",
                 state = "CA",
-                zipCode = "95066"
+                zipCode = "95064"
             )
         )
         val prez = Person(
