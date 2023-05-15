@@ -7,15 +7,15 @@ import kotlin.reflect.full.memberProperties
 fun Any?.deepPrintReflection(
     initialIndentLength: Int = 0,
     indentIncrementLength: Int = 4,
-) : String {
+): String {
     if (this == null || !this::class.isData) {
         return ""
     }
     val kClass = this::class
-    
+
     val initialIndent = if (initialIndentLength == 0) ""
     else initialIndentLength.indent()
-    
+
     val indentIncrement = indentIncrementLength.indent()
 
     val builder = StringBuilder()
@@ -24,12 +24,12 @@ fun Any?.deepPrintReflection(
     builder.append("$initialIndent$constructorCall")
     val params = constructor.parameters
 
-    params.forEach { kParam -> 
+    params.forEach { kParam ->
         val propName = kParam.name
         val propValue = this.getPropertyValue(kParam)!!
         if (propValue::class.isPrimitive()) {
             builder.append("$initialIndent$indentIncrement$propName = ${deepPrintPrimitive(propValue)},\n")
-        }  else if (propValue is List<*>) {
+        } else if (propValue is List<*>) {
             /*
                 List and MutableList look identical at runtime. 
                 They both are implemented by Java Arraylist.
@@ -40,7 +40,7 @@ fun Any?.deepPrintReflection(
              */
             builder.append(
                 "$initialIndent$indentIncrement$propName = ${
-                    propValue.deepPrintListReflect(
+                    propValue.deepPrintListReflection(
                         startingIndent = initialIndentLength + indentIncrementLength,
                         indentSize = indentIncrementLength,
                         standalone = false,
@@ -48,10 +48,23 @@ fun Any?.deepPrintReflection(
                     )
                 },\n"
             )
-        } else {
+        } else if (propValue is Map<*,*>) {
+            builder.append(
+                "$initialIndent$indentIncrement$propName = ${
+                    propValue.deepPrintMapReflection(
+                        startingIndent = initialIndentLength + indentIncrementLength,
+                        indentSize = indentIncrementLength,
+                        standalone = false,
+                        constructor = "mutableMapOf",
+                    )
+                },\n"
+            )
+        }
+        
+        else {
             builder.append(
                 propValue.deepPrintReflection(
-                    initialIndentLength = initialIndentLength + indentIncrementLength, 
+                    initialIndentLength = initialIndentLength + indentIncrementLength,
                     indentIncrementLength = indentIncrementLength,
                 )
             )
@@ -65,8 +78,6 @@ fun Any?.deepPrintReflection(
     return builder.toString()
 }
 
-
-
 private fun Any.getPropertyValue(kParam: KParameter): Any? {
     return javaClass
         .kotlin
@@ -74,7 +85,7 @@ private fun Any.getPropertyValue(kParam: KParameter): Any? {
         .first { prop -> prop.name == kParam.name }.get(this)
 }
 
-fun <T : Any>KClass<T>.isPrimitive(): Boolean {
+internal fun <T : Any> KClass<T>.isPrimitive(): Boolean {
     return when (this) {
         Byte::class,
         Char::class,
@@ -89,45 +100,17 @@ fun <T : Any>KClass<T>.isPrimitive(): Boolean {
     }
 }
 
-fun <T> MutableList<T>.deepPrintMutableListReflect(
-    startingIndent: Int = 0,
-    indentSize: Int = 4,
-    standalone: Boolean = true,
-): String {
-    return this.deepPrintListReflect(
-        startingIndent = startingIndent,
-        indentSize = indentSize,
-        constructor = "mutableListOf",
-        standalone = standalone,
-    )
-}
-
-fun <T> List<T>.deepPrintListReflect(
-    startingIndent: Int = 0,
-    indentSize: Int = 4,
-    constructor: String = "listOf",
-    standalone: Boolean = true,
-): String {
-    val stringBuilder = StringBuilder()
-    val start = startingIndent.indent()
-    val indent = indentSize.indent()
-    val prefix = if (standalone) start else " "
-    stringBuilder.append("${prefix}$constructor(\n")
-    val totalIndent = start + indent
-    this.forEach { value ->
-        if (value == null) {
-            stringBuilder.append("${totalIndent}null,\n")
-        } else if (value!!::class.isPrimitive()) {
-            stringBuilder.append("${totalIndent}${deepPrintPrimitive(value)},\n")
-        } else {
-            stringBuilder.append(
-                value.deepPrintReflection(
-                    initialIndentLength = startingIndent + indentSize,
-                    indentIncrementLength = indentSize,
-                ) + "\n"
-            )
-        }
+fun Any.isPrimitive(): Boolean {
+    return when (this) {
+        is Byte,
+        is Char,
+        is String,
+        is Boolean,
+        is Short,
+        is Int,
+        is Long,
+        is Float,
+        is Double -> true
+        else -> false
     }
-    stringBuilder.append("${start})")
-    return stringBuilder.toString()
 }

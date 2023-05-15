@@ -8,7 +8,7 @@ on:
   pull_request:
     paths-ignore:
       - "**.md"
-      - "reflection/**"
+      - "deep-print-reflection/**"
 
 jobs:
   build:
