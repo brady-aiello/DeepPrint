@@ -5,58 +5,26 @@ import org.junit.jupiter.api.Test
 
 class ReflectionTest {
     
-    data class Address(
-        val streetAddress: String,
-        val city: String,
-        val state: String,
-        val zipCode: String
-    )
-    
-    data class Person(
-        val name: String,
-        val age: Int,
-        val address: Address,
-    )
-    
-    data class PrimitivesContainer(
-        val boolean: Boolean = true,
-        val short: Short = 5,
-        val byte: Byte = 127,
-        val char: Char = 'a',
-        val int: Int = 42,
-        val float: Float = 26.2f,
-        val double: Double = 26.2,
-        val string: String = "Hello World"
-    )
-    
-    data class MutableListContainer(
-        val someString: String,
-        val numbers: MutableList<Int>
-    )
-
-    data class ListContainer(
-        val someString: String,
-        val numbers: List<Int>
-    )
-    
-    data class WithMutableListOfDataClasses(
-        val id: String,
-        val people: MutableList<Person>,
-        val mutableListContainer: MutableListContainer
-    )
-
-    data class WithListOfDataClasses(
-        val id: String,
-        val people: List<Person>,
-        val listContainer: ListContainer
-    )
-    
     @Test
-    fun primitives() {
+    fun `deep print data class with all primitives and only primitives`() {
         val primitivesContainer = PrimitivesContainer()
+        val expected = """
+            PrimitivesContainer(
+                boolean = true,
+                short = 5,
+                byte = 127,
+                char = 'a',
+                int = 42,
+                float = 26.2f,
+                double = 26.2,
+                string = "Hello World",
+            )
+        """.trimIndent()
         val actual = primitivesContainer.deepPrintReflection()
-        println(actual)
+        
+        assertEquals(expected, actual)
     }
+    
     @Test
     fun `data class in a data class`() {
         val brady = Person(
@@ -88,7 +56,7 @@ class ReflectionTest {
     }
     
     @Test
-    fun `deep print list Integers`() {
+    fun `deep print list of Integers`() {
         val myList = listOf(1, 2, 3, 4, 5)
         val expected = """
             listOf(
@@ -104,7 +72,23 @@ class ReflectionTest {
     }
 
     @Test
-    fun `deep print data class with list Integers`() {
+    fun `deep print mutable list of Integers`() {
+        val myList = mutableListOf(1, 2, 3, 4, 5)
+        val expected = """
+            mutableListOf(
+                1,
+                2,
+                3,
+                4,
+                5,
+            )
+        """.trimIndent()
+        val actual = myList.deepPrintMutableListReflection()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `deep print data class with a list of Integers`() {
         
         val myMutableList = mutableListOf(1, 2, 3, 4, 5)
         val someMutableListContainer = createMutableListContainer(myMutableList)
@@ -365,18 +349,7 @@ class ReflectionTest {
 
     @Test
     fun `deep print Map standalone data class values`() {
-        val dishes = listOf(
-            Dish(
-                name = "Pizza",
-                ingredients = listOf("dough", "tomato sauce", "cheese")
-            ),
-            Dish(
-                name = "Mac n Cheese",
-                ingredients = listOf("mac", "cheese")
-            )
-        )
-        val days = listOf("Monday", "Tuesday")
-        val dayDishMap = days.zip(dishes).toMap().toMutableMap()
+        val dayDishMap = createMap()
         val expected = """
             mapOf(
                 "Monday" to
@@ -402,10 +375,69 @@ class ReflectionTest {
         assertEquals(expected, actual)
     }
 
+    private fun createMap(): MutableMap<String, Dish> {
+        val dishes = listOf(
+            Dish(
+                name = "Pizza",
+                ingredients = listOf("dough", "tomato sauce", "cheese")
+            ),
+            Dish(
+                name = "Mac n Cheese",
+                ingredients = listOf("mac", "cheese")
+            )
+        )
+        val days = listOf("Monday", "Tuesday")
+        val dayDishMap = days.zip(dishes).toMap().toMutableMap()
+        return dayDishMap
+    }
+
     data class Dish(
         val name: String,
         val ingredients: List<String>,
     )
+    
+    data class MapContainer(
+        val name: String,
+        val mapToHold: Map<String, Dish>,
+        val id: Int,
+    )
+    
+    @Test
+    fun `deep print data class with Map`() {
+        val dayDishMap = createMap()
+        val mapContainer = MapContainer(
+            name = "my map",
+            mapToHold = dayDishMap,
+            id = 12345,
+        )
+        val expected = """
+            MapContainer(
+                name = "my map",
+                mapToHold =  mutableMapOf(
+                    "Monday" to
+                        Dish(
+                            name = "Pizza",
+                            ingredients =  mutableListOf(
+                                "dough",
+                                "tomato sauce",
+                                "cheese",
+                            ),
+                        ),
+                    "Tuesday" to
+                        Dish(
+                            name = "Mac n Cheese",
+                            ingredients =  mutableListOf(
+                                "mac",
+                                "cheese",
+                            ),
+                        ),
+                ),
+                id = 12345,
+            )
+        """.trimIndent()
+        val actual = mapContainer.deepPrintReflection()
+        assertEquals(expected, actual)
+    }
     
     private fun createMutableListOfPeople(): MutableList<Person> {
         val brady = Person(
@@ -448,4 +480,3 @@ class ReflectionTest {
         )
     }
 }
-
