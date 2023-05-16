@@ -1,6 +1,22 @@
 package com.bradyaiello.deepprint
 
 fun <T> List<T>.deepPrintListReflection(
+    deepPrintReflectConfig: DeepPrintReflectConfig = DeepPrintReflectConfig(
+        constructor = "listOf",
+        standalone = true,
+    )
+): String {
+    return with(deepPrintReflectConfig){
+        deepPrintListReflection(
+            startingIndent = startingIndent,
+            indentSize = indentSize,
+            constructor = constructor,
+            standalone = standalone,
+        )
+    }
+}
+
+fun <T> List<T>.deepPrintListReflection(
     startingIndent: Int = 0,
     indentSize: Int = 4,
     constructor: String = "listOf",
@@ -18,14 +34,31 @@ fun <T> List<T>.deepPrintListReflection(
 }
 
 fun <T> MutableList<T>.deepPrintMutableListReflection(
+    deepPrintReflectConfig: DeepPrintReflectConfig = DeepPrintReflectConfig(
+        constructor = "mutableListOf",
+        standalone = true,
+    )
+): String {
+    return with(deepPrintReflectConfig) {
+        deepPrintMutableListReflection(
+            startingIndent = startingIndent,
+            indentSize = indentSize,
+            constructor = constructor,
+            standalone = standalone,
+        )
+    }
+}
+
+fun <T> MutableList<T>.deepPrintMutableListReflection(
     startingIndent: Int = 0,
     indentSize: Int = 4,
+    constructor: String = "mutableListOf",
     standalone: Boolean = true,
 ): String {
     return this.deepPrintListReflection(
         startingIndent = startingIndent,
         indentSize = indentSize,
-        constructor = "mutableListOf",
+        constructor = constructor,
         standalone = standalone,
     )
 }
@@ -50,3 +83,4 @@ internal fun <Any> Any?.deepPrintListItem(
         )
     }
 }
+

@@ -45,3 +45,9 @@ data class WithListOfDataClasses(
     val people: List<Person>,
     val listContainer: ListContainer
 )
+
+data class ArrayHolder(
+    val someString: String,
+    val numbers: Array<Int>,
+    val primitiveContainers: Array<PrimitivesContainer>
+)

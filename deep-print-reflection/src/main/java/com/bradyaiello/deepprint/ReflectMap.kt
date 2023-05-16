@@ -1,5 +1,22 @@
 package com.bradyaiello.deepprint
 
+
+fun <K, V> MutableMap<K, V>.deepPrintMutableMapReflection(
+    deepPrintReflectConfig: DeepPrintReflectConfig = DeepPrintReflectConfig(
+        constructor = "mutableMapOf",
+        standalone = true,
+    )
+): String {
+    return with(deepPrintReflectConfig) {
+        deepPrintMutableMapReflection(
+            startingIndent = startingIndent,
+            indentSize = indentSize,
+            constructor = constructor,
+            standalone = standalone,
+        )
+    }
+}
+
 fun <K, V> MutableMap<K, V>.deepPrintMutableMapReflection(
     startingIndent: Int = 0,
     indentSize: Int = 4,
@@ -14,6 +31,21 @@ fun <K, V> MutableMap<K, V>.deepPrintMutableMapReflection(
     )
 }
 
+fun <K, V> Map<K, V>.deepPrintMapReflection(
+    deepPrintReflectConfig: DeepPrintReflectConfig = DeepPrintReflectConfig(
+        constructor = "mapOf",
+        standalone = true,
+    )
+): String {
+    return with(deepPrintReflectConfig) {
+        deepPrintMapReflection(
+            startingIndent = startingIndent,
+            indentSize = indentSize,
+            constructor = constructor,
+            standalone = standalone,
+        )
+    }
+}
 
 fun <K, V> Map<K, V>.deepPrintMapReflection(
     startingIndent: Int = 0,

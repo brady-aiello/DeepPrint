@@ -88,6 +88,69 @@ class ReflectionTest {
     }
 
     @Test
+    fun `deep print array of Integers`() {
+        val myList = arrayOf(1, 2, 3, 4, 5)
+        val expected = """
+            arrayOf(
+                1,
+                2,
+                3,
+                4,
+                5,
+            )
+        """.trimIndent()
+        val actual = myList.deepPrintArrayReflection()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `deep print data class with arrays`() {
+        val myArray = arrayOf(1, 2, 3, 4, 5)
+        val arrayHolder = ArrayHolder(
+            someString = "Here's a string",
+            numbers = myArray,
+            primitiveContainers = arrayOf(PrimitivesContainer(), PrimitivesContainer())
+        )
+        val expected = """
+            ArrayHolder(
+                someString = "Here's a string",
+                numbers =  arrayOf(
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                ),
+                primitiveContainers =  arrayOf(
+                    PrimitivesContainer(
+                        boolean = true,
+                        short = 5,
+                        byte = 127,
+                        char = 'a',
+                        int = 42,
+                        float = 26.2f,
+                        double = 26.2,
+                        string = "Hello World",
+                    ),
+                    PrimitivesContainer(
+                        boolean = true,
+                        short = 5,
+                        byte = 127,
+                        char = 'a',
+                        int = 42,
+                        float = 26.2f,
+                        double = 26.2,
+                        string = "Hello World",
+                    ),
+                ),
+            )
+        """.trimIndent()
+        val actual = arrayHolder.deepPrintReflection()
+        println(actual)
+        assertEquals(expected, actual)
+    }
+
+    @Test
     fun `deep print data class with a list of Integers`() {
         
         val myMutableList = mutableListOf(1, 2, 3, 4, 5)
@@ -170,6 +233,53 @@ class ReflectionTest {
             )
         """.trimIndent()
         val actual = myList.deepPrintListReflection()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `deep print standalone Array primitives`() {
+        val myArray = arrayOf(1, 2, 3, 4, 5)
+        val expected = """
+            arrayOf(
+                1,
+                2,
+                3,
+                4,
+                5,
+            )
+        """.trimIndent()
+        val actual = myArray.deepPrintArrayReflection()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `deep print standalone Array data classes`() {
+        val myArray = createMutableListOfPeople().toTypedArray()
+        val expected = """
+                arrayOf(
+                    Person(
+                        name = "Brady",
+                        age = 38,
+                        Address(
+                            streetAddress = "414 Koshland Way",
+                            city = "Santa Cruz",
+                            state = "CA",
+                            zipCode = "95064",
+                        ),
+                    ),
+                    Person(
+                        name = "Joe",
+                        age = 80,
+                        Address(
+                            streetAddress = "1600 Pennsylvania Avenue, N.W.",
+                            city = "Washington",
+                            state = "DC",
+                            zipCode = "20500",
+                        ),
+                    ),
+                )
+        """.trimIndent()
+        val actual = myArray.deepPrintArrayReflection()
         assertEquals(expected, actual)
     }
     
