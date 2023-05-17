@@ -497,8 +497,7 @@ class ReflectionTest {
             )
         )
         val days = listOf("Monday", "Tuesday")
-        val dayDishMap = days.zip(dishes).toMap().toMutableMap()
-        return dayDishMap
+        return days.zip(dishes).toMap().toMutableMap()
     }
 
     data class Dish(
