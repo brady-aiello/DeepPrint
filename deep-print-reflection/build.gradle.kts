@@ -1,11 +1,11 @@
+repositories {
+    mavenCentral()
+}
+
 plugins {
     kotlin("jvm")
     id("io.gitlab.arturbosch.detekt")
     id("jvm.convention.publication")
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
