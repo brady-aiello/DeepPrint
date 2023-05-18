@@ -226,7 +226,7 @@ plugins {
     id("com.google.devtools.ksp")
 }
 ```
-1. Add the dependencies
+2. Add the dependencies
 ```kotlin
 dependencies {
     // @DeepPrint annotation and a few helper functions
@@ -237,7 +237,7 @@ dependencies {
     ksp(implementation("com.bradyaiello.deepprint:deep-print-processor:0.1.0-alpha"))
 }
 ```
-1. Tell Gradle where to find the KSP-generated code.
+3. Tell Gradle where to find the KSP-generated code.
 ```kotlin
 kotlin.sourceSets {
     main {
@@ -252,7 +252,7 @@ kotlin.sourceSets {
     }
 }
 ```
-1. Optionally, configure the number of spaces for indentation; it defaults to 4.
+4. Optionally, configure the number of spaces for indentation; it defaults to 4.
 ```kotlin
 ksp {
     arg("indent", "2")
@@ -267,7 +267,7 @@ plugins {
     id("com.google.devtools.ksp")
 }
 ```
-1. Add the annotations dependency, and tell Gradle where it can find the generated code. 
+2. Add the annotations dependency, and tell Gradle where it can find the generated code. 
 ```kotlin
 kotlin {
     sourceSets {
@@ -280,7 +280,7 @@ kotlin {
     }
 }
 ```
-1. Run KSP on the `commonMain` source set before any other compile tasks.
+3. Run KSP on the `commonMain` source set before any other compile tasks.
 ```kotlin
 // https://github.com/evant/kotlin-inject/issues/193#issuecomment-1112930931
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
@@ -290,13 +290,13 @@ tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
     kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
 }
 ```
-1. Tell KSP what processor(s) to use, and for what configurations. Here we're assuming we just run it against the `commonMain` source set.
+4. Tell KSP what processor(s) to use, and for what configurations. Here we're assuming we just run it against the `commonMain` source set.
 ```kotlin
 dependencies {
     add("kspCommonMainMetadata", project(":deep-print-processor"))
 }
 ```
-1. Optionally, configure the number of spaces for indentation; it defaults to 4.
+5. Optionally, configure the number of spaces for indentation; it defaults to 4.
 
 ```kotlin
 ksp {
