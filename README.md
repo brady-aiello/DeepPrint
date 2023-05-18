@@ -1,5 +1,5 @@
 # DeepPrint
-## A utility for printing kotlin data classes with the same syntax as their primary constructor, using [ksp](https://github.com/google/ksp.) 
+## A utility for printing kotlin data classes with the same syntax as their primary constructor.
 
 ## Benefits:
 
@@ -10,7 +10,7 @@ Don't print with the default `toString()` like this in your logs:
 ```
 ThreeClassesDeep3(age=55, person=SamplePersonClass(name=Dave, sampleClass=SampleClass(x=0.5, y=2.6, name=A point)), sampleClass=SampleClass(x=0.5, y=2.6, name=A point))
 ```
-Use `deepPrint()` to print this instead:
+Use `deepPrint()` or `deepPrintReflection()` to print this instead:
 ```kotlin
 ThreeClassesDeep3(
   age = 55,
@@ -32,7 +32,103 @@ ThreeClassesDeep3(
     ),
 )
 ```
-## Simple Example
+
+## KSP vs. Reflection
+DeepPrint offers 2 implementations: 1 using KSP and the other using reflection.
+They have similar functionality, but don't have exact parity. This is partly 
+due to the limitations of reflection, and partly because some features have
+not been added yet.
+
+### KSP
+[Kotlin Symbol Processing](https://github.com/google/ksp) is a configurable
+code generation Kotlin compiler plugin from Google. Its benefits are:
+
+- Kotlin Multiplatform support
+- More precise type information at compile time
+- Likely faster at runtime
+
+To see it in action, check out [KSP Simple Example](#KSP-Simple-Example) and
+[KSP Deeper Example](#KSP-Deeper-Example).
+To try it out, please refer to [KSP Quick Start](#KSP-Quick-Start).
+
+### Reflection
+The reflection implementation is only for Kotlin on the JVM, but its benefits are:
+
+- Only 1 dependency to add
+- No plugin to apply
+- No need to recompile / regenerate any code on changes to your `data class`es
+
+## Reflection Quick Start
+
+If you're using Kotlin on the JVM or Android, just add the dependency:
+
+```kotlin
+implementation("com.bradyaiello.deepprint:deep-print-reflection:<latest-version>")
+```
+
+Now, calling `deepPrintReflection()` on a `data class` will return a readable `String`
+that is a valid Kotlin constructor call:
+
+```kotlin
+MapContainer(
+    name = "my map",
+    mapToHold =  mutableMapOf(
+        "Monday" to
+            Dish(
+                name = "Pizza",
+                ingredients =  mutableListOf(
+                    "dough",
+                    "tomato sauce",
+                    "cheese",
+                ),
+            ),
+        "Tuesday" to
+            Dish(
+                name = "Mac n Cheese",
+                ingredients =  mutableListOf(
+                    "mac",
+                    "cheese",
+                ),
+            ),
+    ),
+    id = 12345,
+)
+```
+
+### Reflection and Collection Types
+
+There are also versions of `deepPrintReflection()` just for collection types.
+
+```kotlin
+listOf("Hi", "Hey", "How's it going?", "What's up?", "Hello")
+    .deepPrintListReflection()
+```
+
+The above prints:
+
+```kotlin
+listOf(
+    "Hi",
+    "Hey",
+    "How's it going?",
+    "What's up?",
+    "Hello",
+)
+```
+
+Why the different function names for collections?
+
+You may notice in the `MapContainer` that it prints `mutableMapOf()`
+and not `mapOf()`.
+At runtime, we can't know if we're dealing with a `Map` or a `MutableMap`.
+`MutableMap` fits the bill for both, so in a `data class`, `mutableMapOf()`,
+`mutableListOf()`, etc. are used.
+However, If you're only printing the collection as a standalone object, then
+you know the type, and may want to reflect that.
+For this reason, there are functions for both mutable and immutable variants,
+eg. `deepPrintListReflection()` and `deepPrintMutableListReflection()`.
+
+## KSP Simple Example
 For a simple example, we'll use a small class `SampleClass`:
 ```kotlin
 data class SampleClass(val x: Float, val y: Float, val name: String)
@@ -50,7 +146,7 @@ SampleClass(
 )
 ```
 This can save a lot of time turning real data into test data on deeper objects.
-## Deeper Sample
+## KSP Deeper Example
 Given the classes:
 ```kotlin
 data class SampleClass(val x: Float, val y: Float, val name: String)
@@ -88,6 +184,9 @@ You can see more examples in [test-project](./test-project/src/test/kotlin/com/b
 ## Usage
 Given the previous sample classes, we just add the `@DeepPrint` annotation,
 and DeepPrint generates the `deepPrint()` extension functions.
+Like `@Parcelable`, all `data class` properties of a `data class` must also
+be annotated.
+
 ```kotlin
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
@@ -98,7 +197,7 @@ data class SamplePersonClass(val name: String, val sampleClass: SampleClass)
 @DeepPrint
 data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 ```
-## Quick Start
+## KSP Quick Start
 
 ### Add KSP
 You can reference the [KSP quickstart docs](https://kotlinlang.org/docs/ksp-quickstart.html#use-your-own-processor-in-a-project) for this, or check out the sample projects:
@@ -212,12 +311,14 @@ That is not true for single source projects, like [test-project](./test-project)
 
 ## Current Limitations
 - DeepPrint only works on `data class`es.
-- KSP [does not support](https://github.com/google/ksp/issues/1056) using the IR Kotlin JS compiler, so we're using Legacy.
-- For the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
-- If an annotated data class has a property of a non-annotated class, the property's value is printed with a standard `toString()`.
-- DeepPrint supports `List`, `MutableList`, and `Array` but does not support all collections yet.
-- In KMP projects, KSP [does not yet support](https://github.com/google/ksp/issues/567) generating code from the `commonTest` source set. 
-Hence, test classes for the KMP test project are in `commonMain`.
+- KSP [does not support](https://github.com/google/ksp/issues/1056) using the IR Kotlin JS compiler, so we're using 
+  Legacy.
+- For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
+- For KSP, if an annotated data class has a property of a non-annotated class, the property's value is printed with a 
+  standard `toString()`.
+- Not all collection types are supported yet.
+- In KMP projects, KSP [does not yet support](https://github.com/google/ksp/issues/567) generating code from the 
+  `commonTest` source set. Hence, test classes for the KMP test project are in `commonMain`.
 
 ## Thanks
 Thank you Pavlo Stavytskyi for the sample KSP project and its accompanying article.

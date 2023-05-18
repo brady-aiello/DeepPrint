@@ -12,18 +12,19 @@ fun Any?.deepPrintReflection(
         return ""
     }
     val kClass = this::class
-
     val initialIndent = if (initialIndentLength == 0) ""
     else initialIndentLength.indent()
-
     val indentIncrement = indentIncrementLength.indent()
-
     val builder = StringBuilder()
     val constructor = kClass.constructors.first()
     val constructorCall = "${kClass.simpleName!!}(\n"
     builder.append("$initialIndent$constructorCall")
     val params = constructor.parameters
-
+    val startingIndentForParams = initialIndentLength + indentIncrementLength
+    val listConfig = DeepPrintReflectConfig(startingIndent = startingIndentForParams, constructor = "mutableListOf")
+    val mapConfig = DeepPrintReflectConfig(startingIndent = startingIndentForParams, constructor = "mutableMapOf")
+    val arrayConfig = DeepPrintReflectConfig(startingIndent = startingIndentForParams, constructor = "arrayOf")
+    
     params.forEach { kParam ->
         val propName = kParam.name
         val propValue = this.getPropertyValue(kParam)!!
@@ -40,23 +41,19 @@ fun Any?.deepPrintReflection(
              */
             builder.append(
                 "$initialIndent$indentIncrement$propName = ${
-                    propValue.deepPrintListReflection(
-                        startingIndent = initialIndentLength + indentIncrementLength,
-                        indentSize = indentIncrementLength,
-                        standalone = false,
-                        constructor = "mutableListOf",
-                    )
+                    propValue.deepPrintListReflection(listConfig)
                 },\n"
             )
         } else if (propValue is Map<*,*>) {
             builder.append(
                 "$initialIndent$indentIncrement$propName = ${
-                    propValue.deepPrintMapReflection(
-                        startingIndent = initialIndentLength + indentIncrementLength,
-                        indentSize = indentIncrementLength,
-                        standalone = false,
-                        constructor = "mutableMapOf",
-                    )
+                    propValue.deepPrintMapReflection(mapConfig)
+                },\n"
+            )
+        } else if (propValue is Array<*>) {
+            builder.append(
+                "$initialIndent$indentIncrement$propName = ${
+                    propValue.deepPrintArrayReflection(arrayConfig)
                 },\n"
             )
         }
@@ -114,3 +111,10 @@ fun Any.isPrimitive(): Boolean {
         else -> false
     }
 }
+
+data class DeepPrintReflectConfig(
+    val startingIndent: Int = 0,
+    val indentSize: Int = 4,
+    val constructor: String,
+    val standalone: Boolean = false,
+)
