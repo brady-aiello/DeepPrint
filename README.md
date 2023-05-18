@@ -146,7 +146,7 @@ SampleClass(
 )
 ```
 This can save a lot of time turning real data into test data on deeper objects.
-## KSP Deeper Sample
+## KSP Deeper Example
 Given the classes:
 ```kotlin
 data class SampleClass(val x: Float, val y: Float, val name: String)
