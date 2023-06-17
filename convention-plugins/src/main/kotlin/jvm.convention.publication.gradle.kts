@@ -55,9 +55,7 @@ publishing {
 
     // Configure all publications
     publications.create<MavenPublication>("maven") {
-        // Stub javadoc.jar artifact
-        artifact(javadocJar.get())
-
+        from(components["java"])
         // Provide artifacts information requited by Maven Central
         pom {
             name.set("DeepPrint")
