@@ -6,9 +6,15 @@ repositories {
 }
 
 plugins {
+    `java-library`
     kotlin("jvm")
     id("io.gitlab.arturbosch.detekt")
     id("jvm.convention.publication")
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 val kspVersion = versionFor("plugin.com.google.devtools.ksp")
