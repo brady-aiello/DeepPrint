@@ -84,6 +84,36 @@ data class WithDeepPrintableArray(
 )
 
 @DeepPrint
+data class WithASet(val name: String, val items: Set<Int>)
+
+@DeepPrint
+data class WithAMutableSet(val name: String, val items: MutableSet<Int>)
+
+@DeepPrint
+data class WithDeepPrintableSet(
+    val name: String,
+    val surfers: Set<Surfer>
+)
+
+@DeepPrint
+data class WithDeepPrintableMutableSet(
+    val name: String,
+    val surfers: MutableSet<Surfer>
+)
+
+@DeepPrint
+data class WithPrimitiveArrays(
+    val bytes: ByteArray,
+    val shorts: ShortArray,
+    val ints: IntArray,
+    val longs: LongArray,
+    val floats: FloatArray,
+    val doubles: DoubleArray,
+    val booleans: BooleanArray,
+    val chars: CharArray,
+)
+
+@DeepPrint
 data class WithAMap(
     val id: Long,
     val someMap: Map<Int, String>

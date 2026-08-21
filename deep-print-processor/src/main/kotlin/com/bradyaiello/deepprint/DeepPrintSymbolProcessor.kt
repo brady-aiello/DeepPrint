@@ -53,6 +53,21 @@ class DeepPrintProcessor(
     companion object {
         private const val DATACLASS_MAP_VAL_INDENT_MULTIPLIER = 3
         private const val PRIMITIVE_MAP_VAL_INDENT_MUTILPLIER = 2
+
+        /**
+         * Primitive arrays are not `Array<T>`: they carry no type argument and each
+         * has its own factory function.
+         */
+        private val PRIMITIVE_ARRAY_CONSTRUCTORS = mapOf(
+            "ByteArray" to "byteArrayOf",
+            "ShortArray" to "shortArrayOf",
+            "IntArray" to "intArrayOf",
+            "LongArray" to "longArrayOf",
+            "FloatArray" to "floatArrayOf",
+            "DoubleArray" to "doubleArrayOf",
+            "BooleanArray" to "booleanArrayOf",
+            "CharArray" to "charArrayOf",
+        )
     }
     /**
      * Files already written in this processing run, so that a class reached through
@@ -118,9 +133,12 @@ class DeepPrintProcessor(
             props: Sequence<KSPropertyDeclaration>
         ): String {
             val packageStringBuilder = StringBuilder()
-            val importsStringBuilder = StringBuilder()
-            importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrint\n")
-            importsStringBuilder.append("import com.bradyaiello.deepprint.indent\n")
+            // A set: a class with several collection properties would otherwise
+            // repeat the same import once per property.
+            val imports = linkedSetOf(
+                "import com.bradyaiello.deepprint.deepPrint",
+                "import com.bradyaiello.deepprint.indent",
+            )
             val functionStringBuilder = StringBuilder()
 
             if (classDeclaration.isDataClass()) {
@@ -138,16 +156,19 @@ class DeepPrintProcessor(
                     val propertyAssignment = when (type.declaration.simpleName.asString()) {
                         "String", "Byte", "Short", "Int", "Long", "Boolean", "Char",
                         "Double", "Float" -> "\${${propertyDeclaration}.deepPrint()},\n"
-                        "List", "Array", "MutableList" -> {
-                            processList(importsStringBuilder, type, propertyDeclaration)
+                        "List", "MutableList", "Set", "MutableSet", "Array" -> {
+                            processCollection(imports, type, propertyDeclaration)
+                        }
+                        in PRIMITIVE_ARRAY_CONSTRUCTORS -> {
+                            processPrimitiveArray(imports, type, propertyDeclaration)
                         }
                         "Map", "MutableMap" -> {
-                            processMap(importsStringBuilder, type, propertyDeclaration)
+                            processMap(imports, type, propertyDeclaration)
                         }
                         // Property assignment is an annotated data class (can deep print), 
                         // or not (cannot deep print)
                         else -> {
-                            processAnnotatedDataClassOrNotSupported(type, propertyDeclaration, importsStringBuilder)
+                            processAnnotatedDataClassOrNotSupported(type, propertyDeclaration, imports)
                         }
                     }
                     functionStringBuilder.append(propertyAssignment)
@@ -158,7 +179,7 @@ class DeepPrintProcessor(
             }
 
             return packageStringBuilder.toString() +
-                    importsStringBuilder.toString() +
+                    imports.joinToString(separator = "") { "$it\n" } +
                     functionStringBuilder.toString()
         }
 
@@ -166,7 +187,7 @@ class DeepPrintProcessor(
         private fun processAnnotatedDataClassOrNotSupported(
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration,
-            importsStringBuilder: StringBuilder
+            imports: MutableSet<String>
         ): String {
             val propClassDeclaration = type.declaration as? KSClassDeclaration
             val propPackage = propClassDeclaration!!.packageName
@@ -176,7 +197,7 @@ class DeepPrintProcessor(
                 (propClassDeclaration.isAnnotationPresent(DeepPrint::class) ||
                         propertyDeclaration.isAnnotationPresent(DeepPrint::class))
             ) {
-                importsStringBuilder.append("import $propPackageName.deepPrint\n")
+                imports.add("import $propPackageName.deepPrint")
                 "\n\${${propertyDeclaration}.deepPrint(currentIndent + 2 * indentWidth)},\n"
             } else { /* no annotation on property or class */
                 "\$$propertyDeclaration,\n"
@@ -184,11 +205,11 @@ class DeepPrintProcessor(
         }
 
         private fun processMap(
-            importsStringBuilder: StringBuilder,
+            imports: MutableSet<String>,
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration
         ): String {
-            importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
+            imports.add("import com.bradyaiello.deepprint.deepPrintContents")
             val ksKeyTypeRef: KSTypeReference = type.arguments[0].type!!
             val ksValueTypeRef: KSTypeReference = type.arguments[1].type!!
             val valueDecl = ksValueTypeRef.resolve().declaration
@@ -212,35 +233,53 @@ class DeepPrintProcessor(
         }
 
         /**
-         * Processes collection types List, MutableList, Array
-         * Returns the expression as {listOf(), mutableListOf(), 
-         * or arrayOf() function calls.
+         * Processes the collection types that take a single type argument:
+         * List, MutableList, Set, MutableSet and Array.
+         * Returns the expression as a listOf(), mutableListOf(), setOf(),
+         * mutableSetOf() or arrayOf() function call.
          */
         @OptIn(KspExperimental::class)
-        private fun processList(
-            importsStringBuilder: StringBuilder,
+        private fun processCollection(
+            imports: MutableSet<String>,
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration
         ): String {
-            importsStringBuilder.append("import com.bradyaiello.deepprint.deepPrintContents\n")
+            imports.add("import com.bradyaiello.deepprint.deepPrintContents")
             val ksTypeArg = type.arguments[0]
-            val listType = ksTypeArg.type!!
+            val itemType = ksTypeArg.type!!
             val paramHasDeepPrintAnnotation =
                 ksTypeArg.type!!.resolve().declaration.isAnnotationPresent(DeepPrint::class)
-            val listConstructor = when (type.declaration.simpleName.asString()) {
+            val collectionConstructor = when (type.declaration.simpleName.asString()) {
                 "MutableList" -> "mutableListOf"
                 "List" -> "listOf"
+                "MutableSet" -> "mutableSetOf"
+                "Set" -> "setOf"
                 else -> "arrayOf"
             }
-            val opening = "$listConstructor<${listType}>("
+            val opening = "$collectionConstructor<${itemType}>("
             val itemsPrint: String = if (paramHasDeepPrintAnnotation) {
-                "\n\${$propertyDeclaration.map{ it.deepPrint(currentIndent = " +
-                        "currentIndent + 2 * indentWidth) +\",\\n\"}" +
-                        ".reduce {acc, item -> acc + item}}\${(currentIndent + indentWidth).indent()}),\n"
+                "\n\${$propertyDeclaration.joinToString(separator = \"\") " +
+                        "{ it.deepPrint(currentIndent = currentIndent + 2 * indentWidth) + \",\\n\" }}" +
+                        "\${(currentIndent + indentWidth).indent()}),\n"
             } else {
                 "\${$propertyDeclaration.deepPrintContents()}),\n"
             }
             return opening + itemsPrint
+        }
+
+        /**
+         * Processes IntArray, LongArray and friends. They have no type argument,
+         * so the element type is baked into the factory function name.
+         */
+        private fun processPrimitiveArray(
+            imports: MutableSet<String>,
+            type: KSType,
+            propertyDeclaration: KSPropertyDeclaration
+        ): String {
+            imports.add("import com.bradyaiello.deepprint.deepPrintContents")
+            val arrayConstructor =
+                PRIMITIVE_ARRAY_CONSTRUCTORS.getValue(type.declaration.simpleName.asString())
+            return "$arrayConstructor(\${$propertyDeclaration.deepPrintContents()}),\n"
         }
 
         private fun KSDeclaration.isDeepPrintAnnotatedDataClass(): Boolean {
