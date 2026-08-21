@@ -23,6 +23,7 @@ kotlin{
     watchosArm32()
     watchosArm64()
     watchosX64()
+    watchosSimulatorArm64()
     mingwX64()
     linuxX64()
     linuxArm64()
