@@ -548,29 +548,7 @@ class ReflectionTest {
         assertEquals(expected, actual)
     }
     
-    private fun createMutableListOfPeople(): MutableList<Person> {
-        val brady = Person(
-            name = "Brady",
-            age = 38,
-            Address(
-                streetAddress = "414 Koshland Way",
-                city = "Santa Cruz",
-                state = "CA",
-                zipCode = "95064"
-            )
-        )
-        val prez = Person(
-            name = "Joe",
-            age = 80,
-            Address(
-                streetAddress = "1600 Pennsylvania Avenue, N.W.",
-                city = "Washington",
-                state = "DC",
-                zipCode = "20500"
-            )
-        )
-        return mutableListOf(brady, prez)
-    }
+    private fun createMutableListOfPeople(): MutableList<Person> = createPeople()
     
     private fun createWithListOfDataClasses(
         someListContainer: ListContainer
