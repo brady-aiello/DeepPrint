@@ -12,15 +12,15 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: corretto
-          java-version: 11
+          java-version: 17
 
       - name: Test windows-only targets
         run: ./gradlew mingwX64Test
