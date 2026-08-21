@@ -133,8 +133,10 @@ class DeepPrintProcessor(
             props: Sequence<KSPropertyDeclaration>
         ): String {
             val packageStringBuilder = StringBuilder()
-            // A set: a class with several collection properties would otherwise
-            // repeat the same import once per property.
+            // A set, because a class with several collection properties would otherwise
+            // repeat the same import once per property. LinkedHashSet rather than
+            // MutableSet: the generated file has to come out byte-identical every run,
+            // so insertion order has to be part of the contract.
             val imports = linkedSetOf(
                 "import com.bradyaiello.deepprint.deepPrint",
                 "import com.bradyaiello.deepprint.indent",
@@ -156,13 +158,14 @@ class DeepPrintProcessor(
                     val propertyAssignment = when (type.declaration.simpleName.asString()) {
                         "String", "Byte", "Short", "Int", "Long", "Boolean", "Char",
                         "Double", "Float" -> "\${${propertyDeclaration}.deepPrint()},\n"
-                        "List", "MutableList", "Set", "MutableSet", "Array" -> {
+                        "List", "MutableList", "ArrayList",
+                        "Set", "MutableSet", "HashSet", "LinkedHashSet", "Array" -> {
                             processCollection(imports, type, propertyDeclaration)
                         }
                         in PRIMITIVE_ARRAY_CONSTRUCTORS -> {
                             processPrimitiveArray(imports, type, propertyDeclaration)
                         }
-                        "Map", "MutableMap" -> {
+                        "Map", "MutableMap", "HashMap", "LinkedHashMap" -> {
                             processMap(imports, type, propertyDeclaration)
                         }
                         // Property assignment is an annotated data class (can deep print), 
@@ -187,10 +190,14 @@ class DeepPrintProcessor(
         private fun processAnnotatedDataClassOrNotSupported(
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration,
-            imports: MutableSet<String>
+            imports: LinkedHashSet<String>
         ): String {
+            // Not every declaration is a class: a typealias resolves to a KSTypeAlias.
+            // There is nothing to deep print in that case, so fall back to toString()
+            // the same way an unannotated class does, rather than throwing.
             val propClassDeclaration = type.declaration as? KSClassDeclaration
-            val propPackage = propClassDeclaration!!.packageName
+                ?: return "\$$propertyDeclaration,\n"
+            val propPackage = propClassDeclaration.packageName
             val propPackageName = propPackage.asString()
             // TODO(Support properties defined outside of the module)
             return if (propClassDeclaration.isDataClass() &&
@@ -205,7 +212,7 @@ class DeepPrintProcessor(
         }
 
         private fun processMap(
-            imports: MutableSet<String>,
+            imports: LinkedHashSet<String>,
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration
         ): String {
@@ -215,6 +222,8 @@ class DeepPrintProcessor(
             val valueDecl = ksValueTypeRef.resolve().declaration
             val mapConstructor = when (type.declaration.simpleName.asString()) {
                 "Map" -> "mapOf"
+                "HashMap" -> "hashMapOf"
+                "LinkedHashMap" -> "linkedMapOf"
                 else  -> "mutableMapOf"
             }
             val opening = "$mapConstructor<$ksKeyTypeRef,$ksValueTypeRef>(\n"
@@ -240,7 +249,7 @@ class DeepPrintProcessor(
          */
         @OptIn(KspExperimental::class)
         private fun processCollection(
-            imports: MutableSet<String>,
+            imports: LinkedHashSet<String>,
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration
         ): String {
@@ -252,8 +261,11 @@ class DeepPrintProcessor(
             val collectionConstructor = when (type.declaration.simpleName.asString()) {
                 "MutableList" -> "mutableListOf"
                 "List" -> "listOf"
+                "ArrayList" -> "arrayListOf"
                 "MutableSet" -> "mutableSetOf"
                 "Set" -> "setOf"
+                "HashSet" -> "hashSetOf"
+                "LinkedHashSet" -> "linkedSetOf"
                 else -> "arrayOf"
             }
             val opening = "$collectionConstructor<${itemType}>("
@@ -272,7 +284,7 @@ class DeepPrintProcessor(
          * so the element type is baked into the factory function name.
          */
         private fun processPrimitiveArray(
-            imports: MutableSet<String>,
+            imports: LinkedHashSet<String>,
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration
         ): String {

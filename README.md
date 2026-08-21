@@ -194,6 +194,11 @@ A property whose type is one of these is printed as the call that rebuilds it:
 | `Array<T>` | `arrayOf<T>(...)` |
 | `Map<K, V>` | `mapOf<K, V>(...)` |
 | `MutableMap<K, V>` | `mutableMapOf<K, V>(...)` |
+| `ArrayList<T>` | `arrayListOf<T>(...)` |
+| `HashSet<T>` | `hashSetOf<T>(...)` |
+| `LinkedHashSet<T>` | `linkedSetOf<T>(...)` |
+| `HashMap<K, V>` | `hashMapOf<K, V>(...)` |
+| `LinkedHashMap<K, V>` | `linkedMapOf<K, V>(...)` |
 | `ByteArray`, `ShortArray`, `IntArray`, `LongArray` | `byteArrayOf(...)`, `shortArrayOf(...)`, `intArrayOf(...)`, `longArrayOf(...)` |
 | `FloatArray`, `DoubleArray`, `BooleanArray`, `CharArray` | `floatArrayOf(...)`, `doubleArrayOf(...)`, `booleanArrayOf(...)`, `charArrayOf(...)` |
 
@@ -366,9 +371,22 @@ That is not true for single source projects, like [test-project](./test-project)
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
 - For KSP, if an annotated data class has a property of a non-annotated class, the property's value is printed with a 
   standard `toString()`.
-- Not all collection types are supported yet. See
+- Not all collection types are supported. See
   [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
   [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
+  Still missing, in both implementations:
+  - `Collection`, `Iterable` and `Sequence` properties, and `Pair` and `Triple`.
+    These fall back to `toString()`, so the output is readable but is not a
+    constructor call.
+  - Nested collections, eg. `List<List<Int>>` or `Map<String, List<Int>>` with a
+    collection value. The outer collection prints correctly, but the inner one prints
+    via `toString()` as `[0, 1]`, which is not valid Kotlin.
+  - The unsigned arrays `UByteArray`, `UShortArray`, `UIntArray` and `ULongArray`.
+  - A property whose type is a `typealias` for a `@DeepPrint` `data class`. The alias
+    is not resolved, so the property falls back to `toString()`.
+- Nullable properties are not supported. A `val items: List<Int>?` generates code that
+  does not compile. This is not specific to collections: `val name: String?` has the
+  same problem.
 - On Kotlin/JS, `Float`, `Double` and `Char` elements of a `List`, `Set` or `Array` are
   identified by their runtime type, which JS erases to a number. `2.0f` prints as `2` and
   `'A'` prints as `65`. `FloatArray`, `DoubleArray` and `CharArray` are not affected, and

@@ -24,9 +24,11 @@ import com.bradyaiello.deepprint.testclasses.WithDeepPrintableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableSet
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableSet
+import com.bradyaiello.deepprint.testclasses.WithJdkCollections
 import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithMutableMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithPrimitiveArrays
+import com.bradyaiello.deepprint.testclasses.WithTypeAliasProperty
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 
@@ -156,6 +158,17 @@ val withPrimitiveArrays = WithPrimitiveArrays(
     booleans = booleanArrayOf(true, false),
     chars = charArrayOf('A', 'B'),
 )
+
+val withJdkCollections = WithJdkCollections(
+    arrayList = arrayListOf(0, 1, 2),
+    linkedSet = linkedSetOf(0, 1, 2),
+    linkedMap = linkedMapOf(1 to "a", 2 to "b"),
+    // Single entry: HashSet and HashMap have no order guarantee across platforms.
+    hashSet = hashSetOf(7),
+    hashMap = hashMapOf(7 to "seven"),
+)
+
+val withTypeAliasProperty = WithTypeAliasProperty(person = person)
 
 val withAnnotatedProperty = WithAnnotatedProperty(
     label = "some label",

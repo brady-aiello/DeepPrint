@@ -112,6 +112,20 @@ data class WithPrimitiveArrays(
     val chars: CharArray,
 )
 
+typealias PersonAlias = SamplePersonClass
+
+@DeepPrint
+data class WithJdkCollections(
+    val arrayList: ArrayList<Int>,
+    val linkedSet: LinkedHashSet<Int>,
+    val linkedMap: LinkedHashMap<Int, String>,
+    val hashSet: HashSet<Int>,
+    val hashMap: HashMap<Int, String>,
+)
+
+@DeepPrint
+data class WithTypeAliasProperty(val person: PersonAlias)
+
 @DeepPrint
 data class WithAMap(
     val id: Long,
