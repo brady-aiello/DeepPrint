@@ -215,7 +215,7 @@ pluginManagement {
 2. And tell it which version you want in `build.gradle.kts`:
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "1.8.0-1.0.8"
+    id("com.google.devtools.ksp") version "2.3.11"
 }
 ```
 ### Single Platform
@@ -230,11 +230,14 @@ plugins {
 ```kotlin
 dependencies {
     // @DeepPrint annotation and a few helper functions
-    implementation(project("com.bradyaiello.deepprint:deep-print-annotations:0.1.0-alpha"))
+    implementation("com.bradyaiello.deepprint:deep-print-annotations:0.1.0-alpha")
     // Where all the DeepPrint code generation logic resides
     implementation("com.bradyaiello.deepprint:deep-print-processor:0.1.0-alpha")
-    // Apply the KSP plugin to the processor
-    ksp(implementation("com.bradyaiello.deepprint:deep-print-processor:0.1.0-alpha"))
+    // Run the processor over your main source set
+    ksp("com.bradyaiello.deepprint:deep-print-processor:0.1.0-alpha")
+    // KSP 2 no longer fans `ksp` out to every source set, so annotate-in-tests
+    // needs the processor wired up for the test source set too
+    kspTest("com.bradyaiello.deepprint:deep-print-processor:0.1.0-alpha")
 }
 ```
 3. Tell Gradle where to find the KSP-generated code.
@@ -242,12 +245,12 @@ dependencies {
 kotlin.sourceSets {
     main {
         kotlin.srcDirs(
-            file("$buildDir/generated/ksp/main/kotlin"),
+            layout.buildDirectory.dir("generated/ksp/main/kotlin"),
         )
     }
     test {
         kotlin.srcDirs(
-            file("$buildDir/generated/ksp/test/kotlin"),
+            layout.buildDirectory.dir("generated/ksp/test/kotlin"),
         )
     }
 }
@@ -271,23 +274,24 @@ plugins {
 ```kotlin
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation("com.bradyaiello.deepprint:deep-print-annotations:0.1.0-alpha")
             }
-            kotlin.srcDir("$buildDir/generated/ksp/metadata/commonMain/kotlin")
+            kotlin.srcDir(layout.buildDirectory.dir("generated/ksp/metadata/commonMain/kotlin"))
         }
     }
 }
 ```
-3. Run KSP on the `commonMain` source set before any other compile tasks.
+3. Run KSP on the `commonMain` source set before any other compile or KSP task.
 ```kotlin
 // https://github.com/evant/kotlin-inject/issues/193#issuecomment-1112930931
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
-    if (name != "kspCommonMainKotlinMetadata") {
+tasks.configureEach {
+    if (name != "kspCommonMainKotlinMetadata" &&
+        (name.startsWith("compile") || name.startsWith("ksp"))
+    ) {
         dependsOn("kspCommonMainKotlinMetadata")
     }
-    kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
 }
 ```
 4. Tell KSP what processor(s) to use, and for what configurations. Here we're assuming we just run it against the `commonMain` source set.
@@ -304,15 +308,13 @@ ksp {
 }
 ```
 ## Multiplatform Support 
-This project supports JVM, iOS, macos, linux, windows, NodeJS and JS for the browser.
+This project supports JVM, iOS, watchOS, macOS, Linux, Windows, NodeJS and JS for the browser.
 Check out [test-project-multiplatform](./test-project-multiplatform) and the docs above for setup.
 The classes for the KMP example are defined in the `commonMain` source set because KSP does not yet support the `commonTest` source set.
 That is not true for single source projects, like [test-project](./test-project).
 
 ## Current Limitations
 - DeepPrint only works on `data class`es.
-- KSP [does not support](https://github.com/google/ksp/issues/1056) using the IR Kotlin JS compiler, so we're using 
-  Legacy.
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
 - For KSP, if an annotated data class has a property of a non-annotated class, the property's value is printed with a 
   standard `toString()`.

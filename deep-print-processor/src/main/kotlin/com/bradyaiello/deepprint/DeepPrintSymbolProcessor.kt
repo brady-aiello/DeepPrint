@@ -54,35 +54,40 @@ class DeepPrintProcessor(
         private const val DATACLASS_MAP_VAL_INDENT_MULTIPLIER = 3
         private const val PRIMITIVE_MAP_VAL_INDENT_MUTILPLIER = 2
     }
+    /**
+     * Files already written in this processing run, so that a class reached through
+     * more than one annotated symbol is only generated once. Tracking the names is
+     * enough; asking the [CodeGenerator] which files it has produced and deleting the
+     * clashes wipes the whole output directory under KSP2.
+     */
+    private val writtenFiles = mutableSetOf<String>()
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
         if (!symbols.iterator().hasNext()) return emptyList()
         symbols.forEach { declaration ->
-            val packageName = declaration.containingFile?.packageName?.asString()
+            val containingFile = declaration.containingFile
+            val packageName = containingFile?.packageName?.asString()
             val fileName: String? = getFileName(declaration)
 
-            if (packageName != null && fileName != null) {
+            if (containingFile != null && packageName != null && fileName != null) {
                 val fullFileName = "DeepPrint${fileName}"
-                conditionallyDeleteDuplicates(fullFileName)
-                val file = codeGenerator.createNewFile(
-                    dependencies = Dependencies(false),
-                    packageName = packageName,
-                    fileName = fullFileName
-                )
-                val string = declaration.accept(DataClassVisitor(), Unit)
-                file.appendText(string)
-                file.close()
+                if (writtenFiles.add("$packageName.$fullFileName")) {
+                    val file = codeGenerator.createNewFile(
+                        // Naming the source the output was derived from lets KSP keep the
+                        // file across incremental runs; without it KSP2 treats the output as
+                        // orphaned and drops it on the next build.
+                        dependencies = Dependencies(aggregating = false, containingFile),
+                        packageName = packageName,
+                        fileName = fullFileName
+                    )
+                    val string = declaration.accept(DataClassVisitor(), Unit)
+                    file.appendText(string)
+                    file.close()
+                }
             }
         }
         return symbols.filterNot { it.validate() }.toList()
-    }
-
-    private fun conditionallyDeleteDuplicates(fullFileName: String) {
-        if (codeGenerator.generatedFile.any { it.path.contains(fullFileName) }) {
-            codeGenerator.generatedFile.forEach { generatedFile ->
-                generatedFile.delete()
-            }
-        }
     }
 
     private fun getFileName(declaration: KSAnnotated): String? { 

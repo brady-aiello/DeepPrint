@@ -19,12 +19,12 @@ application {
 kotlin.sourceSets {
     main {
         kotlin.srcDirs(
-            file("$buildDir/generated/ksp/main/kotlin"),
+            layout.buildDirectory.dir("generated/ksp/main/kotlin"),
         )
     }
     test {
         kotlin.srcDirs(
-            file("$buildDir/generated/ksp/test/kotlin"),
+            layout.buildDirectory.dir("generated/ksp/test/kotlin"),
         )
     }
 }
@@ -33,6 +33,9 @@ dependencies {
     implementation(project(":deep-print-annotations"))
     implementation(project(":deep-print-processor"))
     ksp(project(":deep-print-processor"))
+    // KSP 2 no longer fans the `ksp` configuration out to every source set,
+    // so the test source set needs the processor wired up explicitly.
+    kspTest(project(":deep-print-processor"))
     implementation(project(":external-module"))
     testImplementation(kotlin("test"))
 }

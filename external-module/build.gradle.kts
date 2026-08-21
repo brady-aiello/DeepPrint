@@ -14,16 +14,18 @@ version = "unspecified"
 
 kotlin {
     jvm()
-    ios()
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
-    // Only Legacy working with KSP for now
-    js(LEGACY) {
+    js {
         browser()
         nodejs()
     }
     macosArm64()
     macosX64()
-    watchos()
+    watchosArm32()
+    watchosArm64()
+    watchosX64()
     mingwX64()
     linuxX64()
     linuxArm64()

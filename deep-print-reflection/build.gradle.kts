@@ -18,6 +18,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation(platform(Testing.Junit.bom))
     testImplementation(Testing.Junit.jupiter)
+    // Gradle 9 no longer puts the JUnit Platform launcher on the test runtime classpath for us.
+    testRuntimeOnly(platform(Testing.Junit.bom))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(project(":deep-print-annotations"))
 }
 
@@ -26,4 +29,4 @@ tasks.test {
 }
 
 group = "com.bradyaiello.deepprint"
-version = properties["version"]!!
+version = providers.gradleProperty("version").get()

@@ -15,27 +15,27 @@ kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    // Only Legacy working with KSP for now
-    js(LEGACY) {
+    js {
         browser()
         nodejs()
     }
     macosArm64()
     macosX64()
-    watchos()
+    watchosArm32()
+    watchosArm64()
+    watchosX64()
     mingwX64()
     linuxX64()
     linuxArm64()
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(project(":deep-print-annotations"))
                 implementation(project(":external-module"))
             }
-            kotlin.srcDir("$buildDir/generated/ksp/metadata/commonMain/kotlin")
-
+            kotlin.srcDir(layout.buildDirectory.dir("generated/ksp/metadata/commonMain/kotlin"))
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }
@@ -43,12 +43,15 @@ kotlin {
     }
 }
 
+// The processor runs once over commonMain and the result is shared with every target,
+// so each per-target compile and KSP task has to wait for it.
 // https://github.com/evant/kotlin-inject/issues/193#issuecomment-1112930931
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
-    if (name != "kspCommonMainKotlinMetadata") {
+tasks.configureEach {
+    if (name != "kspCommonMainKotlinMetadata" &&
+        (name.startsWith("compile") || name.startsWith("ksp"))
+    ) {
         dependsOn("kspCommonMainKotlinMetadata")
     }
-    kotlinOptions.freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
 }
 
 ksp {
