@@ -27,9 +27,22 @@ jobs:
       - name: Cache Konan
         uses: ./.github/actions/cache-konan
 
+      # See RELEASING.md for what these have to contain. The username and password are
+      # a Central Portal user token, not the old OSSRH account password.
       - name: Publish all artifacts
         env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-          SIGNING_SECRET_KEY: ${{ secrets.SIGNING_SECRET_KEY }}
-        run: ./gradlew build publishAllPublicationsToSonatypeRepository --no-parallel
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_SECRET_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          # An unset secret arrives as an empty string, which is not the same as absent:
+          # both of these are optional, and an empty one breaks the signatory.
+          if [ -z "$ORG_GRADLE_PROJECT_signingInMemoryKeyId" ]; then
+            unset ORG_GRADLE_PROJECT_signingInMemoryKeyId
+          fi
+          if [ -z "$ORG_GRADLE_PROJECT_signingInMemoryKeyPassword" ]; then
+            unset ORG_GRADLE_PROJECT_signingInMemoryKeyPassword
+          fi
+          ./gradlew build publishToMavenCentral --no-parallel

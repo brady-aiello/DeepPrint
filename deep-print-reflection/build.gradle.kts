@@ -6,12 +6,7 @@ plugins {
     `java-library`
     kotlin("jvm")
     id("io.gitlab.arturbosch.detekt")
-    id("jvm.convention.publication")
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
+    id("deepprint.publication")
 }
 
 dependencies {
