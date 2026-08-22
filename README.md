@@ -512,15 +512,16 @@ That is not true for single source projects, like [test-project](./test-project)
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
 - For KSP, if an annotated data class has a property of a non-annotated class, the property's value is printed with a 
   standard `toString()`.
-- Not all collection types are supported. See
+- Not every type is supported. See
   [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
   [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
   Still missing, in both implementations:
-    A collection as a *map value*, eg. `Map<String, List<Int>>`, does work.
   - A *generic* `typealias`, eg. `typealias Mapping<V> = Map<String, V>`. The aliased
     type still carries the unsubstituted parameter, so it is left alone and falls back
     to `toString()`. A typealias without type arguments is resolved and printed
     normally.
+  - Printing a `Sequence` consumes it. A sequence that can only be iterated once is
+    spent by being printed.
 - For reflection, a property that is neither a primitive, a supported collection, nor a
   `data class` is printed with `toString()`. Enums are the exception and print
   qualified, eg. `day = DayOfWeek.MONDAY`, which is valid Kotlin as long as the enum is
