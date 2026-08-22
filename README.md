@@ -128,6 +128,31 @@ you know the type, and may want to reflect that.
 For this reason, there are functions for both mutable and immutable variants,
 eg. `deepPrintListReflection()` and `deepPrintMutableListReflection()`.
 
+The same applies to `Set`: a property declared `Set<T>` or `MutableSet<T>` prints as
+`mutableSetOf()`, while standalone there are `deepPrintSetReflection()` and
+`deepPrintMutableSetReflection()`.
+
+These are the collection types reflection handles:
+
+| Property type | Printed as | Standalone function |
+| --- | --- | --- |
+| `List<T>`, `MutableList<T>` | `mutableListOf(...)` | `deepPrintListReflection()`, `deepPrintMutableListReflection()` |
+| `Set<T>`, `MutableSet<T>` | `mutableSetOf(...)` | `deepPrintSetReflection()`, `deepPrintMutableSetReflection()` |
+| `Map<K, V>`, `MutableMap<K, V>` | `mutableMapOf(...)` | `deepPrintMapReflection()`, `deepPrintMutableMapReflection()` |
+| `Array<T>` | `arrayOf(...)` | `deepPrintArrayReflection()` |
+| `ByteArray` | `byteArrayOf(...)` | `deepPrintByteArrayReflection()` |
+| `ShortArray` | `shortArrayOf(...)` | `deepPrintShortArrayReflection()` |
+| `IntArray` | `intArrayOf(...)` | `deepPrintIntArrayReflection()` |
+| `LongArray` | `longArrayOf(...)` | `deepPrintLongArrayReflection()` |
+| `FloatArray` | `floatArrayOf(...)` | `deepPrintFloatArrayReflection()` |
+| `DoubleArray` | `doubleArrayOf(...)` | `deepPrintDoubleArrayReflection()` |
+| `BooleanArray` | `booleanArrayOf(...)` | `deepPrintBooleanArrayReflection()` |
+| `CharArray` | `charArrayOf(...)` | `deepPrintCharArrayReflection()` |
+
+The primitive arrays need no mutable/read-only distinction, so each has a single
+function. Their element type is known from the array type itself, so unlike
+`List` and `Set` there is nothing lost to erasure.
+
 ## KSP Simple Example
 For a simple example, we'll use a small class `SampleClass`:
 ```kotlin

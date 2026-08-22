@@ -4,6 +4,14 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.memberProperties
 
+/*
+    List and MutableList look identical at runtime. They both are implemented by
+    Java ArrayList, and the same goes for Set and MutableSet, and for Map and
+    MutableMap. So we must default to the mutable constructor, which produces valid
+    code for both the read-only and the mutable declaration.
+    https://youtrack.jetbrains.com/issue/KT-23652/Reflection-Classifier-for-MutableListT-same-as-for-ListT
+    https://youtrack.jetbrains.com/issue/KT-11754/Support-special-KClass-instances-for-mutable-collection-interfaces
+ */
 fun Any?.deepPrintReflection(
     initialIndentLength: Int = 0,
     indentIncrementLength: Int = 4,
@@ -14,65 +22,64 @@ fun Any?.deepPrintReflection(
     val kClass = this::class
     val initialIndent = if (initialIndentLength == 0) ""
     else initialIndentLength.indent()
-    val indentIncrement = indentIncrementLength.indent()
     val builder = StringBuilder()
     val constructor = kClass.constructors.first()
     val constructorCall = "${kClass.simpleName!!}(\n"
     builder.append("$initialIndent$constructorCall")
     val params = constructor.parameters
-    val startingIndentForParams = initialIndentLength + indentIncrementLength
-    val listConfig = DeepPrintReflectConfig(startingIndent = startingIndentForParams, constructor = "mutableListOf")
-    val mapConfig = DeepPrintReflectConfig(startingIndent = startingIndentForParams, constructor = "mutableMapOf")
-    val arrayConfig = DeepPrintReflectConfig(startingIndent = startingIndentForParams, constructor = "arrayOf")
-    
+
     params.forEach { kParam ->
-        val propName = kParam.name
-        val propValue = this.getPropertyValue(kParam)!!
-        if (propValue::class.isPrimitive()) {
-            builder.append("$initialIndent$indentIncrement$propName = ${deepPrintPrimitive(propValue)},\n")
-        } else if (propValue is List<*>) {
-            /*
-                List and MutableList look identical at runtime. 
-                They both are implemented by Java Arraylist.
-                So we must default to using the constructor for mutableListOf(),
-                which works for List and MutableList.
-                https://youtrack.jetbrains.com/issue/KT-23652/Reflection-Classifier-for-MutableListT-same-as-for-ListT
-                https://youtrack.jetbrains.com/issue/KT-11754/Support-special-KClass-instances-for-mutable-collection-interfaces
-             */
-            builder.append(
-                "$initialIndent$indentIncrement$propName = ${
-                    propValue.deepPrintListReflection(listConfig)
-                },\n"
+        builder.append(
+            deepPrintProperty(
+                propName = kParam.name,
+                propValue = this.getPropertyValue(kParam)!!,
+                initialIndentLength = initialIndentLength,
+                indentIncrementLength = indentIncrementLength,
             )
-        } else if (propValue is Map<*,*>) {
-            builder.append(
-                "$initialIndent$indentIncrement$propName = ${
-                    propValue.deepPrintMapReflection(mapConfig)
-                },\n"
-            )
-        } else if (propValue is Array<*>) {
-            builder.append(
-                "$initialIndent$indentIncrement$propName = ${
-                    propValue.deepPrintArrayReflection(arrayConfig)
-                },\n"
-            )
-        }
-        
-        else {
-            builder.append(
-                propValue.deepPrintReflection(
-                    initialIndentLength = initialIndentLength + indentIncrementLength,
-                    indentIncrementLength = indentIncrementLength,
-                )
-            )
-            builder.append("\n")
-        }
+        )
     }
     builder.append("$initialIndent)")
     if (initialIndentLength != 0) {
         builder.append(",")
     }
     return builder.toString()
+}
+
+@Suppress("ReturnCount")
+private fun deepPrintProperty(
+    propName: String?,
+    propValue: Any,
+    initialIndentLength: Int,
+    indentIncrementLength: Int,
+): String {
+    val assignment = "${initialIndentLength.indent()}${indentIncrementLength.indent()}$propName = "
+    val startingIndent = initialIndentLength + indentIncrementLength
+    fun config(constructor: String) = DeepPrintReflectConfig(
+        startingIndent = startingIndent,
+        indentSize = indentIncrementLength,
+        constructor = constructor,
+    )
+
+    if (propValue::class.isPrimitive()) {
+        return "$assignment${deepPrintPrimitive(propValue)},\n"
+    }
+    when (propValue) {
+        is List<*> -> return "$assignment${propValue.deepPrintListReflection(config("mutableListOf"))},\n"
+        is Set<*> -> return "$assignment${propValue.deepPrintSetReflection(config("mutableSetOf"))},\n"
+        is Map<*, *> -> return "$assignment${propValue.deepPrintMapReflection(config("mutableMapOf"))},\n"
+        is Array<*> -> return "$assignment${propValue.deepPrintArrayReflection(config("arrayOf"))},\n"
+    }
+    val primitiveArray = propValue.deepPrintPrimitiveArrayReflectionOrNull(
+        startingIndent = startingIndent,
+        indentSize = indentIncrementLength,
+    )
+    if (primitiveArray != null) {
+        return "$assignment$primitiveArray,\n"
+    }
+    return propValue.deepPrintReflection(
+        initialIndentLength = startingIndent,
+        indentIncrementLength = indentIncrementLength,
+    ) + "\n"
 }
 
 private fun Any.getPropertyValue(kParam: KParameter): Any? {

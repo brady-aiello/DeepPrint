@@ -51,3 +51,48 @@ data class ArrayHolder(
     val numbers: Array<Int>,
     val primitiveContainers: Array<PrimitivesContainer>
 )
+
+data class SetContainer(
+    val someString: String,
+    val numbers: Set<Int>
+)
+
+data class WithSetOfDataClasses(
+    val id: String,
+    val people: Set<Person>
+)
+
+data class PrimitiveArraysContainer(
+    val bytes: ByteArray,
+    val shorts: ShortArray,
+    val ints: IntArray,
+    val longs: LongArray,
+    val floats: FloatArray,
+    val doubles: DoubleArray,
+    val booleans: BooleanArray,
+    val chars: CharArray,
+)
+
+internal fun createPeople(): MutableList<Person> {
+    val brady = Person(
+        name = "Brady",
+        age = 38,
+        Address(
+            streetAddress = "414 Koshland Way",
+            city = "Santa Cruz",
+            state = "CA",
+            zipCode = "95064"
+        )
+    )
+    val prez = Person(
+        name = "Joe",
+        age = 80,
+        Address(
+            streetAddress = "1600 Pennsylvania Avenue, N.W.",
+            city = "Washington",
+            state = "DC",
+            zipCode = "20500"
+        )
+    )
+    return mutableListOf(brady, prez)
+}
