@@ -27,6 +27,7 @@ import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableSet
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableSet
 import com.bradyaiello.deepprint.testclasses.WithEnums
+import com.bradyaiello.deepprint.testclasses.WithGenericAliases
 import com.bradyaiello.deepprint.testclasses.WithJdkCollections
 import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithMutableMapDataClasses
@@ -251,6 +252,11 @@ val withNestedMaps = WithNestedMaps(
     mapOfMaps = mapOf("a" to mapOf("b" to 1)),
     listKeyed = mapOf(listOf(1, 2) to "x"),
     listOfMaps = listOf(mapOf("a" to 1)),
+)
+
+val withGenericAliases = WithGenericAliases(
+    mapping = mapOf("a" to 1),
+    grid = listOf(listOf(1, 2)),
 )
 
 val withAnnotatedProperty = WithAnnotatedProperty(
