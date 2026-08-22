@@ -228,4 +228,24 @@ class ReflectCollectionsTest {
         val actual = primitiveArraysContainer.deepPrintReflection()
         assertEquals(expected, actual)
     }
+
+    @Test
+    fun `deep print data class with unsigned types`() {
+        val container = UnsignedContainer(
+            int = 3u,
+            long = 4u,
+            ints = uintArrayOf(5u, 6u),
+        )
+        val expected = """
+            UnsignedContainer(
+                int = 3u,
+                long = 4u,
+                ints =  uintArrayOf(
+                    5u,
+                    6u,
+                ),
+            )
+        """.trimIndent()
+        assertEquals(expected, container.deepPrintReflection())
+    }
 }

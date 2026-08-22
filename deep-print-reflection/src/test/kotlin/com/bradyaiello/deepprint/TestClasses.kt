@@ -121,3 +121,9 @@ data class OpaqueContainer(
     val id: Opaque,
     val name: String,
 )
+
+data class UnsignedContainer(
+    val int: UInt,
+    val long: ULong,
+    val ints: UIntArray,
+)

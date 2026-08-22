@@ -242,6 +242,10 @@ A property whose type is one of these is printed as the call that rebuilds it:
 | `LinkedHashSet<T>` | `linkedSetOf<T>(...)` |
 | `HashMap<K, V>` | `hashMapOf<K, V>(...)` |
 | `LinkedHashMap<K, V>` | `linkedMapOf<K, V>(...)` |
+| `Collection<T>`, `Iterable<T>` | `listOf<T>(...)` |
+| `Sequence<T>` | `sequenceOf<T>(...)` |
+| `UByteArray`, `UShortArray`, `UIntArray`, `ULongArray` | `ubyteArrayOf(...)`, `ushortArrayOf(...)`, `uintArrayOf(...)`, `ulongArrayOf(...)` |
+| `Pair<A, B>`, `Triple<A, B, C>` | `Pair(a, b)`, `Triple(a, b, c)` |
 | `ByteArray`, `ShortArray`, `IntArray`, `LongArray` | `byteArrayOf(...)`, `shortArrayOf(...)`, `intArrayOf(...)`, `longArrayOf(...)` |
 | `FloatArray`, `DoubleArray`, `BooleanArray`, `CharArray` | `floatArrayOf(...)`, `doubleArrayOf(...)`, `booleanArrayOf(...)`, `charArrayOf(...)` |
 
@@ -274,6 +278,31 @@ WithEnums(
 
 An enum nested in another class prints with its own simple name, eg. `Color.RED` for
 `Outer.Color`, so `import com.example.Outer.Color` is what makes that output compile.
+
+### KSP and the Remaining Types
+
+`Pair` and `Triple` print as constructor calls on one line, with each component
+rendered by its own type:
+
+```kotlin
+pair = Pair("a", 1),
+triple = Triple(1, true, 'x'),
+```
+
+The unsigned types print with the `u` suffix, so the value is assignable back to a
+`UInt` rather than being read as an `Int`:
+
+```kotlin
+int = 3u,
+ints = uintArrayOf( 5u, 6u,),
+```
+
+A `typealias` without type arguments is resolved, so `typealias IntList = List<Int>`
+prints as a list, and an alias for an annotated `data class` deep prints rather than
+falling back to `toString()`.
+
+`Sequence` is supported, but note that printing one **consumes it**. A sequence that
+can only be iterated once is spent by printing it.
 
 ### KSP and Nullable Properties
 
@@ -464,23 +493,17 @@ That is not true for single source projects, like [test-project](./test-project)
   [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
   [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
   Still missing, in both implementations:
-  - `Collection`, `Iterable` and `Sequence` properties, and `Pair` and `Triple`.
-    These fall back to `toString()`, so the output is readable but is not a
-    constructor call.
   - Nested collections, eg. `List<List<Int>>`. The outer collection prints correctly,
     but the inner one prints via `toString()` as `[0, 1]`, which is not valid Kotlin.
     A collection as a *map value*, eg. `Map<String, List<Int>>`, does work.
-  - The unsigned arrays `UByteArray`, `UShortArray`, `UIntArray` and `ULongArray`.
-  - A property whose type is a `typealias` for a `@DeepPrint` `data class`. The alias
-    is not resolved, so the property falls back to `toString()`.
+  - A *generic* `typealias`, eg. `typealias Mapping<V> = Map<String, V>`. The aliased
+    type still carries the unsubstituted parameter, so it is left alone and falls back
+    to `toString()`. A typealias without type arguments is resolved and printed
+    normally.
 - For reflection, a property that is neither a primitive, a supported collection, nor a
   `data class` is printed with `toString()`. Enums are the exception and print
   qualified, eg. `day = DayOfWeek.MONDAY`, which is valid Kotlin as long as the enum is
   imported.
-- On Kotlin/JS, `Float`, `Double` and `Char` elements of a `List`, `Set` or `Array` are
-  identified by their runtime type, which JS erases to a number. `2.0f` prints as `2` and
-  `'A'` prints as `65`. `FloatArray`, `DoubleArray` and `CharArray` are not affected, and
-  neither are properties declared directly on a `data class`.
 - In KMP projects, KSP [does not yet support](https://github.com/google/ksp/issues/567) generating code from the 
   `commonTest` source set. Hence, test classes for the KMP test project are in `commonMain`.
 

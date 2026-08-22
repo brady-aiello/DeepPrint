@@ -32,7 +32,11 @@ import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithMutableMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithNullables
 import com.bradyaiello.deepprint.testclasses.WithPrimitiveArrays
+import com.bradyaiello.deepprint.testclasses.WithReadOnlyCollections
+import com.bradyaiello.deepprint.testclasses.WithTuples
 import com.bradyaiello.deepprint.testclasses.WithTypeAliasProperty
+import com.bradyaiello.deepprint.testclasses.WithTypedCollectionItems
+import com.bradyaiello.deepprint.testclasses.WithUnsigned
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 
@@ -203,6 +207,35 @@ val withEnums = WithEnums(
     directions = listOf(Direction.NORTH, Direction.SOUTH),
     bySide = mapOf(Direction.NORTH to "up"),
     toDirections = mapOf("all" to listOf(Direction.NORTH, Direction.SOUTH)),
+)
+
+val withTuples = WithTuples(
+    pair = "a" to 1,
+    triple = Triple(1, true, 'x'),
+    pairOfClasses = surfer to Direction.NORTH,
+)
+
+val withReadOnlyCollections = WithReadOnlyCollections(
+    collection = listOf(1, 2),
+    iterable = listOf("a", "b"),
+    sequence = sequenceOf(3, 4),
+    aliased = listOf(5, 6),
+)
+
+val withUnsigned = WithUnsigned(
+    byte = 1u,
+    short = 2u,
+    int = 3u,
+    long = 4u,
+    ints = uintArrayOf(5u, 6u),
+    longs = ulongArrayOf(7u, 8u),
+)
+
+val withTypedCollectionItems = WithTypedCollectionItems(
+    floats = listOf(1f, 2.5f),
+    doubles = listOf(1.0, 2.5),
+    chars = listOf('a', 'b'),
+    uints = listOf(3u, 4u),
 )
 
 val withAnnotatedProperty = WithAnnotatedProperty(

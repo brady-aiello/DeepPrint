@@ -1,0 +1,113 @@
+package com.bradyaiello.deepprint
+
+import com.bradyaiello.deepprint.testclasses.deepPrint
+import com.bradyaiello.deepprint.testobjects.withReadOnlyCollections
+import com.bradyaiello.deepprint.testobjects.withTuples
+import com.bradyaiello.deepprint.testobjects.withTypeAliasProperty
+import com.bradyaiello.deepprint.testobjects.withTypedCollectionItems
+import com.bradyaiello.deepprint.testobjects.withUnsigned
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+/**
+ * Coverage for the property types DeepPrint knows how to reconstruct, beyond the
+ * primitives and the everyday collections covered in [BasicTest].
+ */
+class TypeSupportTest {
+
+    @Test
+    fun pairAndTriple() {
+        val expected = """
+            WithTuples(
+              pair = Pair("a", 1),
+              triple = Triple(1, true, 'x'),
+              pairOfClasses = Pair(
+                Surfer(
+                  name = "Honolua Blomfield",
+                  surfboard = 
+                    Surfboard(
+                      length = 11.5f,
+                      width = 2.0f,
+                      style = "longboard",
+                    ),
+                ), Direction.NORTH),
+            )
+        """.trimIndent()
+
+        val actual = withTuples.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun readOnlyCollectionTypes() {
+        val expected = """
+            WithReadOnlyCollections(
+              collection = listOf<Int>( 1, 2,),
+              iterable = listOf<String>( "a", "b",),
+              sequence = sequenceOf<Int>( 3, 4,),
+              aliased = listOf<Int>( 5, 6,),
+            )
+        """.trimIndent()
+
+        val actual = withReadOnlyCollections.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun unsignedTypes() {
+        val expected = """
+            WithUnsigned(
+              byte = 1u,
+              short = 2u,
+              int = 3u,
+              long = 4u,
+              ints = uintArrayOf( 5u, 6u,),
+              longs = ulongArrayOf( 7u, 8u,),
+            )
+        """.trimIndent()
+
+        val actual = withUnsigned.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun collectionItemsUseTheirStaticType() {
+        // Kotlin/JS erases Float, Double and Char to numbers at runtime, so identifying
+        // items by their runtime type printed 2.0f as 2 and 'a' as 97. The item type is
+        // known at code generation time, so it is used instead.
+        val expected = """
+            WithTypedCollectionItems(
+              floats = listOf<Float>( 1.0f, 2.5f,),
+              doubles = listOf<Double>( 1.0, 2.5,),
+              chars = listOf<Char>( 'a', 'b',),
+              uints = listOf<UInt>( 3u, 4u,),
+            )
+        """.trimIndent()
+
+        val actual = withTypedCollectionItems.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun typeAliasResolvesToTheAliasedType() {
+        // PersonAlias is a typealias for the annotated SamplePersonClass. The alias is
+        // resolved, so the property deep prints rather than falling back to toString().
+        val expected = """
+            WithTypeAliasProperty(
+              person = 
+                SamplePersonClass(
+                  name = "Dave",
+                  sampleClass = 
+                    SampleClass(
+                      x = 0.5f,
+                      y = 2.6f,
+                      name = "A point",
+                    ),
+                ),
+            )
+        """.trimIndent()
+
+        val actual = withTypeAliasProperty.deepPrint()
+        assertEquals(expected, actual)
+    }
+}

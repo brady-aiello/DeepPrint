@@ -179,9 +179,11 @@ fun CharArray.deepPrintCharArrayReflection(
     )
 )
 
+@OptIn(ExperimentalUnsignedTypes::class)
 internal fun Any.isPrimitiveArray(): Boolean = when (this) {
     is ByteArray, is ShortArray, is IntArray, is LongArray,
-    is FloatArray, is DoubleArray, is BooleanArray, is CharArray -> true
+    is FloatArray, is DoubleArray, is BooleanArray, is CharArray,
+    is UByteArray, is UShortArray, is UIntArray, is ULongArray -> true
     else -> false
 }
 
@@ -190,6 +192,7 @@ internal fun Any.isPrimitiveArray(): Boolean = when (this) {
  * eight primitive array types. Used to render a `data class` property, where the only
  * thing known about the value is that it is [Any].
  */
+@OptIn(ExperimentalUnsignedTypes::class)
 internal fun Any.deepPrintPrimitiveArrayReflectionOrNull(
     startingIndent: Int,
     indentSize: Int,
@@ -203,6 +206,10 @@ internal fun Any.deepPrintPrimitiveArrayReflectionOrNull(
         is DoubleArray -> asIterable() to "doubleArrayOf"
         is BooleanArray -> asIterable() to "booleanArrayOf"
         is CharArray -> asIterable() to "charArrayOf"
+        is UByteArray -> asIterable() to "ubyteArrayOf"
+        is UShortArray -> asIterable() to "ushortArrayOf"
+        is UIntArray -> asIterable() to "uintArrayOf"
+        is ULongArray -> asIterable() to "ulongArrayOf"
         else -> return null
     }
     return items.deepPrintPrimitiveItems(

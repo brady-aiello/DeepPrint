@@ -56,6 +56,13 @@ class DeepPrintProcessor(
 
         private val PRIMITIVE_TYPES = setOf(
             "String", "Byte", "Short", "Int", "Long", "Boolean", "Char", "Double", "Float",
+            "UByte", "UShort", "UInt", "ULong",
+        )
+
+        /** Component accessors for Pair and Triple, in order. */
+        private val TUPLE_COMPONENTS = mapOf(
+            "Pair" to listOf("first", "second"),
+            "Triple" to listOf("first", "second", "third"),
         )
 
         private val COLLECTION_CONSTRUCTORS = mapOf(
@@ -67,6 +74,10 @@ class DeepPrintProcessor(
             "HashSet" to "hashSetOf",
             "LinkedHashSet" to "linkedSetOf",
             "Array" to "arrayOf",
+            // Read-only supertypes: listOf() is assignable to all of them.
+            "Collection" to "listOf",
+            "Iterable" to "listOf",
+            "Sequence" to "sequenceOf",
         )
 
         private val MAP_CONSTRUCTORS = mapOf(
@@ -89,6 +100,10 @@ class DeepPrintProcessor(
             "DoubleArray" to "doubleArrayOf",
             "BooleanArray" to "booleanArrayOf",
             "CharArray" to "charArrayOf",
+            "UByteArray" to "ubyteArrayOf",
+            "UShortArray" to "ushortArrayOf",
+            "UIntArray" to "uintArrayOf",
+            "ULongArray" to "ulongArrayOf",
         )
     }
     /**
@@ -239,8 +254,77 @@ class DeepPrintProcessor(
                 typeName in COLLECTION_CONSTRUCTORS -> collectionExpression(imports, type, receiver)
                 typeName in PRIMITIVE_ARRAY_CONSTRUCTORS -> primitiveArrayExpression(imports, type, receiver)
                 typeName in MAP_CONSTRUCTORS -> mapExpression(imports, type, receiver)
+                typeName in TUPLE_COMPONENTS -> tupleExpression(imports, type, receiver)
                 else -> enumExpression(type, receiver)
+                    ?: typeAliasExpression(imports, type, receiver, propertyDeclaration)
                     ?: annotatedDataClassExpression(imports, type, receiver, propertyDeclaration)
+            }
+        }
+
+        /**
+         * Renders [accessor] according to its static [type], wrapping the result so that a
+         * nullable value prints the `null` literal instead of dereferencing nothing. The
+         * primitives need no wrapper: their deepPrint() extensions take a nullable
+         * receiver.
+         */
+        private fun nullSafeValueExpression(
+            imports: LinkedHashSet<String>,
+            type: KSType,
+            accessor: String,
+            lambdaParameter: String,
+        ): String? {
+            val isPrimitive = type.declaration.simpleName.asString() in PRIMITIVE_TYPES
+            if (!type.isMarkedNullable || isPrimitive) {
+                return valueExpression(imports, type, receiver = accessor)
+            }
+            val inner = valueExpression(imports, type, receiver = lambdaParameter)
+            return inner?.let { "($accessor?.let { $lambdaParameter -> $it } ?: \"null\")" }
+        }
+
+        /**
+         * Pair and Triple print as constructor calls on one line, eg. `Pair("a", 1)`.
+         * Components are rendered by their own static type, so a Pair of data classes or
+         * of collections works the same way a property of that type would.
+         */
+        private fun tupleExpression(
+            imports: LinkedHashSet<String>,
+            type: KSType,
+            receiver: String,
+        ): String? {
+            val typeName = type.declaration.simpleName.asString()
+            val components = TUPLE_COMPONENTS.getValue(typeName)
+            val rendered = components.mapIndexed { index, component ->
+                val componentType = type.arguments[index].type!!.resolve()
+                nullSafeValueExpression(
+                    imports = imports,
+                    type = componentType,
+                    accessor = "$receiver.$component",
+                    lambdaParameter = component,
+                ) ?: "$receiver.$component.toString()"
+            }
+            return "\"$typeName(\" + ${rendered.joinToString(" + \", \" + ")} + \")\""
+        }
+
+        /**
+         * A typealias has its own declaration, so `IntList` never matches `List` by name.
+         * Resolving it lets the aliased type be rendered normally.
+         *
+         * Only aliases without type arguments are resolved. For a generic alias such as
+         * `typealias Mapping<V> = Map<String, V>`, the underlying type still carries the
+         * unsubstituted parameter, which would produce code referring to a type that does
+         * not exist at the use site.
+         */
+        private fun typeAliasExpression(
+            imports: LinkedHashSet<String>,
+            type: KSType,
+            receiver: String,
+            propertyDeclaration: KSPropertyDeclaration?,
+        ): String? {
+            val alias = type.declaration as? KSTypeAlias
+            return if (alias != null && type.arguments.isEmpty()) {
+                valueExpression(imports, alias.type.resolve(), receiver, propertyDeclaration)
+            } else {
+                null
             }
         }
 
@@ -332,7 +416,11 @@ class DeepPrintProcessor(
             val itemType = type.arguments[0].type!!
             val resolvedItemType = itemType.resolve()
             val itemIsAnnotated = resolvedItemType.declaration.isAnnotationPresent(DeepPrint::class)
-            val itemEnum = enumExpression(resolvedItemType, "item")
+            val inlineItem = if (resolvedItemType.declaration.simpleName.asString() in PRIMITIVE_TYPES) {
+                "item.deepPrint()"
+            } else {
+                enumExpression(resolvedItemType, "item")
+            }
             val collectionConstructor =
                 COLLECTION_CONSTRUCTORS.getValue(type.declaration.simpleName.asString())
 
@@ -342,12 +430,14 @@ class DeepPrintProcessor(
                         "$receiver.joinToString(separator = \"\") " +
                         "{ item -> item.deepPrint(currentIndent = currentIndent + 2 * indentWidth) + \",\\n\" } + " +
                         "(currentIndent + indentWidth).indent() + \")\""
-                // deepPrintContents() renders items from their runtime type, which for an
-                // enum means an unqualified toString(). The item type is known here, so
-                // the items are laid out directly instead, in the same shape.
-                itemEnum != null ->
+                // deepPrintContents() renders items from their runtime type, which loses
+                // information: an enum comes out as an unqualified toString(), a UInt
+                // without its `u`, and on Kotlin/JS a Float, Double or Char is
+                // indistinguishable from a number. The item type is known statically
+                // here, so items are laid out directly instead, in the same shape.
+                inlineItem != null ->
                     "\"$collectionConstructor<${itemType}>(\" + " +
-                        "$receiver.joinToString(separator = \"\") { item -> \" \" + ($itemEnum) + \",\" } + " +
+                        "$receiver.joinToString(separator = \"\") { item -> \" \" + ($inlineItem) + \",\" } + " +
                         "\")\""
                 else ->
                     "\"$collectionConstructor<${itemType}>(\" + $receiver.deepPrintContents() + \")\""

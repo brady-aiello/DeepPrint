@@ -154,6 +154,41 @@ data class WithEnums(
     val toDirections: Map<String, List<Direction>>,
 )
 
+typealias IntList = List<Int>
+
+@DeepPrint
+data class WithTuples(
+    val pair: Pair<String, Int>,
+    val triple: Triple<Int, Boolean, Char>,
+    val pairOfClasses: Pair<Surfer, Direction>,
+)
+
+@DeepPrint
+data class WithReadOnlyCollections(
+    val collection: Collection<Int>,
+    val iterable: Iterable<String>,
+    val sequence: Sequence<Int>,
+    val aliased: IntList,
+)
+
+@DeepPrint
+data class WithUnsigned(
+    val byte: UByte,
+    val short: UShort,
+    val int: UInt,
+    val long: ULong,
+    val ints: UIntArray,
+    val longs: ULongArray,
+)
+
+@DeepPrint
+data class WithTypedCollectionItems(
+    val floats: List<Float>,
+    val doubles: List<Double>,
+    val chars: List<Char>,
+    val uints: List<UInt>,
+)
+
 @DeepPrint
 data class WithAMap(
     val id: Long,

@@ -6,6 +6,10 @@ import kotlin.math.floor
 fun <T>deepPrintPrimitive(value: T): String {
     return when (value) {
         is String -> "\"$value\""
+        is UByte,
+        is UShort,
+        is UInt,
+        is ULong -> "${value}u"
         is Byte,
         is Short,
         is Int,
@@ -46,6 +50,19 @@ fun Char?.deepPrint(indent: Int = 0): String =
 fun Float?.deepPrint(indent: Int = 0): String =
     if (this == null) "${indent.indent()}null" else "${indent.indent()}${formatForJS()}f"
 
+/*
+ * The unsigned types print with the `u` suffix so the output is assignable back to a
+ * UInt rather than being read as an Int.
+ */
+
+fun UByte?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this?.let { "${it}u" } ?: "null"}"
+
+fun UShort?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this?.let { "${it}u" } ?: "null"}"
+
+fun UInt?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this?.let { "${it}u" } ?: "null"}"
+
+fun ULong?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this?.let { "${it}u" } ?: "null"}"
+
 fun Int.indent(): String = " ".repeat(this)
 
 fun <K, V> Map<K, V>.deepPrint(
@@ -80,6 +97,18 @@ private inline fun <T> Iterable<T>.deepPrintItems(transform: (T) -> String): Str
 
 fun <T> List<T>.deepPrintContents(): String = deepPrintItems { deepPrintPrimitive(it) }
 
+/**
+ * Covers `Collection` and `Iterable` properties. `List` and `Set` have their own, more
+ * specific, overloads and are unaffected.
+ */
+fun <T> Iterable<T>.deepPrintContents(): String = deepPrintItems { deepPrintPrimitive(it) }
+
+/**
+ * Note that this consumes the sequence. A sequence that can only be iterated once is
+ * spent by printing it.
+ */
+fun <T> Sequence<T>.deepPrintContents(): String = asIterable().deepPrintItems { deepPrintPrimitive(it) }
+
 fun <T> Set<T>.deepPrintContents(): String = deepPrintItems { deepPrintPrimitive(it) }
 
 fun <T> Array<T>.deepPrintContents(): String = asIterable().deepPrintItems { deepPrintPrimitive(it) }
@@ -105,6 +134,18 @@ fun DoubleArray.deepPrintContents(): String = asIterable().deepPrintItems { it.d
 fun BooleanArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
 
 fun CharArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+@OptIn(ExperimentalUnsignedTypes::class)
+fun UByteArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+@OptIn(ExperimentalUnsignedTypes::class)
+fun UShortArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+@OptIn(ExperimentalUnsignedTypes::class)
+fun UIntArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+@OptIn(ExperimentalUnsignedTypes::class)
+fun ULongArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
 
 /**
  * In jvm, android, and native platforms, printing 2.0f
