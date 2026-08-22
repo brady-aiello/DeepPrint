@@ -127,3 +127,11 @@ data class UnsignedContainer(
     val long: ULong,
     val ints: UIntArray,
 )
+
+data class NestedContainer(
+    val listOfLists: List<List<Int>>,
+    val listOfArrays: List<IntArray>,
+    val mapValueList: Map<String, List<Int>>,
+    val mapOfMaps: Map<String, Map<String, Int>>,
+    val setOfLists: Set<List<Int>>,
+)

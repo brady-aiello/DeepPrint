@@ -54,6 +54,10 @@ class DeepPrintProcessor(
     companion object {
         private const val DATACLASS_MAP_VAL_INDENT_MULTIPLIER = 3
 
+        /** Indent levels, relative to the property, for a block that a value opens. */
+        private const val ENTRY_INDENT_MULTIPLIER = 2
+        private const val CLOSING_INDENT_MULTIPLIER = 1
+
         private val PRIMITIVE_TYPES = setOf(
             "String", "Byte", "Short", "Int", "Long", "Boolean", "Char", "Double", "Float",
             "UByte", "UShort", "UInt", "ULong",
@@ -247,19 +251,25 @@ class DeepPrintProcessor(
             type: KSType,
             receiver: String,
             propertyDeclaration: KSPropertyDeclaration? = null,
+            depth: Int = 0,
         ): String? {
             val typeName = type.declaration.simpleName.asString()
             return when {
                 typeName in PRIMITIVE_TYPES -> "$receiver.deepPrint()"
-                typeName in COLLECTION_CONSTRUCTORS -> collectionExpression(imports, type, receiver)
+                typeName in COLLECTION_CONSTRUCTORS -> collectionExpression(imports, type, receiver, depth)
                 typeName in PRIMITIVE_ARRAY_CONSTRUCTORS -> primitiveArrayExpression(imports, type, receiver)
-                typeName in MAP_CONSTRUCTORS -> mapExpression(imports, type, receiver)
-                typeName in TUPLE_COMPONENTS -> tupleExpression(imports, type, receiver)
+                typeName in MAP_CONSTRUCTORS -> mapExpression(imports, type, receiver, depth)
+                typeName in TUPLE_COMPONENTS -> tupleExpression(imports, type, receiver, depth)
                 else -> enumExpression(type, receiver)
-                    ?: typeAliasExpression(imports, type, receiver, propertyDeclaration)
+                    ?: typeAliasExpression(imports, type, receiver, propertyDeclaration, depth)
                     ?: annotatedDataClassExpression(imports, type, receiver, propertyDeclaration)
             }
         }
+
+        /** True when [type] deep prints, ie. it opens a nested constructor block. */
+        @OptIn(KspExperimental::class)
+        private fun isAnnotatedDataClass(type: KSType): Boolean =
+            type.declaration.isAnnotationPresent(DeepPrint::class)
 
         /**
          * Renders [accessor] according to its static [type], wrapping the result so that a
@@ -272,12 +282,13 @@ class DeepPrintProcessor(
             type: KSType,
             accessor: String,
             lambdaParameter: String,
+            depth: Int = 0,
         ): String? {
             val isPrimitive = type.declaration.simpleName.asString() in PRIMITIVE_TYPES
             if (!type.isMarkedNullable || isPrimitive) {
-                return valueExpression(imports, type, receiver = accessor)
+                return valueExpression(imports, type, receiver = accessor, depth = depth)
             }
-            val inner = valueExpression(imports, type, receiver = lambdaParameter)
+            val inner = valueExpression(imports, type, receiver = lambdaParameter, depth = depth)
             return inner?.let { "($accessor?.let { $lambdaParameter -> $it } ?: \"null\")" }
         }
 
@@ -290,6 +301,7 @@ class DeepPrintProcessor(
             imports: LinkedHashSet<String>,
             type: KSType,
             receiver: String,
+            depth: Int,
         ): String? {
             val typeName = type.declaration.simpleName.asString()
             val components = TUPLE_COMPONENTS.getValue(typeName)
@@ -299,7 +311,8 @@ class DeepPrintProcessor(
                     imports = imports,
                     type = componentType,
                     accessor = "$receiver.$component",
-                    lambdaParameter = component,
+                    lambdaParameter = "$component$depth",
+                    depth = depth + 1,
                 ) ?: "$receiver.$component.toString()"
             }
             return "\"$typeName(\" + ${rendered.joinToString(" + \", \" + ")} + \")\""
@@ -319,10 +332,11 @@ class DeepPrintProcessor(
             type: KSType,
             receiver: String,
             propertyDeclaration: KSPropertyDeclaration?,
+            depth: Int,
         ): String? {
             val alias = type.declaration as? KSTypeAlias
             return if (alias != null && type.arguments.isEmpty()) {
-                valueExpression(imports, alias.type.resolve(), receiver, propertyDeclaration)
+                valueExpression(imports, alias.type.resolve(), receiver, propertyDeclaration, depth)
             } else {
                 null
             }
@@ -373,31 +387,53 @@ class DeepPrintProcessor(
             imports: LinkedHashSet<String>,
             type: KSType,
             receiver: String,
+            depth: Int,
         ): String {
             imports.add("import com.bradyaiello.deepprint.deepPrintContents")
             val ksKeyTypeRef: KSTypeReference = type.arguments[0].type!!
             val ksValueTypeRef: KSTypeReference = type.arguments[1].type!!
+            val keyType = ksKeyTypeRef.resolve()
             val valueType = ksValueTypeRef.resolve()
             val mapConstructor = MAP_CONSTRUCTORS.getValue(type.declaration.simpleName.asString())
-            // A primitive key has deepPrint(); an enum key does not, and used to generate
-            // code that did not compile.
-            val keyTransform = enumExpression(ksKeyTypeRef.resolve(), "key") ?: "key.deepPrint()"
+            val key = "key$depth"
+            val value = "value$depth"
+
+            // An annotated data class key keeps deepPrint(), which prints it inline. Every
+            // other key is rendered from its static type: a primitive has deepPrint(), an
+            // enum and a collection do not, and used to generate code that did not compile.
+            val keyTransform = if (isAnnotatedDataClass(keyType)) {
+                "$key.deepPrint()"
+            } else {
+                nullSafeValueExpression(
+                    imports = imports,
+                    type = keyType,
+                    accessor = key,
+                    lambdaParameter = "nestedKey$depth",
+                    depth = depth + 1,
+                ) ?: "$key.deepPrint()"
+            }
 
             val valueTransform = if (valueType.declaration.isDeepPrintAnnotatedDataClass()) {
                 // A data class value opens a block, so it sits a level deeper than a
                 // value that prints inline next to its key.
-                "\"\\n\" + it.deepPrint(currentIndent + $DATACLASS_MAP_VAL_INDENT_MULTIPLIER * indentWidth)"
+                "\"\\n\" + " +
+                    "$value.deepPrint(currentIndent + ${DATACLASS_MAP_VAL_INDENT_MULTIPLIER + depth} * indentWidth)"
             } else {
-                // Anything else -- including a collection, which has no deepPrint() of
-                // its own and used to generate code that did not compile.
-                valueExpression(imports, valueType, receiver = "it") ?: "it.toString()"
+                nullSafeValueExpression(
+                    imports = imports,
+                    type = valueType,
+                    accessor = value,
+                    lambdaParameter = "nestedValue$depth",
+                    depth = depth + 1,
+                ) ?: "$value.toString()"
             }
 
             return "\"$mapConstructor<$ksKeyTypeRef,$ksValueTypeRef>(\\n\" + " +
                 "$receiver.deepPrintContents(\n" +
-                "keyTransform = { key -> (currentIndent + 2 * indentWidth).indent() + ($keyTransform) },\n" +
-                "valueTransform = { $valueTransform }) + " +
-                "(currentIndent + indentWidth).indent() + \")\""
+                "keyTransform = { $key -> " +
+                "(currentIndent + ${ENTRY_INDENT_MULTIPLIER + depth} * indentWidth).indent() + ($keyTransform) },\n" +
+                "valueTransform = { $value -> $valueTransform }) + " +
+                "(currentIndent + ${CLOSING_INDENT_MULTIPLIER + depth} * indentWidth).indent() + \")\""
         }
 
         /**
@@ -411,36 +447,45 @@ class DeepPrintProcessor(
             imports: LinkedHashSet<String>,
             type: KSType,
             receiver: String,
+            depth: Int,
         ): String {
             imports.add("import com.bradyaiello.deepprint.deepPrintContents")
             val itemType = type.arguments[0].type!!
             val resolvedItemType = itemType.resolve()
-            val itemIsAnnotated = resolvedItemType.declaration.isAnnotationPresent(DeepPrint::class)
-            val inlineItem = if (resolvedItemType.declaration.simpleName.asString() in PRIMITIVE_TYPES) {
-                "item.deepPrint()"
-            } else {
-                enumExpression(resolvedItemType, "item")
-            }
             val collectionConstructor =
                 COLLECTION_CONSTRUCTORS.getValue(type.declaration.simpleName.asString())
+            // Nested collections each open their own lambda, so the parameter names have
+            // to differ or the inner one shadows the outer.
+            val item = "item$depth"
 
-            return when {
-                itemIsAnnotated ->
-                    "\"$collectionConstructor<${itemType}>(\\n\" + " +
-                        "$receiver.joinToString(separator = \"\") " +
-                        "{ item -> item.deepPrint(currentIndent = currentIndent + 2 * indentWidth) + \",\\n\" } + " +
-                        "(currentIndent + indentWidth).indent() + \")\""
-                // deepPrintContents() renders items from their runtime type, which loses
-                // information: an enum comes out as an unqualified toString(), a UInt
-                // without its `u`, and on Kotlin/JS a Float, Double or Char is
-                // indistinguishable from a number. The item type is known statically
-                // here, so items are laid out directly instead, in the same shape.
-                inlineItem != null ->
-                    "\"$collectionConstructor<${itemType}>(\" + " +
-                        "$receiver.joinToString(separator = \"\") { item -> \" \" + ($inlineItem) + \",\" } + " +
-                        "\")\""
-                else ->
-                    "\"$collectionConstructor<${itemType}>(\" + $receiver.deepPrintContents() + \")\""
+            // An annotated data class opens a block, so those items go one per line.
+            if (isAnnotatedDataClass(resolvedItemType)) {
+                return "\"$collectionConstructor<${itemType}>(\\n\" + " +
+                    "$receiver.joinToString(separator = \"\") " +
+                    "{ $item -> $item.deepPrint(" +
+                    "currentIndent = currentIndent + ${ENTRY_INDENT_MULTIPLIER + depth} * indentWidth" +
+                    ") + \",\\n\" } + " +
+                    "(currentIndent + ${CLOSING_INDENT_MULTIPLIER + depth} * indentWidth).indent() + \")\""
+            }
+
+            // deepPrintContents() renders items from their runtime type, which loses
+            // information: an enum comes out as an unqualified toString(), a UInt without
+            // its `u`, a nested collection as `[0, 1]`, and on Kotlin/JS a Float, Double
+            // or Char is indistinguishable from a number. The item type is known
+            // statically here, so items are rendered from it instead.
+            val renderedItem = nullSafeValueExpression(
+                imports = imports,
+                type = resolvedItemType,
+                accessor = item,
+                lambdaParameter = "nested$depth",
+                depth = depth + 1,
+            )
+            return if (renderedItem != null) {
+                "\"$collectionConstructor<${itemType}>(\" + " +
+                    "$receiver.joinToString(separator = \"\") { $item -> \" \" + ($renderedItem) + \",\" } + " +
+                    "\")\""
+            } else {
+                "\"$collectionConstructor<${itemType}>(\" + $receiver.deepPrintContents() + \")\""
             }
         }
 

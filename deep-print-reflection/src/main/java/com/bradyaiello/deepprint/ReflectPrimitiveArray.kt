@@ -196,6 +196,7 @@ internal fun Any.isPrimitiveArray(): Boolean = when (this) {
 internal fun Any.deepPrintPrimitiveArrayReflectionOrNull(
     startingIndent: Int,
     indentSize: Int,
+    standalone: Boolean = false,
 ): String? {
     val (items, constructor) = when (this) {
         is ByteArray -> asIterable() to "byteArrayOf"
@@ -217,7 +218,7 @@ internal fun Any.deepPrintPrimitiveArrayReflectionOrNull(
             startingIndent = startingIndent,
             indentSize = indentSize,
             constructor = constructor,
-            standalone = false,
+            standalone = standalone,
         )
     )
 }

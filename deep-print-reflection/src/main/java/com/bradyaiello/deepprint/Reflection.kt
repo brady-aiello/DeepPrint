@@ -112,6 +112,23 @@ internal fun Any?.printsInline(): Boolean = when {
     else -> !this::class.isData
 }
 
+/**
+ * Renders [this] as a collection literal indented to [startingIndent], or returns null
+ * when it is not a collection. Used where a collection appears inside another
+ * collection or a map: those positions know nothing about the element type, so the
+ * recursion has to be driven from the runtime value.
+ */
+internal fun Any.deepPrintNestedCollectionOrNull(
+    startingIndent: Int,
+    indentSize: Int,
+): String? = when (this) {
+    is List<*> -> deepPrintListReflection(startingIndent, indentSize, "mutableListOf", standalone = true)
+    is Set<*> -> deepPrintSetReflection(startingIndent, indentSize, "mutableSetOf", standalone = true)
+    is Map<*, *> -> deepPrintMapReflection(startingIndent, indentSize, "mutableMapOf", standalone = true)
+    is Array<*> -> deepPrintArrayReflection(startingIndent, indentSize, "arrayOf", standalone = true)
+    else -> deepPrintPrimitiveArrayReflectionOrNull(startingIndent, indentSize, standalone = true)
+}
+
 internal fun Any.deepPrintUnsupportedReflection(): String = when (this) {
     is Enum<*> -> {
         // An enum constant with a body is an anonymous subclass of the enum itself.
