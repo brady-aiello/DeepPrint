@@ -19,6 +19,7 @@ import com.bradyaiello.deepprint.testclasses.WithAMutableSet
 import com.bradyaiello.deepprint.testclasses.WithASet
 import com.bradyaiello.deepprint.testclasses.WithAnArray
 import com.bradyaiello.deepprint.testclasses.WithAnnotatedProperty
+import com.bradyaiello.deepprint.testclasses.WithCollectionMapValues
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableArray
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
@@ -27,6 +28,7 @@ import com.bradyaiello.deepprint.testclasses.WithDeepPrintableSet
 import com.bradyaiello.deepprint.testclasses.WithJdkCollections
 import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithMutableMapDataClasses
+import com.bradyaiello.deepprint.testclasses.WithNullables
 import com.bradyaiello.deepprint.testclasses.WithPrimitiveArrays
 import com.bradyaiello.deepprint.testclasses.WithTypeAliasProperty
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
@@ -169,6 +171,29 @@ val withJdkCollections = WithJdkCollections(
 )
 
 val withTypeAliasProperty = WithTypeAliasProperty(person = person)
+
+val withNullablesEmpty = WithNullables(
+    name = null,
+    count = null,
+    items = null,
+    someMap = null,
+    ints = null,
+    person = null,
+)
+
+val withNullablesPopulated = WithNullables(
+    name = "Dave",
+    count = 3,
+    items = listOf(0, 1),
+    someMap = mapOf(1 to "a"),
+    ints = intArrayOf(7, 8),
+    person = person,
+)
+
+val withCollectionMapValues = WithCollectionMapValues(
+    listsByName = mapOf("a" to listOf(1, 2)),
+    setsByName = mapOf("b" to setOf("x", "y")),
+)
 
 val withAnnotatedProperty = WithAnnotatedProperty(
     label = "some label",
