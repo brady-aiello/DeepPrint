@@ -21,8 +21,7 @@ jobs:
           distribution: zulu
           java-version: 17
           
-      - name: Cache Gradle
-        uses: ./.github/actions/cache-gradle
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Cache Konan
         uses: ./.github/actions/cache-konan
@@ -45,4 +44,7 @@ jobs:
           if [ -z "$ORG_GRADLE_PROJECT_signingInMemoryKeyPassword" ]; then
             unset ORG_GRADLE_PROJECT_signingInMemoryKeyPassword
           fi
-          ./gradlew build publishToMavenCentral --no-parallel
+          # Configuration cache is on by default in gradle.properties, but stays off
+          # here: 0.2.0 published without it, and the release path is not the place to
+          # introduce an untested variable. Drop this once a release has run with it.
+          ./gradlew build publishToMavenCentral --no-parallel --no-configuration-cache

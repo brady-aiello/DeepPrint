@@ -22,5 +22,10 @@ jobs:
           distribution: corretto
           java-version: 17
 
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Cache Konan
+        uses: ./.github/actions/cache-konan
+
       - name: Test jvm, js(node + browser), linux on Linux
         run: ./gradlew jvmTest jsTest linuxX64Test
