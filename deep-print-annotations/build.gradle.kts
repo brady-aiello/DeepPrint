@@ -6,7 +6,7 @@ repositories {
 plugins {
     kotlin("multiplatform")
     id("io.gitlab.arturbosch.detekt")
-    id("kmp.convention.publication")
+    id("deepprint.publication")
 }
 
 kotlin{
