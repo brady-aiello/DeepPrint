@@ -24,6 +24,7 @@ import com.bradyaiello.deepprint.testobjects.withDeepPrintableList
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableMutableList
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableMutableSet
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableSet
+import com.bradyaiello.deepprint.testobjects.withEnums
 import com.bradyaiello.deepprint.testobjects.withJdkCollections
 import com.bradyaiello.deepprint.testobjects.withNullablesEmpty
 import com.bradyaiello.deepprint.testobjects.withNullablesPopulated
@@ -462,6 +463,26 @@ class BasicTest {
         """.trimIndent()
 
         val actual = withCollectionMapValues.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun enumsPrintQualified() {
+        val expected = """
+            WithEnums(
+              direction = Direction.NORTH,
+              maybeDirection = null,
+              directions = listOf<Direction>( Direction.NORTH, Direction.SOUTH,),
+              bySide = mapOf<Direction,String>(
+                Direction.NORTH to "up",
+              ),
+              toDirections = mapOf<String,List<Direction>>(
+                "all" to listOf<Direction>( Direction.NORTH, Direction.SOUTH,),
+              ),
+            )
+        """.trimIndent()
+
+        val actual = withEnums.deepPrint()
         assertEquals(expected, actual)
     }
 
