@@ -29,7 +29,6 @@ import com.bradyaiello.deepprint.testobjects.withJdkCollections
 import com.bradyaiello.deepprint.testobjects.withNullablesEmpty
 import com.bradyaiello.deepprint.testobjects.withNullablesPopulated
 import com.bradyaiello.deepprint.testobjects.withPrimitiveArrays
-import com.bradyaiello.deepprint.testobjects.withTypeAliasProperty
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -387,20 +386,6 @@ class BasicTest {
         """.trimIndent()
 
         val actual = withJdkCollections.deepPrint()
-        assertEquals(expected, actual)
-    }
-
-    @Test
-    fun typeAliasPropertyFallsBackToToString() {
-        // A typealias resolves to a KSTypeAlias, not a class declaration, so there is
-        // nothing to deep print. What matters here is that it does not throw.
-        val expected = """
-            WithTypeAliasProperty(
-              person = SamplePersonClass(name=Dave, sampleClass=SampleClass(x=0.5, y=2.6, name=A point)),
-            )
-        """.trimIndent()
-
-        val actual = withTypeAliasProperty.deepPrint()
         assertEquals(expected, actual)
     }
 

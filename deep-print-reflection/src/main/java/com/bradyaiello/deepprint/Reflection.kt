@@ -138,7 +138,11 @@ internal fun <T : Any> KClass<T>.isPrimitive(): Boolean {
         Int::class,
         Long::class,
         Float::class,
-        Double::class -> true
+        Double::class,
+        UByte::class,
+        UShort::class,
+        UInt::class,
+        ULong::class -> true
         else -> false
     }
 }
@@ -153,7 +157,11 @@ fun Any.isPrimitive(): Boolean {
         is Int,
         is Long,
         is Float,
-        is Double -> true
+        is Double,
+        is UByte,
+        is UShort,
+        is UInt,
+        is ULong -> true
         else -> false
     }
 }
