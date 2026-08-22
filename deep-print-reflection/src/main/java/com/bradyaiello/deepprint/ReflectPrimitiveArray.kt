@@ -179,6 +179,12 @@ fun CharArray.deepPrintCharArrayReflection(
     )
 )
 
+internal fun Any.isPrimitiveArray(): Boolean = when (this) {
+    is ByteArray, is ShortArray, is IntArray, is LongArray,
+    is FloatArray, is DoubleArray, is BooleanArray, is CharArray -> true
+    else -> false
+}
+
 /**
  * Prints [this] as a primitive array literal, or returns null if it is not one of the
  * eight primitive array types. Used to render a `data class` property, where the only

@@ -30,7 +30,7 @@ class ReflectionTest {
         val brady = Person(
             name = "Brady",
             age = 38,
-            Address(
+            address = Address(
                 streetAddress = "19 Jolley Way",
                 city = "Scotts Valley",
                 state = "CA",
@@ -41,7 +41,7 @@ class ReflectionTest {
         Person(
             name = "Brady",
             age = 38,
-            Address(
+            address = Address(
                 streetAddress = "19 Jolley Way",
                 city = "Scotts Valley",
                 state = "CA",
@@ -260,7 +260,7 @@ class ReflectionTest {
                     Person(
                         name = "Brady",
                         age = 38,
-                        Address(
+                        address = Address(
                             streetAddress = "414 Koshland Way",
                             city = "Santa Cruz",
                             state = "CA",
@@ -270,7 +270,7 @@ class ReflectionTest {
                     Person(
                         name = "Joe",
                         age = 80,
-                        Address(
+                        address = Address(
                             streetAddress = "1600 Pennsylvania Avenue, N.W.",
                             city = "Washington",
                             state = "DC",
@@ -302,7 +302,7 @@ class ReflectionTest {
                     Person(
                         name = "Brady",
                         age = 38,
-                        Address(
+                        address = Address(
                             streetAddress = "414 Koshland Way",
                             city = "Santa Cruz",
                             state = "CA",
@@ -312,7 +312,7 @@ class ReflectionTest {
                     Person(
                         name = "Joe",
                         age = 80,
-                        Address(
+                        address = Address(
                             streetAddress = "1600 Pennsylvania Avenue, N.W.",
                             city = "Washington",
                             state = "DC",
@@ -320,7 +320,7 @@ class ReflectionTest {
                         ),
                     ),
                 ),
-                MutableListContainer(
+                mutableListContainer = MutableListContainer(
                     someString = "Some String",
                     numbers =  mutableListOf(
                         1,
@@ -353,7 +353,7 @@ class ReflectionTest {
                     Person(
                         name = "Brady",
                         age = 38,
-                        Address(
+                        address = Address(
                             streetAddress = "414 Koshland Way",
                             city = "Santa Cruz",
                             state = "CA",
@@ -363,7 +363,7 @@ class ReflectionTest {
                     Person(
                         name = "Joe",
                         age = 80,
-                        Address(
+                        address = Address(
                             streetAddress = "1600 Pennsylvania Avenue, N.W.",
                             city = "Washington",
                             state = "DC",
@@ -371,7 +371,7 @@ class ReflectionTest {
                         ),
                     ),
                 ),
-                ListContainer(
+                listContainer = ListContainer(
                     someString = "Some String",
                     numbers =  mutableListOf(
                         1,
@@ -432,7 +432,7 @@ class ReflectionTest {
                     Person(
                         name = "Brady",
                         age = 38,
-                        Address(
+                        address = Address(
                             streetAddress = "414 Koshland Way",
                             city = "Santa Cruz",
                             state = "CA",
@@ -443,7 +443,7 @@ class ReflectionTest {
                     Person(
                         name = "Joe",
                         age = 80,
-                        Address(
+                        address = Address(
                             streetAddress = "1600 Pennsylvania Avenue, N.W.",
                             city = "Washington",
                             state = "DC",

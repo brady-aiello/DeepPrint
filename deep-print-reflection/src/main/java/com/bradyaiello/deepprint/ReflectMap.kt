@@ -78,8 +78,10 @@ private fun <Any> Any?.deepPrintMapKeyOrValue(
 
     if (this == null) {
         stringBuilder.append("${totalIndent}null")
-    } else if (this!!::class.isPrimitive()) {
+    } else if (this::class.isPrimitive()) {
         stringBuilder.append("${totalIndent}${deepPrintPrimitive(this)}")
+    } else if (!this::class.isData) {
+        stringBuilder.append("${totalIndent}${this.deepPrintUnsupportedReflection()}")
     } else {
         stringBuilder.append(
             this.deepPrintReflection(
@@ -100,7 +102,7 @@ private fun <K, V> Map.Entry<K, V?>.deepPrintMapEntryReflection(
         startingIndent = startingIndent,
         indentSize = indentSize
     )
-    val singleLine = key!!.isPrimitive() && ((value == null) || value!!.isPrimitive())
+    val singleLine = key.printsInline() && value.printsInline()
     val toStr = if (singleLine) " to " else " to\n"
     stringBuilder.append(toStr)
     val newStartingIndent = if (singleLine) 0 else startingIndent + indentSize
