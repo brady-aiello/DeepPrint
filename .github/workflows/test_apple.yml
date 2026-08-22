@@ -22,5 +22,10 @@ jobs:
           distribution: corretto
           java-version: 17
 
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Cache Konan
+        uses: ./.github/actions/cache-konan
+
       - name: Test Apple targets
         run: ./gradlew iosSimulatorArm64Test macosArm64Test watchosSimulatorArm64Test
