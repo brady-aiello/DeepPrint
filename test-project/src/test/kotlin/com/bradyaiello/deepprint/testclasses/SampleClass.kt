@@ -166,7 +166,6 @@ data class WithTuples(
 data class WithReadOnlyCollections(
     val collection: Collection<Int>,
     val iterable: Iterable<String>,
-    val sequence: Sequence<Int>,
     val aliased: IntList,
 )
 
@@ -211,6 +210,9 @@ data class WithGenericAliases(
     val mapping: Mapping<Int>,
     val grid: Grid<Int>,
 )
+
+@DeepPrint
+data class WithASequence(val name: String, val sequence: Sequence<Int>)
 
 @DeepPrint
 data class WithAMap(

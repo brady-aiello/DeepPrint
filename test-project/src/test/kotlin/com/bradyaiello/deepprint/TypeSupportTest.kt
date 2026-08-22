@@ -1,5 +1,6 @@
 package com.bradyaiello.deepprint
 
+import com.bradyaiello.deepprint.testclasses.WithASequence
 import com.bradyaiello.deepprint.testclasses.deepPrint
 import com.bradyaiello.deepprint.testobjects.withGenericAliases
 import com.bradyaiello.deepprint.testobjects.withNestedCollections
@@ -11,6 +12,7 @@ import com.bradyaiello.deepprint.testobjects.withTypedCollectionItems
 import com.bradyaiello.deepprint.testobjects.withUnsigned
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Coverage for the property types DeepPrint knows how to reconstruct, beyond the
@@ -47,7 +49,6 @@ class TypeSupportTest {
             WithReadOnlyCollections(
                 collection = listOf<Int>( 1, 2,),
                 iterable = listOf<String>( "a", "b",),
-                sequence = sequenceOf<Int>( 3, 4,),
                 aliased = listOf<Int>( 5, 6,),
             )
         """.trimIndent()
@@ -166,5 +167,17 @@ class TypeSupportTest {
 
         val actual = withGenericAliases.deepPrint()
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun sequencePropertyIsNotConsumed() {
+        // A Sequence prints with toString() rather than being reconstructed, precisely
+        // so that printing cannot iterate it. constrainOnce() makes that observable:
+        // if deepPrint() touched the sequence, toList() below would throw.
+        val sequence = sequenceOf(1, 2, 3).constrainOnce()
+        val actual = WithASequence(name = "s", sequence = sequence).deepPrint()
+
+        assertTrue(actual.contains("name = \"s\","))
+        assertEquals(listOf(1, 2, 3), sequence.toList())
     }
 }

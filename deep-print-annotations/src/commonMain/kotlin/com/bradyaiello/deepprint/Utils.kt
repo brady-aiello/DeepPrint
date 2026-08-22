@@ -103,11 +103,6 @@ fun <T> List<T>.deepPrintContents(): String = deepPrintItems { deepPrintPrimitiv
  */
 fun <T> Iterable<T>.deepPrintContents(): String = deepPrintItems { deepPrintPrimitive(it) }
 
-/**
- * Note that this consumes the sequence. A sequence that can only be iterated once is
- * spent by printing it.
- */
-fun <T> Sequence<T>.deepPrintContents(): String = asIterable().deepPrintItems { deepPrintPrimitive(it) }
 
 fun <T> Set<T>.deepPrintContents(): String = deepPrintItems { deepPrintPrimitive(it) }
 

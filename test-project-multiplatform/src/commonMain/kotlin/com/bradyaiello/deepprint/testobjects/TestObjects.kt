@@ -221,7 +221,6 @@ val withTuples = WithTuples(
 val withReadOnlyCollections = WithReadOnlyCollections(
     collection = listOf(1, 2),
     iterable = listOf("a", "b"),
-    sequence = sequenceOf(3, 4),
     aliased = listOf(5, 6),
 )
 

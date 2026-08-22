@@ -243,7 +243,6 @@ A property whose type is one of these is printed as the call that rebuilds it:
 | `HashMap<K, V>` | `hashMapOf<K, V>(...)` |
 | `LinkedHashMap<K, V>` | `linkedMapOf<K, V>(...)` |
 | `Collection<T>`, `Iterable<T>` | `listOf<T>(...)` |
-| `Sequence<T>` | `sequenceOf<T>(...)` |
 | `UByteArray`, `UShortArray`, `UIntArray`, `ULongArray` | `ubyteArrayOf(...)`, `ushortArrayOf(...)`, `uintArrayOf(...)`, `ulongArrayOf(...)` |
 | `Pair<A, B>`, `Triple<A, B, C>` | `Pair(a, b)`, `Triple(a, b, c)` |
 | `ByteArray`, `ShortArray`, `IntArray`, `LongArray` | `byteArrayOf(...)`, `shortArrayOf(...)`, `intArrayOf(...)`, `longArrayOf(...)` |
@@ -329,9 +328,6 @@ substituted in by name rather than by position:
 typealias Mapping<V> = Map<String, V>   // the parameter is not the first argument
 typealias Grid<T> = List<List<T>>       // the parameter is nested
 ```
-
-`Sequence` is supported, but note that printing one **consumes it**. A sequence that
-can only be iterated once is spent by printing it.
 
 ### KSP and Nullable Properties
 
@@ -518,12 +514,13 @@ That is not true for single source projects, like [test-project](./test-project)
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
 - For KSP, if an annotated data class has a property of a non-annotated class, the property's value is printed with a 
   standard `toString()`.
+- A `Sequence` property is not reconstructed; it prints with `toString()`. Printing one
+  would have to iterate it, which consumes a single-use sequence and exhausts the heap
+  on an infinite one. `Collection` and `Iterable` are supported, on the assumption that
+  they can be iterated more than once.
 - Not every type is supported. See
   [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
   [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
-  Still missing, in both implementations:
-  - Printing a `Sequence` consumes it. A sequence that can only be iterated once is
-    spent by being printed.
 - For reflection, a property that is neither a primitive, a supported collection, nor a
   `data class` is printed with `toString()`. Enums are the exception and print
   qualified, eg. `day = DayOfWeek.MONDAY`, which is valid Kotlin as long as the enum is
