@@ -279,6 +279,29 @@ WithEnums(
 An enum nested in another class prints with its own simple name, eg. `Color.RED` for
 `Outer.Color`, so `import com.example.Outer.Color` is what makes that output compile.
 
+### Nested Collections
+
+Collections nest, in both implementations. A collection can be an item of another
+collection, a map key, or a map value:
+
+```kotlin
+WithNestedMaps(
+    mapOfMaps = mapOf<String,Map<String, Int>>(
+        "a" to mapOf<String,Int>(
+            "b" to 1,
+        ),
+    ),
+    listKeyed = mapOf<List<Int>,String>(
+        listOf<Int>( 1, 2,) to "x",
+    ),
+)
+```
+
+Collections of primitives stay on one line whatever the depth, so
+`List<List<List<Int>>>` prints as
+`listOf<List<List<Int>>>( listOf<List<Int>>( listOf<Int>( 1,),),)`. A map, or a
+collection of annotated `data class`es, opens a block and is indented to its depth.
+
 ### KSP and the Remaining Types
 
 `Pair` and `Triple` print as constructor calls on one line, with each component
@@ -489,17 +512,16 @@ That is not true for single source projects, like [test-project](./test-project)
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
 - For KSP, if an annotated data class has a property of a non-annotated class, the property's value is printed with a 
   standard `toString()`.
-- Not all collection types are supported. See
+- Not every type is supported. See
   [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
   [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
   Still missing, in both implementations:
-  - Nested collections, eg. `List<List<Int>>`. The outer collection prints correctly,
-    but the inner one prints via `toString()` as `[0, 1]`, which is not valid Kotlin.
-    A collection as a *map value*, eg. `Map<String, List<Int>>`, does work.
   - A *generic* `typealias`, eg. `typealias Mapping<V> = Map<String, V>`. The aliased
     type still carries the unsubstituted parameter, so it is left alone and falls back
     to `toString()`. A typealias without type arguments is resolved and printed
     normally.
+  - Printing a `Sequence` consumes it. A sequence that can only be iterated once is
+    spent by being printed.
 - For reflection, a property that is neither a primitive, a supported collection, nor a
   `data class` is printed with `toString()`. Enums are the exception and print
   qualified, eg. `day = DayOfWeek.MONDAY`, which is valid Kotlin as long as the enum is

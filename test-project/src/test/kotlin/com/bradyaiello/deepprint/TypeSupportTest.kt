@@ -1,6 +1,8 @@
 package com.bradyaiello.deepprint
 
 import com.bradyaiello.deepprint.testclasses.deepPrint
+import com.bradyaiello.deepprint.testobjects.withNestedCollections
+import com.bradyaiello.deepprint.testobjects.withNestedMaps
 import com.bradyaiello.deepprint.testobjects.withReadOnlyCollections
 import com.bradyaiello.deepprint.testobjects.withTuples
 import com.bradyaiello.deepprint.testobjects.withTypeAliasProperty
@@ -108,6 +110,43 @@ class TypeSupportTest {
         """.trimIndent()
 
         val actual = withTypeAliasProperty.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun nestedCollections() {
+        val expected = """
+            WithNestedCollections(
+                listOfLists = listOf<List<Int>>( listOf<Int>( 0, 1,), listOf<Int>( 2,),),
+                setOfLists = setOf<List<Int>>( listOf<Int>( 1, 2,),),
+                listOfArrays = listOf<IntArray>( intArrayOf( 1, 2,),),
+                deep = listOf<List<List<Int>>>( listOf<List<Int>>( listOf<Int>( 1,),),),
+            )
+        """.trimIndent()
+
+        val actual = withNestedCollections.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun nestedMaps() {
+        val expected = """
+            WithNestedMaps(
+                mapOfMaps = mapOf<String,Map<String, Int>>(
+                    "a" to mapOf<String,Int>(
+                        "b" to 1,
+                    ),
+                ),
+                listKeyed = mapOf<List<Int>,String>(
+                    listOf<Int>( 1, 2,) to "x",
+                ),
+                listOfMaps = listOf<Map<String, Int>>( mapOf<String,Int>(
+                        "a" to 1,
+                    ),),
+            )
+        """.trimIndent()
+
+        val actual = withNestedMaps.deepPrint()
         assertEquals(expected, actual)
     }
 }

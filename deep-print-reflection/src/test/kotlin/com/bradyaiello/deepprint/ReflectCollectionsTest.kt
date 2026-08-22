@@ -248,4 +248,50 @@ class ReflectCollectionsTest {
         """.trimIndent()
         assertEquals(expected, container.deepPrintReflection())
     }
+
+    @Test
+    fun `deep print data class with nested collections`() {
+        val container = NestedContainer(
+            listOfLists = listOf(listOf(0, 1)),
+            listOfArrays = listOf(intArrayOf(1, 2)),
+            mapValueList = mapOf("a" to listOf(1, 2)),
+            mapOfMaps = mapOf("a" to mapOf("b" to 1)),
+            setOfLists = setOf(listOf(9)),
+        )
+        val expected = """
+            NestedContainer(
+                listOfLists =  mutableListOf(
+                    mutableListOf(
+                        0,
+                        1,
+                    ),
+                ),
+                listOfArrays =  mutableListOf(
+                    intArrayOf(
+                        1,
+                        2,
+                    ),
+                ),
+                mapValueList =  mutableMapOf(
+                    "a" to
+                        mutableListOf(
+                            1,
+                            2,
+                        ),
+                ),
+                mapOfMaps =  mutableMapOf(
+                    "a" to
+                        mutableMapOf(
+                            "b" to 1,
+                        ),
+                ),
+                setOfLists =  mutableSetOf(
+                    mutableListOf(
+                        9,
+                    ),
+                ),
+            )
+        """.trimIndent()
+        assertEquals(expected, container.deepPrintReflection())
+    }
 }

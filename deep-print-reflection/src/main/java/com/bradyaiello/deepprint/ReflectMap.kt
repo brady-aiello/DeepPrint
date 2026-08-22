@@ -76,10 +76,14 @@ private fun <Any> Any?.deepPrintMapKeyOrValue(
 ) {
     val totalIndent = startingIndent.indent() + indentSize.indent()
 
+    val nested = this?.deepPrintNestedCollectionOrNull(startingIndent + indentSize, indentSize)
+
     if (this == null) {
         stringBuilder.append("${totalIndent}null")
     } else if (this::class.isPrimitive()) {
         stringBuilder.append("${totalIndent}${deepPrintPrimitive(this)}")
+    } else if (nested != null) {
+        stringBuilder.append(nested)
     } else if (!this::class.isData) {
         stringBuilder.append("${totalIndent}${this.deepPrintUnsupportedReflection()}")
     } else {
@@ -112,6 +116,10 @@ private fun <K, V> Map.Entry<K, V?>.deepPrintMapEntryReflection(
         startingIndent = newStartingIndent,
         indentSize = newIndentSize
     )
-    val suffix = if (singleLine) ",\n" else "\n"
-    stringBuilder.append(suffix)
+    // A nested data class ends with its own comma; a collection literal and an inline
+    // value do not. Asking rather than assuming keeps every entry comma-terminated.
+    if (!stringBuilder.endsWith(",")) {
+        stringBuilder.append(",")
+    }
+    stringBuilder.append("\n")
 }

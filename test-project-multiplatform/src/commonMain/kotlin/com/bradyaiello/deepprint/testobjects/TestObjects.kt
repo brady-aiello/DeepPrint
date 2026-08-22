@@ -30,6 +30,8 @@ import com.bradyaiello.deepprint.testclasses.WithEnums
 import com.bradyaiello.deepprint.testclasses.WithJdkCollections
 import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithMutableMapDataClasses
+import com.bradyaiello.deepprint.testclasses.WithNestedCollections
+import com.bradyaiello.deepprint.testclasses.WithNestedMaps
 import com.bradyaiello.deepprint.testclasses.WithNullables
 import com.bradyaiello.deepprint.testclasses.WithPrimitiveArrays
 import com.bradyaiello.deepprint.testclasses.WithReadOnlyCollections
@@ -236,6 +238,19 @@ val withTypedCollectionItems = WithTypedCollectionItems(
     doubles = listOf(1.0, 2.5),
     chars = listOf('a', 'b'),
     uints = listOf(3u, 4u),
+)
+
+val withNestedCollections = WithNestedCollections(
+    listOfLists = listOf(listOf(0, 1), listOf(2)),
+    setOfLists = setOf(listOf(1, 2)),
+    listOfArrays = listOf(intArrayOf(1, 2)),
+    deep = listOf(listOf(listOf(1))),
+)
+
+val withNestedMaps = WithNestedMaps(
+    mapOfMaps = mapOf("a" to mapOf("b" to 1)),
+    listKeyed = mapOf(listOf(1, 2) to "x"),
+    listOfMaps = listOf(mapOf("a" to 1)),
 )
 
 val withAnnotatedProperty = WithAnnotatedProperty(

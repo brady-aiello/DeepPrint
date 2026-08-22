@@ -190,6 +190,21 @@ data class WithTypedCollectionItems(
 )
 
 @DeepPrint
+data class WithNestedCollections(
+    val listOfLists: List<List<Int>>,
+    val setOfLists: Set<List<Int>>,
+    val listOfArrays: List<IntArray>,
+    val deep: List<List<List<Int>>>,
+)
+
+@DeepPrint
+data class WithNestedMaps(
+    val mapOfMaps: Map<String, Map<String, Int>>,
+    val listKeyed: Map<List<Int>, String>,
+    val listOfMaps: List<Map<String, Int>>,
+)
+
+@DeepPrint
 data class WithAMap(
     val id: Long,
     val someMap: Map<Int, String>

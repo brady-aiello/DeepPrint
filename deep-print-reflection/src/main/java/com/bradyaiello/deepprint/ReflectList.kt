@@ -70,10 +70,14 @@ internal fun <Any> Any?.deepPrintListItem(
 ) {
     val totalIndent = startingIndent.indent() + indentSize.indent()
 
+    val nested = this?.deepPrintNestedCollectionOrNull(startingIndent + indentSize, indentSize)
+
     if (this == null) {
         stringBuilder.append("${totalIndent}null,\n")
     } else if (this::class.isPrimitive()) {
         stringBuilder.append("${totalIndent}${deepPrintPrimitive(this)},\n")
+    } else if (nested != null) {
+        stringBuilder.append("$nested,\n")
     } else if (!this::class.isData) {
         stringBuilder.append("${totalIndent}${this.deepPrintUnsupportedReflection()},\n")
     } else {
