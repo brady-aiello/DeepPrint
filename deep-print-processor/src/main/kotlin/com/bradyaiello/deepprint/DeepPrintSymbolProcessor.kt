@@ -79,10 +79,15 @@ class DeepPrintProcessor(
             "HashSet" to "hashSetOf",
             "LinkedHashSet" to "linkedSetOf",
             "Array" to "arrayOf",
-            // Read-only supertypes: listOf() is assignable to all of them.
+            // Read-only supertypes: listOf() is assignable to both.
+            //
+            // Sequence is deliberately absent. Printing one has to iterate it, which
+            // consumes a single-use sequence and never returns for an infinite one. A
+            // debugging aid should not be able to destroy what it is inspecting, so a
+            // Sequence property falls back to toString() like any other type DeepPrint
+            // cannot reconstruct.
             "Collection" to "listOf",
             "Iterable" to "listOf",
-            "Sequence" to "sequenceOf",
         )
 
         private val MAP_CONSTRUCTORS = mapOf(
