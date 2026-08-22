@@ -96,3 +96,28 @@ internal fun createPeople(): MutableList<Person> {
     )
     return mutableListOf(brady, prez)
 }
+
+enum class DayOfWeek { MONDAY, TUESDAY }
+
+/** Neither a primitive, a collection, nor a `data class`. */
+class Opaque(private val label: String) {
+    override fun toString(): String = "Opaque($label)"
+}
+
+data class NullableContainer(
+    val name: String?,
+    val count: Int?,
+    val address: Address?,
+    val numbers: List<Int>?,
+)
+
+data class EnumContainer(
+    val day: DayOfWeek,
+    val days: List<DayOfWeek>,
+    val byDay: Map<DayOfWeek, String>,
+)
+
+data class OpaqueContainer(
+    val id: Opaque,
+    val name: String,
+)

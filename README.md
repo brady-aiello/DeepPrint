@@ -153,6 +153,24 @@ The primitive arrays need no mutable/read-only distinction, so each has a single
 function. Their element type is known from the array type itself, so unlike
 `List` and `Set` there is nothing lost to erasure.
 
+### Reflection and Values It Cannot Reconstruct
+
+A `null` property prints as `null`. An enum prints qualified, so
+`day = DayOfWeek.MONDAY` is valid Kotlin once the enum is imported.
+
+Anything else that is neither a primitive, a supported collection, nor a `data class`
+falls back to `toString()`:
+
+```kotlin
+OpaqueContainer(
+    id = Opaque(abc),
+    name = "x",
+)
+```
+
+That line is not something you can paste back into a test, but the property is at
+least present and says what it held.
+
 ## KSP Simple Example
 For a simple example, we'll use a small class `SampleClass`:
 ```kotlin
@@ -403,15 +421,19 @@ That is not true for single source projects, like [test-project](./test-project)
   - `Collection`, `Iterable` and `Sequence` properties, and `Pair` and `Triple`.
     These fall back to `toString()`, so the output is readable but is not a
     constructor call.
-  - Nested collections, eg. `List<List<Int>>` or `Map<String, List<Int>>` with a
-    collection value. The outer collection prints correctly, but the inner one prints
-    via `toString()` as `[0, 1]`, which is not valid Kotlin.
+  - Nested collections, eg. `List<List<Int>>`. The outer collection prints correctly,
+    but the inner one prints via `toString()` as `[0, 1]`, which is not valid Kotlin.
+    For KSP, `Map<String, List<Int>>` is worse: it generates code that does not compile.
   - The unsigned arrays `UByteArray`, `UShortArray`, `UIntArray` and `ULongArray`.
   - A property whose type is a `typealias` for a `@DeepPrint` `data class`. The alias
     is not resolved, so the property falls back to `toString()`.
-- Nullable properties are not supported. A `val items: List<Int>?` generates code that
-  does not compile. This is not specific to collections: `val name: String?` has the
-  same problem.
+- For KSP, nullable properties are not supported. A `val items: List<Int>?` generates
+  code that does not compile. This is not specific to collections: `val name: String?`
+  has the same problem. Reflection handles nullable properties and prints `null`.
+- For reflection, a property that is neither a primitive, a supported collection, nor a
+  `data class` is printed with `toString()`. Enums are the exception and print
+  qualified, eg. `day = DayOfWeek.MONDAY`, which is valid Kotlin as long as the enum is
+  imported.
 - On Kotlin/JS, `Float`, `Double` and `Char` elements of a `List`, `Set` or `Array` are
   identified by their runtime type, which JS erases to a number. `2.0f` prints as `2` and
   `'A'` prints as `65`. `FloatArray`, `DoubleArray` and `CharArray` are not affected, and

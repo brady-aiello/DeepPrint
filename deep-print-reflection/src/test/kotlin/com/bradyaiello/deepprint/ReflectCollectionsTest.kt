@@ -49,7 +49,7 @@ class ReflectCollectionsTest {
                 Person(
                     name = "Brady",
                     age = 38,
-                    Address(
+                    address = Address(
                         streetAddress = "414 Koshland Way",
                         city = "Santa Cruz",
                         state = "CA",
@@ -59,7 +59,7 @@ class ReflectCollectionsTest {
                 Person(
                     name = "Joe",
                     age = 80,
-                    Address(
+                    address = Address(
                         streetAddress = "1600 Pennsylvania Avenue, N.W.",
                         city = "Washington",
                         state = "DC",
@@ -109,7 +109,7 @@ class ReflectCollectionsTest {
                     Person(
                         name = "Brady",
                         age = 38,
-                        Address(
+                        address = Address(
                             streetAddress = "414 Koshland Way",
                             city = "Santa Cruz",
                             state = "CA",
@@ -119,7 +119,7 @@ class ReflectCollectionsTest {
                     Person(
                         name = "Joe",
                         age = 80,
-                        Address(
+                        address = Address(
                             streetAddress = "1600 Pennsylvania Avenue, N.W.",
                             city = "Washington",
                             state = "DC",

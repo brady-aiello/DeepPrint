@@ -32,7 +32,7 @@ fun Any?.deepPrintReflection(
         builder.append(
             deepPrintProperty(
                 propName = kParam.name,
-                propValue = this.getPropertyValue(kParam)!!,
+                propValue = this.getPropertyValue(kParam),
                 initialIndentLength = initialIndentLength,
                 indentIncrementLength = indentIncrementLength,
             )
@@ -48,7 +48,7 @@ fun Any?.deepPrintReflection(
 @Suppress("ReturnCount")
 private fun deepPrintProperty(
     propName: String?,
-    propValue: Any,
+    propValue: Any?,
     initialIndentLength: Int,
     indentIncrementLength: Int,
 ): String {
@@ -60,6 +60,9 @@ private fun deepPrintProperty(
         constructor = constructor,
     )
 
+    if (propValue == null) {
+        return "${assignment}null,\n"
+    }
     if (propValue::class.isPrimitive()) {
         return "$assignment${deepPrintPrimitive(propValue)},\n"
     }
@@ -76,10 +79,46 @@ private fun deepPrintProperty(
     if (primitiveArray != null) {
         return "$assignment$primitiveArray,\n"
     }
-    return propValue.deepPrintReflection(
+    if (!propValue::class.isData) {
+        return "$assignment${propValue.deepPrintUnsupportedReflection()},\n"
+    }
+    // deepPrintReflection() indents the constructor call itself, but the name and the
+    // `=` are already on the line, so that leading indent has to come back off.
+    val nested = propValue.deepPrintReflection(
         initialIndentLength = startingIndent,
         indentIncrementLength = indentIncrementLength,
-    ) + "\n"
+    )
+    return assignment + nested.removePrefix(startingIndent.indent()) + "\n"
+}
+
+/**
+ * Last resort for a value that is neither a primitive, a supported collection, nor a
+ * `data class`: an enum, a java.time value, a UUID. There is nothing to recurse into,
+ * but dropping the property would produce output that looks complete and is not, so
+ * print what the value knows how to say about itself.
+ *
+ * Only enums come back out as valid Kotlin. Everything else is a readable placeholder
+ * that has to be filled in by hand.
+ */
+/**
+ * True when the value occupies a single line: primitives, enums, and anything else
+ * that falls back to toString(). Collections and nested `data class`es open a block
+ * and so cannot share a line with a map key.
+ */
+internal fun Any?.printsInline(): Boolean = when {
+    this == null -> true
+    isPrimitive() -> true
+    this is Collection<*> || this is Map<*, *> || this is Array<*> || isPrimitiveArray() -> false
+    else -> !this::class.isData
+}
+
+internal fun Any.deepPrintUnsupportedReflection(): String = when (this) {
+    is Enum<*> -> {
+        // An enum constant with a body is an anonymous subclass of the enum itself.
+        val enumClass = if (javaClass.isEnum) javaClass else javaClass.superclass
+        "${enumClass.simpleName}.$name"
+    }
+    else -> toString()
 }
 
 private fun Any.getPropertyValue(kParam: KParameter): Any? {
