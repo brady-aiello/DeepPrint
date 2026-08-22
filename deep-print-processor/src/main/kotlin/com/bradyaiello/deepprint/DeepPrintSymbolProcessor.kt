@@ -34,6 +34,7 @@ import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeAlias
 import com.google.devtools.ksp.symbol.KSTypeArgument
 import com.google.devtools.ksp.symbol.KSTypeParameter
+import com.google.devtools.ksp.symbol.Variance
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSValueParameter
@@ -118,7 +119,11 @@ class DeepPrintProcessor(
      */
     private val writtenFiles = mutableSetOf<String>()
 
+    /** Set at the start of each round; needed to build substituted type arguments. */
+    private lateinit var resolver: Resolver
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
+        this.resolver = resolver
         val symbols = resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
         if (!symbols.iterator().hasNext()) return emptyList()
         symbols.forEach { declaration ->
@@ -334,12 +339,41 @@ class DeepPrintProcessor(
             propertyDeclaration: KSPropertyDeclaration?,
             depth: Int,
         ): String? {
-            val alias = type.declaration as? KSTypeAlias
-            return if (alias != null && type.arguments.isEmpty()) {
-                valueExpression(imports, alias.type.resolve(), receiver, propertyDeclaration, depth)
-            } else {
-                null
+            val alias = type.declaration as? KSTypeAlias ?: return null
+            val substitution = alias.typeParameters
+                .map { it.name.asString() }
+                .zip(type.arguments)
+                .toMap()
+            val underlying = substitute(alias.type.resolve(), substitution)
+            return valueExpression(imports, underlying, receiver, propertyDeclaration, depth)
+        }
+
+        /**
+         * Replaces type parameter references in [type] with the arguments supplied at the
+         * use site, so that `typealias Mapping<V> = Map<String, V>` used as `Mapping<Int>`
+         * resolves to `Map<String, Int>` rather than to `Map<String, V>`.
+         *
+         * The mapping is by name, not by position: an alias parameter can appear anywhere
+         * in the aliased type, or more than once, or not at all.
+         */
+        private fun substitute(type: KSType, substitution: Map<String, KSTypeArgument>): KSType {
+            if (substitution.isEmpty() || type.arguments.isEmpty()) {
+                return type
             }
+            val substituted = type.arguments.map { argument ->
+                val argumentType = argument.type?.resolve()
+                val parameterName = (argumentType?.declaration as? KSTypeParameter)?.name?.asString()
+                when {
+                    parameterName != null -> substitution[parameterName] ?: argument
+                    argumentType == null || argumentType.arguments.isEmpty() -> argument
+                    // A parameter nested inside the aliased type, eg. List<List<T>>.
+                    else -> resolver.getTypeArgument(
+                        resolver.createKSTypeReferenceFromKSType(substitute(argumentType, substitution)),
+                        argument.variance.takeUnless { it == Variance.STAR } ?: Variance.INVARIANT,
+                    )
+                }
+            }
+            return type.replace(substituted)
         }
 
         /**

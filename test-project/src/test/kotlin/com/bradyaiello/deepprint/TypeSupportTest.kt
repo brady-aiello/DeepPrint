@@ -1,6 +1,7 @@
 package com.bradyaiello.deepprint
 
 import com.bradyaiello.deepprint.testclasses.deepPrint
+import com.bradyaiello.deepprint.testobjects.withGenericAliases
 import com.bradyaiello.deepprint.testobjects.withNestedCollections
 import com.bradyaiello.deepprint.testobjects.withNestedMaps
 import com.bradyaiello.deepprint.testobjects.withReadOnlyCollections
@@ -147,6 +148,23 @@ class TypeSupportTest {
         """.trimIndent()
 
         val actual = withNestedMaps.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun genericTypeAliasesResolve() {
+        // Mapping<V> = Map<String, V> puts the parameter in the second position, and
+        // Grid<T> = List<List<T>> nests it, so neither substitutes positionally.
+        val expected = """
+            WithGenericAliases(
+                mapping = mapOf<String,Int>(
+                    "a" to 1,
+                ),
+                grid = listOf<List<Int>>( listOf<Int>( 1, 2,),),
+            )
+        """.trimIndent()
+
+        val actual = withGenericAliases.deepPrint()
         assertEquals(expected, actual)
     }
 }

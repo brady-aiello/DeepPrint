@@ -203,6 +203,15 @@ data class WithNestedMaps(
     val listOfMaps: List<Map<String, Int>>,
 )
 
+typealias Mapping<V> = Map<String, V>
+typealias Grid<T> = List<List<T>>
+
+@DeepPrint
+data class WithGenericAliases(
+    val mapping: Mapping<Int>,
+    val grid: Grid<Int>,
+)
+
 @DeepPrint
 data class WithAMap(
     val id: Long,

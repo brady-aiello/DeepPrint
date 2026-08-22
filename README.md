@@ -320,9 +320,15 @@ int = 3u,
 ints = uintArrayOf( 5u, 6u,),
 ```
 
-A `typealias` without type arguments is resolved, so `typealias IntList = List<Int>`
-prints as a list, and an alias for an annotated `data class` deep prints rather than
-falling back to `toString()`.
+A `typealias` is resolved, so `typealias IntList = List<Int>` prints as a list, and an
+alias for an annotated `data class` deep prints rather than falling back to
+`toString()`. Generic aliases resolve too, with the arguments from the use site
+substituted in by name rather than by position:
+
+```kotlin
+typealias Mapping<V> = Map<String, V>   // the parameter is not the first argument
+typealias Grid<T> = List<List<T>>       // the parameter is nested
+```
 
 `Sequence` is supported, but note that printing one **consumes it**. A sequence that
 can only be iterated once is spent by printing it.
@@ -516,10 +522,6 @@ That is not true for single source projects, like [test-project](./test-project)
   [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
   [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
   Still missing, in both implementations:
-  - A *generic* `typealias`, eg. `typealias Mapping<V> = Map<String, V>`. The aliased
-    type still carries the unsubstituted parameter, so it is left alone and falls back
-    to `toString()`. A typealias without type arguments is resolved and printed
-    normally.
   - Printing a `Sequence` consumes it. A sequence that can only be iterated once is
     spent by being printed.
 - For reflection, a property that is neither a primitive, a supported collection, nor a
