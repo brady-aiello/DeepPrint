@@ -143,6 +143,17 @@ data class WithCollectionMapValues(
     val setsByName: Map<String, Set<String>>,
 )
 
+enum class Direction { NORTH, SOUTH }
+
+@DeepPrint
+data class WithEnums(
+    val direction: Direction,
+    val maybeDirection: Direction?,
+    val directions: List<Direction>,
+    val bySide: Map<Direction, String>,
+    val toDirections: Map<String, List<Direction>>,
+)
+
 @DeepPrint
 data class WithAMap(
     val id: Long,

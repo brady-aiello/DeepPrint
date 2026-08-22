@@ -1,6 +1,7 @@
 package com.bradyaiello.deepprint.testobjects
 
 import com.bradyaiello.deepprint.testclasses.AllTypes
+import com.bradyaiello.deepprint.testclasses.Direction
 import com.bradyaiello.deepprint.testclasses.Name
 import com.bradyaiello.deepprint.testclasses.SampleClass
 import com.bradyaiello.deepprint.testclasses.SamplePersonClass
@@ -25,6 +26,7 @@ import com.bradyaiello.deepprint.testclasses.WithDeepPrintableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableSet
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableSet
+import com.bradyaiello.deepprint.testclasses.WithEnums
 import com.bradyaiello.deepprint.testclasses.WithJdkCollections
 import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithMutableMapDataClasses
@@ -193,6 +195,14 @@ val withNullablesPopulated = WithNullables(
 val withCollectionMapValues = WithCollectionMapValues(
     listsByName = mapOf("a" to listOf(1, 2)),
     setsByName = mapOf("b" to setOf("x", "y")),
+)
+
+val withEnums = WithEnums(
+    direction = Direction.NORTH,
+    maybeDirection = null,
+    directions = listOf(Direction.NORTH, Direction.SOUTH),
+    bySide = mapOf(Direction.NORTH to "up"),
+    toDirections = mapOf("all" to listOf(Direction.NORTH, Direction.SOUTH)),
 )
 
 val withAnnotatedProperty = WithAnnotatedProperty(

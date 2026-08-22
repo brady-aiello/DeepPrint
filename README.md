@@ -256,6 +256,25 @@ listsByName = mapOf<String,List<Int>>(
 ),
 ```
 
+### KSP and Enums
+
+An enum property prints qualified, so the output is valid Kotlin as long as the enum is
+imported where you paste it. This holds wherever the enum appears -- as a property, as a
+collection item, and as a map key or value:
+
+```kotlin
+WithEnums(
+    direction = Direction.NORTH,
+    directions = listOf<Direction>( Direction.NORTH, Direction.SOUTH,),
+    bySide = mapOf<Direction,String>(
+        Direction.NORTH to "up",
+    ),
+)
+```
+
+An enum nested in another class prints with its own simple name, eg. `Color.RED` for
+`Outer.Color`, so `import com.example.Outer.Color` is what makes that output compile.
+
 ### KSP and Nullable Properties
 
 A nullable property prints as the `null` literal when it is absent, and normally when

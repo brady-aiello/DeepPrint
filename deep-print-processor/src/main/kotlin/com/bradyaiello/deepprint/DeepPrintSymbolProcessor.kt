@@ -11,6 +11,7 @@ import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSCallableReference
 import com.google.devtools.ksp.symbol.KSClassDeclaration
@@ -238,7 +239,25 @@ class DeepPrintProcessor(
                 typeName in COLLECTION_CONSTRUCTORS -> collectionExpression(imports, type, receiver)
                 typeName in PRIMITIVE_ARRAY_CONSTRUCTORS -> primitiveArrayExpression(imports, type, receiver)
                 typeName in MAP_CONSTRUCTORS -> mapExpression(imports, type, receiver)
-                else -> annotatedDataClassExpression(imports, type, receiver, propertyDeclaration)
+                else -> enumExpression(type, receiver)
+                    ?: annotatedDataClassExpression(imports, type, receiver, propertyDeclaration)
+            }
+        }
+
+        /**
+         * Enum constants print qualified, as `Direction.NORTH`, which is valid Kotlin as
+         * long as the enum is imported where the output is pasted. The generated code
+         * only needs the constant's own `name`, so nothing has to be imported into the
+         * generated file itself.
+         *
+         * Returns null when [type] is not an enum.
+         */
+        private fun enumExpression(type: KSType, receiver: String): String? {
+            val declaration = type.declaration as? KSClassDeclaration
+            return if (declaration?.classKind == ClassKind.ENUM_CLASS) {
+                "\"${declaration.simpleName.asString()}.\" + $receiver.name"
+            } else {
+                null
             }
         }
 
@@ -276,6 +295,9 @@ class DeepPrintProcessor(
             val ksValueTypeRef: KSTypeReference = type.arguments[1].type!!
             val valueType = ksValueTypeRef.resolve()
             val mapConstructor = MAP_CONSTRUCTORS.getValue(type.declaration.simpleName.asString())
+            // A primitive key has deepPrint(); an enum key does not, and used to generate
+            // code that did not compile.
+            val keyTransform = enumExpression(ksKeyTypeRef.resolve(), "key") ?: "key.deepPrint()"
 
             val valueTransform = if (valueType.declaration.isDeepPrintAnnotatedDataClass()) {
                 // A data class value opens a block, so it sits a level deeper than a
@@ -289,7 +311,7 @@ class DeepPrintProcessor(
 
             return "\"$mapConstructor<$ksKeyTypeRef,$ksValueTypeRef>(\\n\" + " +
                 "$receiver.deepPrintContents(\n" +
-                "keyTransform = { key -> (currentIndent + 2 * indentWidth).indent() + key.deepPrint() },\n" +
+                "keyTransform = { key -> (currentIndent + 2 * indentWidth).indent() + ($keyTransform) },\n" +
                 "valueTransform = { $valueTransform }) + " +
                 "(currentIndent + indentWidth).indent() + \")\""
         }
@@ -308,17 +330,27 @@ class DeepPrintProcessor(
         ): String {
             imports.add("import com.bradyaiello.deepprint.deepPrintContents")
             val itemType = type.arguments[0].type!!
-            val itemIsAnnotated = itemType.resolve().declaration.isAnnotationPresent(DeepPrint::class)
+            val resolvedItemType = itemType.resolve()
+            val itemIsAnnotated = resolvedItemType.declaration.isAnnotationPresent(DeepPrint::class)
+            val itemEnum = enumExpression(resolvedItemType, "item")
             val collectionConstructor =
                 COLLECTION_CONSTRUCTORS.getValue(type.declaration.simpleName.asString())
 
-            return if (itemIsAnnotated) {
-                "\"$collectionConstructor<${itemType}>(\\n\" + " +
-                    "$receiver.joinToString(separator = \"\") " +
-                    "{ item -> item.deepPrint(currentIndent = currentIndent + 2 * indentWidth) + \",\\n\" } + " +
-                    "(currentIndent + indentWidth).indent() + \")\""
-            } else {
-                "\"$collectionConstructor<${itemType}>(\" + $receiver.deepPrintContents() + \")\""
+            return when {
+                itemIsAnnotated ->
+                    "\"$collectionConstructor<${itemType}>(\\n\" + " +
+                        "$receiver.joinToString(separator = \"\") " +
+                        "{ item -> item.deepPrint(currentIndent = currentIndent + 2 * indentWidth) + \",\\n\" } + " +
+                        "(currentIndent + indentWidth).indent() + \")\""
+                // deepPrintContents() renders items from their runtime type, which for an
+                // enum means an unqualified toString(). The item type is known here, so
+                // the items are laid out directly instead, in the same shape.
+                itemEnum != null ->
+                    "\"$collectionConstructor<${itemType}>(\" + " +
+                        "$receiver.joinToString(separator = \"\") { item -> \" \" + ($itemEnum) + \",\" } + " +
+                        "\")\""
+                else ->
+                    "\"$collectionConstructor<${itemType}>(\" + $receiver.deepPrintContents() + \")\""
             }
         }
 
