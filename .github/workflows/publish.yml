@@ -2,9 +2,10 @@ name: Publish
 
 on:
   workflow_dispatch:
+  # Tags only. Publishing on every push to main meant re-publishing whatever version
+  # gradle.properties happened to hold, which Maven Central rejects as a duplicate, so
+  # every merge produced a failing run. Releasing is a deliberate act: tag it.
   push:
-    branches:
-      - main
     tags:
       - '*'
 
