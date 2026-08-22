@@ -127,6 +127,22 @@ data class WithJdkCollections(
 data class WithTypeAliasProperty(val person: PersonAlias)
 
 @DeepPrint
+data class WithNullables(
+    val name: String?,
+    val count: Int?,
+    val items: List<Int>?,
+    val someMap: Map<Int, String>?,
+    val ints: IntArray?,
+    val person: SamplePersonClass?,
+)
+
+@DeepPrint
+data class WithCollectionMapValues(
+    val listsByName: Map<String, List<Int>>,
+    val setsByName: Map<String, Set<String>>,
+)
+
+@DeepPrint
 data class WithAMap(
     val id: Long,
     val someMap: Map<Int, String>

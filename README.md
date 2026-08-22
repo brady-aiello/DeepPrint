@@ -248,6 +248,33 @@ A property whose type is one of these is printed as the call that rebuilds it:
 Unlike the reflection implementation, KSP sees the declared type, so a `Set` prints
 as `setOf()` and a `MutableSet` prints as `mutableSetOf()`.
 
+A collection is also supported as a map value, so `Map<String, List<Int>>` prints as
+
+```kotlin
+listsByName = mapOf<String,List<Int>>(
+    "a" to listOf<Int>( 1, 2,),
+),
+```
+
+### KSP and Nullable Properties
+
+A nullable property prints as the `null` literal when it is absent, and normally when
+it is not. This works for every supported type -- primitives, collections, maps,
+primitive arrays, and annotated `data class`es:
+
+```kotlin
+@DeepPrint
+data class Maybe(val name: String?, val items: List<Int>?, val person: Person?)
+```
+
+```kotlin
+Maybe(
+    name = null,
+    items = null,
+    person = null,
+)
+```
+
 Elements may be primitives or `@DeepPrint`-annotated `data class`es. Given:
 
 ```kotlin
@@ -423,13 +450,10 @@ That is not true for single source projects, like [test-project](./test-project)
     constructor call.
   - Nested collections, eg. `List<List<Int>>`. The outer collection prints correctly,
     but the inner one prints via `toString()` as `[0, 1]`, which is not valid Kotlin.
-    For KSP, `Map<String, List<Int>>` is worse: it generates code that does not compile.
+    A collection as a *map value*, eg. `Map<String, List<Int>>`, does work.
   - The unsigned arrays `UByteArray`, `UShortArray`, `UIntArray` and `ULongArray`.
   - A property whose type is a `typealias` for a `@DeepPrint` `data class`. The alias
     is not resolved, so the property falls back to `toString()`.
-- For KSP, nullable properties are not supported. A `val items: List<Int>?` generates
-  code that does not compile. This is not specific to collections: `val name: String?`
-  has the same problem. Reflection handles nullable properties and prints `null`.
 - For reflection, a property that is neither a primitive, a supported collection, nor a
   `data class` is printed with `toString()`. Enums are the exception and print
   qualified, eg. `day = DayOfWeek.MONDAY`, which is valid Kotlin as long as the enum is

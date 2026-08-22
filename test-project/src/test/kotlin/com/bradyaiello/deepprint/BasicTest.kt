@@ -18,12 +18,15 @@ import com.bradyaiello.deepprint.testobjects.withASet
 import com.bradyaiello.deepprint.testobjects.withAnArray
 import com.bradyaiello.deepprint.testobjects.withAnEmptyDeepPrintableSet
 import com.bradyaiello.deepprint.testobjects.withAnnotatedProperty
+import com.bradyaiello.deepprint.testobjects.withCollectionMapValues
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableArray
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableList
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableMutableList
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableMutableSet
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableSet
 import com.bradyaiello.deepprint.testobjects.withJdkCollections
+import com.bradyaiello.deepprint.testobjects.withNullablesEmpty
+import com.bradyaiello.deepprint.testobjects.withNullablesPopulated
 import com.bradyaiello.deepprint.testobjects.withPrimitiveArrays
 import com.bradyaiello.deepprint.testobjects.withTypeAliasProperty
 import kotlin.test.Test
@@ -397,6 +400,68 @@ class BasicTest {
         """.trimIndent()
 
         val actual = withTypeAliasProperty.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun nullablePropertiesWhenAbsent() {
+        val expected = """
+            WithNullables(
+                name = null,
+                count = null,
+                items = null,
+                someMap = null,
+                ints = null,
+                person = null,
+            )
+        """.trimIndent()
+
+        val actual = withNullablesEmpty.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun nullablePropertiesWhenPresent() {
+        val expected = """
+            WithNullables(
+                name = "Dave",
+                count = 3,
+                items = listOf<Int>( 0, 1,),
+                someMap = mapOf<Int,String>(
+                    1 to "a",
+                ),
+                ints = intArrayOf( 7, 8,),
+                person = 
+                    SamplePersonClass(
+                        name = "Dave",
+                        sampleClass = 
+                            SampleClass(
+                                x = 0.5f,
+                                y = 2.6f,
+                                name = "A point",
+                            ),
+                    ),
+            )
+        """.trimIndent()
+
+        val actual = withNullablesPopulated.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun mapWithCollectionValues() {
+        val expected = """
+            WithCollectionMapValues(
+                listsByName = mapOf<String,List<Int>>(
+                    "a" to listOf<Int>( 1, 2,),
+                ),
+                setsByName = mapOf<String,Set<String>>(
+                    "b" to setOf<String>( "x", "y",),
+                ),
+            )
+        """.trimIndent()
+
+        val actual = withCollectionMapValues.deepPrint()
         assertEquals(expected, actual)
     }
 

@@ -18,23 +18,33 @@ fun <T>deepPrintPrimitive(value: T): String {
     }
 }
 
-fun String.deepPrint(indent: Int = 0): String = "${indent.indent()}\"$this\""
+/*
+ * These take a nullable receiver so that generated code does not have to special-case
+ * a nullable property: `val name: String?` and `val name: String` both come out of the
+ * processor as `${name.deepPrint()}`, and a null prints as the `null` literal.
+ */
 
-fun Byte.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
+fun String?.deepPrint(indent: Int = 0): String =
+    if (this == null) "${indent.indent()}null" else "${indent.indent()}\"$this\""
 
-fun Short.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
+fun Byte?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this ?: "null"}"
 
-fun Int.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
+fun Short?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this ?: "null"}"
 
-fun Long.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
+fun Int?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this ?: "null"}"
 
-fun Double.deepPrint(indent: Int = 0): String = "${indent.indent()}${formatForJS()}"
+fun Long?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this ?: "null"}"
 
-fun Boolean.deepPrint(indent: Int = 0): String = "${indent.indent()}$this"
+fun Double?.deepPrint(indent: Int = 0): String =
+    if (this == null) "${indent.indent()}null" else "${indent.indent()}${formatForJS()}"
 
-fun Char.deepPrint(indent: Int = 0): String = "${indent.indent()}'${this}'"
+fun Boolean?.deepPrint(indent: Int = 0): String = "${indent.indent()}${this ?: "null"}"
 
-fun Float.deepPrint(indent: Int = 0): String = "${indent.indent()}${formatForJS()}f"
+fun Char?.deepPrint(indent: Int = 0): String =
+    if (this == null) "${indent.indent()}null" else "${indent.indent()}'${this}'"
+
+fun Float?.deepPrint(indent: Int = 0): String =
+    if (this == null) "${indent.indent()}null" else "${indent.indent()}${formatForJS()}f"
 
 fun Int.indent(): String = " ".repeat(this)
 
