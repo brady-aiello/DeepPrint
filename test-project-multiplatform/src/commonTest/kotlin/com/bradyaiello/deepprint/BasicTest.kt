@@ -13,11 +13,19 @@ import com.bradyaiello.deepprint.testobjects.withAMapDataClasses
 import com.bradyaiello.deepprint.testobjects.withAMutableList
 import com.bradyaiello.deepprint.testobjects.withAMutableMap
 import com.bradyaiello.deepprint.testobjects.withAMutableMapDataClasses
+import com.bradyaiello.deepprint.testobjects.withAMutableSet
+import com.bradyaiello.deepprint.testobjects.withASet
 import com.bradyaiello.deepprint.testobjects.withAnArray
+import com.bradyaiello.deepprint.testobjects.withAnEmptyDeepPrintableSet
 import com.bradyaiello.deepprint.testobjects.withAnnotatedProperty
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableArray
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableList
 import com.bradyaiello.deepprint.testobjects.withDeepPrintableMutableList
+import com.bradyaiello.deepprint.testobjects.withDeepPrintableMutableSet
+import com.bradyaiello.deepprint.testobjects.withDeepPrintableSet
+import com.bradyaiello.deepprint.testobjects.withJdkCollections
+import com.bradyaiello.deepprint.testobjects.withPrimitiveArrays
+import com.bradyaiello.deepprint.testobjects.withTypeAliasProperty
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -231,6 +239,164 @@ class BasicTest {
         """.trimIndent()
 
         val actual = withDeepPrintableArray.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun deepPrintableIntSet() {
+        val expected = """
+            WithASet(
+              name = "some set",
+              items = setOf<Int>( 0, 1, 2, 3, 4,),
+            )
+        """.trimIndent()
+
+        val actual = withASet.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun deepPrintableIntMutableSet() {
+        val expected = """
+            WithAMutableSet(
+              name = "some set",
+              items = mutableSetOf<Int>( 0, 1, 2, 3, 4,),
+            )
+        """.trimIndent()
+
+        val actual = withAMutableSet.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun deepPrintableSet() {
+        val expected = """
+            WithDeepPrintableSet(
+              name = "a name",
+              surfers = setOf<Surfer>(
+                Surfer(
+                  name = "Honolua Blomfield",
+                  surfboard = 
+                    Surfboard(
+                      length = 11.5f,
+                      width = 2.0f,
+                      style = "longboard",
+                    ),
+                ),
+                Surfer(
+                  name = "Kelly Slater",
+                  surfboard = 
+                    Surfboard(
+                      length = 5.9f,
+                      width = 1.8f,
+                      style = "shortboard",
+                    ),
+                ),
+              ),
+            )
+        """.trimIndent()
+
+        val actual = withDeepPrintableSet.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun deepPrintableMutableSet() {
+        val expected = """
+            WithDeepPrintableMutableSet(
+              name = "a name",
+              surfers = mutableSetOf<Surfer>(
+                Surfer(
+                  name = "Honolua Blomfield",
+                  surfboard = 
+                    Surfboard(
+                      length = 11.5f,
+                      width = 2.0f,
+                      style = "longboard",
+                    ),
+                ),
+                Surfer(
+                  name = "Kelly Slater",
+                  surfboard = 
+                    Surfboard(
+                      length = 5.9f,
+                      width = 1.8f,
+                      style = "shortboard",
+                    ),
+                ),
+              ),
+            )
+        """.trimIndent()
+
+        val actual = withDeepPrintableMutableSet.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun emptyDeepPrintableSet() {
+        val expected = """
+            WithDeepPrintableSet(
+              name = "a name",
+              surfers = setOf<Surfer>(
+              ),
+            )
+        """.trimIndent()
+
+        val actual = withAnEmptyDeepPrintableSet.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun primitiveArrays() {
+        val expected = """
+            WithPrimitiveArrays(
+              bytes = byteArrayOf( -1, 0, 1,),
+              shorts = shortArrayOf( 2, 3,),
+              ints = intArrayOf( 0, 1, 2, 3, 4,),
+              longs = longArrayOf( 1000, 2000,),
+              floats = floatArrayOf( 1234.0f, 2.5f,),
+              doubles = doubleArrayOf( 56789.0, 0.5,),
+              booleans = booleanArrayOf( true, false,),
+              chars = charArrayOf( 'A', 'B',),
+            )
+        """.trimIndent()
+
+        val actual = withPrimitiveArrays.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun jdkCollectionTypes() {
+        val expected = """
+            WithJdkCollections(
+              arrayList = arrayListOf<Int>( 0, 1, 2,),
+              linkedSet = linkedSetOf<Int>( 0, 1, 2,),
+              linkedMap = linkedMapOf<Int,String>(
+                1 to "a",
+                2 to "b",
+              ),
+              hashSet = hashSetOf<Int>( 7,),
+              hashMap = hashMapOf<Int,String>(
+                7 to "seven",
+              ),
+            )
+        """.trimIndent()
+
+        val actual = withJdkCollections.deepPrint()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun typeAliasPropertyFallsBackToToString() {
+        // A typealias resolves to a KSTypeAlias, not a class declaration, so there is
+        // nothing to deep print. What matters here is that it does not throw.
+        val expected = """
+            WithTypeAliasProperty(
+              person = SamplePersonClass(name=Dave, sampleClass=SampleClass(x=0.5, y=2.6, name=A point)),
+            )
+        """.trimIndent()
+
+        val actual = withTypeAliasProperty.deepPrint()
         assertEquals(expected, actual)
     }
 

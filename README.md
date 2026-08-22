@@ -181,6 +181,59 @@ ThreeClassesDeep(
 ```
 We can just copy this from a log and use it in a test without modification.
 You can see more examples in [test-project](./test-project/src/test/kotlin/com/bradyaiello/deepprint/BasicTest.kt) and [test-project-multiplatform](./test-project-multiplatform/src/commonTest/kotlin/com/bradyaiello/deepprint/BasicTest.kt)
+### KSP and Collection Types
+
+A property whose type is one of these is printed as the call that rebuilds it:
+
+| Property type | Printed as |
+| --- | --- |
+| `List<T>` | `listOf<T>(...)` |
+| `MutableList<T>` | `mutableListOf<T>(...)` |
+| `Set<T>` | `setOf<T>(...)` |
+| `MutableSet<T>` | `mutableSetOf<T>(...)` |
+| `Array<T>` | `arrayOf<T>(...)` |
+| `Map<K, V>` | `mapOf<K, V>(...)` |
+| `MutableMap<K, V>` | `mutableMapOf<K, V>(...)` |
+| `ArrayList<T>` | `arrayListOf<T>(...)` |
+| `HashSet<T>` | `hashSetOf<T>(...)` |
+| `LinkedHashSet<T>` | `linkedSetOf<T>(...)` |
+| `HashMap<K, V>` | `hashMapOf<K, V>(...)` |
+| `LinkedHashMap<K, V>` | `linkedMapOf<K, V>(...)` |
+| `ByteArray`, `ShortArray`, `IntArray`, `LongArray` | `byteArrayOf(...)`, `shortArrayOf(...)`, `intArrayOf(...)`, `longArrayOf(...)` |
+| `FloatArray`, `DoubleArray`, `BooleanArray`, `CharArray` | `floatArrayOf(...)`, `doubleArrayOf(...)`, `booleanArrayOf(...)`, `charArrayOf(...)` |
+
+Unlike the reflection implementation, KSP sees the declared type, so a `Set` prints
+as `setOf()` and a `MutableSet` prints as `mutableSetOf()`.
+
+Elements may be primitives or `@DeepPrint`-annotated `data class`es. Given:
+
+```kotlin
+@DeepPrint
+data class Surfer(val name: String, val surfboard: Surfboard)
+
+@DeepPrint
+data class Lineup(val name: String, val surfers: Set<Surfer>)
+```
+
+`lineup.deepPrint()` prints:
+
+```kotlin
+Lineup(
+    name = "Pipeline",
+    surfers = setOf<Surfer>(
+        Surfer(
+            name = "Kelly Slater",
+            surfboard = 
+                Surfboard(
+                    length = 5.9f,
+                    width = 1.8f,
+                    style = "shortboard",
+                ),
+        ),
+    ),
+)
+```
+
 ## Usage
 Given the previous sample classes, we just add the `@DeepPrint` annotation,
 and DeepPrint generates the `deepPrint()` extension functions.
@@ -318,7 +371,26 @@ That is not true for single source projects, like [test-project](./test-project)
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
 - For KSP, if an annotated data class has a property of a non-annotated class, the property's value is printed with a 
   standard `toString()`.
-- Not all collection types are supported yet.
+- Not all collection types are supported. See
+  [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
+  [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
+  Still missing, in both implementations:
+  - `Collection`, `Iterable` and `Sequence` properties, and `Pair` and `Triple`.
+    These fall back to `toString()`, so the output is readable but is not a
+    constructor call.
+  - Nested collections, eg. `List<List<Int>>` or `Map<String, List<Int>>` with a
+    collection value. The outer collection prints correctly, but the inner one prints
+    via `toString()` as `[0, 1]`, which is not valid Kotlin.
+  - The unsigned arrays `UByteArray`, `UShortArray`, `UIntArray` and `ULongArray`.
+  - A property whose type is a `typealias` for a `@DeepPrint` `data class`. The alias
+    is not resolved, so the property falls back to `toString()`.
+- Nullable properties are not supported. A `val items: List<Int>?` generates code that
+  does not compile. This is not specific to collections: `val name: String?` has the
+  same problem.
+- On Kotlin/JS, `Float`, `Double` and `Char` elements of a `List`, `Set` or `Array` are
+  identified by their runtime type, which JS erases to a number. `2.0f` prints as `2` and
+  `'A'` prints as `65`. `FloatArray`, `DoubleArray` and `CharArray` are not affected, and
+  neither are properties declared directly on a `data class`.
 - In KMP projects, KSP [does not yet support](https://github.com/google/ksp/issues/567) generating code from the 
   `commonTest` source set. Hence, test classes for the KMP test project are in `commonMain`.
 

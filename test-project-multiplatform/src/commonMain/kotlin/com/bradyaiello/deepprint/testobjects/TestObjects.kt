@@ -15,13 +15,20 @@ import com.bradyaiello.deepprint.testclasses.WithAList
 import com.bradyaiello.deepprint.testclasses.WithAMap
 import com.bradyaiello.deepprint.testclasses.WithAMutableList
 import com.bradyaiello.deepprint.testclasses.WithAMutableMap
+import com.bradyaiello.deepprint.testclasses.WithAMutableSet
+import com.bradyaiello.deepprint.testclasses.WithASet
 import com.bradyaiello.deepprint.testclasses.WithAnArray
 import com.bradyaiello.deepprint.testclasses.WithAnnotatedProperty
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableArray
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableList
 import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableList
+import com.bradyaiello.deepprint.testclasses.WithDeepPrintableMutableSet
+import com.bradyaiello.deepprint.testclasses.WithDeepPrintableSet
+import com.bradyaiello.deepprint.testclasses.WithJdkCollections
 import com.bradyaiello.deepprint.testclasses.WithMapDataClasses
 import com.bradyaiello.deepprint.testclasses.WithMutableMapDataClasses
+import com.bradyaiello.deepprint.testclasses.WithPrimitiveArrays
+import com.bradyaiello.deepprint.testclasses.WithTypeAliasProperty
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 
@@ -124,6 +131,44 @@ val withDeepPrintableList = WithDeepPrintableList("a name", listOf(surfer, surfe
 val withDeepPrintableMutableList = WithDeepPrintableMutableList("a name", mutableListOf(surfer, surfer2))
 
 val withDeepPrintableArray = WithDeepPrintableArray("a name", arrayOf(surfer, surfer2))
+
+val withASet = WithASet(
+    name = "some set",
+    items = setOf<Int>(0, 1, 2, 3, 4)
+)
+
+val withAMutableSet = WithAMutableSet(
+    name = "some set",
+    items = mutableSetOf<Int>(0, 1, 2, 3, 4)
+)
+
+val withDeepPrintableSet = WithDeepPrintableSet("a name", setOf(surfer, surfer2))
+
+val withDeepPrintableMutableSet = WithDeepPrintableMutableSet("a name", mutableSetOf(surfer, surfer2))
+
+val withAnEmptyDeepPrintableSet = WithDeepPrintableSet("a name", emptySet())
+
+val withPrimitiveArrays = WithPrimitiveArrays(
+    bytes = byteArrayOf(-1, 0, 1),
+    shorts = shortArrayOf(2, 3),
+    ints = intArrayOf(0, 1, 2, 3, 4),
+    longs = longArrayOf(1000L, 2000L),
+    floats = floatArrayOf(1234f, 2.5f),
+    doubles = doubleArrayOf(56789.0, 0.5),
+    booleans = booleanArrayOf(true, false),
+    chars = charArrayOf('A', 'B'),
+)
+
+val withJdkCollections = WithJdkCollections(
+    arrayList = arrayListOf(0, 1, 2),
+    linkedSet = linkedSetOf(0, 1, 2),
+    linkedMap = linkedMapOf(1 to "a", 2 to "b"),
+    // Single entry: HashSet and HashMap have no order guarantee across platforms.
+    hashSet = hashSetOf(7),
+    hashMap = hashMapOf(7 to "seven"),
+)
+
+val withTypeAliasProperty = WithTypeAliasProperty(person = person)
 
 val withAnnotatedProperty = WithAnnotatedProperty(
     label = "some label",

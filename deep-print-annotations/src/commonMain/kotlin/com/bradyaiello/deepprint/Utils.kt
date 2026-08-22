@@ -60,16 +60,41 @@ fun <K, V> Map<K, V>.deepPrintContents(
     return stringBuilder.toString()
 }
 
-fun <T> List<T>.deepPrintContents(): String {
+private inline fun <T> Iterable<T>.deepPrintItems(transform: (T) -> String): String {
     val stringBuilder = StringBuilder()
     this.forEach { value ->
-        val toAdd = deepPrintPrimitive(value)
-        stringBuilder.append(" $toAdd,")
+        stringBuilder.append(" ${transform(value)},")
     }
     return stringBuilder.toString()
 }
 
-fun <T> Array<T>.deepPrintContents(): String = this.toList().deepPrintContents()
+fun <T> List<T>.deepPrintContents(): String = deepPrintItems { deepPrintPrimitive(it) }
+
+fun <T> Set<T>.deepPrintContents(): String = deepPrintItems { deepPrintPrimitive(it) }
+
+fun <T> Array<T>.deepPrintContents(): String = asIterable().deepPrintItems { deepPrintPrimitive(it) }
+
+/*
+ * The primitive arrays dispatch on the static element type rather than going through
+ * deepPrintPrimitive(). Kotlin/JS compiles Float, Double and Char down to plain numbers,
+ * so a runtime `is Float` / `is Char` check there would print 2.0f as `2` and 'A' as `65`.
+ */
+
+fun ByteArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+fun ShortArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+fun IntArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+fun LongArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+fun FloatArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+fun DoubleArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+fun BooleanArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
+
+fun CharArray.deepPrintContents(): String = asIterable().deepPrintItems { it.deepPrint() }
 
 /**
  * In jvm, android, and native platforms, printing 2.0f

@@ -84,6 +84,50 @@ data class WithDeepPrintableArray(
 )
 
 @DeepPrint
+data class WithASet(val name: String, val items: Set<Int>)
+
+@DeepPrint
+data class WithAMutableSet(val name: String, val items: MutableSet<Int>)
+
+@DeepPrint
+data class WithDeepPrintableSet(
+    val name: String,
+    val surfers: Set<Surfer>
+)
+
+@DeepPrint
+data class WithDeepPrintableMutableSet(
+    val name: String,
+    val surfers: MutableSet<Surfer>
+)
+
+@DeepPrint
+data class WithPrimitiveArrays(
+    val bytes: ByteArray,
+    val shorts: ShortArray,
+    val ints: IntArray,
+    val longs: LongArray,
+    val floats: FloatArray,
+    val doubles: DoubleArray,
+    val booleans: BooleanArray,
+    val chars: CharArray,
+)
+
+typealias PersonAlias = SamplePersonClass
+
+@DeepPrint
+data class WithJdkCollections(
+    val arrayList: ArrayList<Int>,
+    val linkedSet: LinkedHashSet<Int>,
+    val linkedMap: LinkedHashMap<Int, String>,
+    val hashSet: HashSet<Int>,
+    val hashMap: HashMap<Int, String>,
+)
+
+@DeepPrint
+data class WithTypeAliasProperty(val person: PersonAlias)
+
+@DeepPrint
 data class WithAMap(
     val id: Long,
     val someMap: Map<Int, String>
