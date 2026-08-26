@@ -9,7 +9,11 @@ class DeepPrintSymbolProcessorProvider : SymbolProcessorProvider {
         val indent = (environment.options["indent"] ?: "4").toInt()
         return DeepPrintProcessor(
             codeGenerator = environment.codeGenerator,
+            logger = environment.logger,
             indent = indent,
+            // Generate for every data class rather than only @DeepPrint annotated ones.
+            processAllDataClasses = environment.options["processAllDataClasses"].toBoolean(),
+            overrideToString = environment.options["overrideToString"].toBoolean(),
         )
     }
 }

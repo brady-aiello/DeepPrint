@@ -21,6 +21,7 @@ include(
     ":deep-print-reflection",
     ":test-project",
     ":test-project-multiplatform",
+    ":test-project-no-annotations",
     ":external-module",
 )
 

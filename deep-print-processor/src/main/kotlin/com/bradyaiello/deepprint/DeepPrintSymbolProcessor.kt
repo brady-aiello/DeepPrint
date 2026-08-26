@@ -5,9 +5,11 @@ package com.bradyaiello.deepprint
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.containingFile
 import com.google.devtools.ksp.getDeclaredProperties
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
+import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
@@ -40,6 +42,7 @@ import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.KSVisitor
 import com.google.devtools.ksp.symbol.Modifier.DATA
+import com.google.devtools.ksp.symbol.Visibility
 import com.google.devtools.ksp.validate
 import java.io.OutputStream
 
@@ -49,7 +52,11 @@ fun OutputStream.appendText(str: String) {
 
 class DeepPrintProcessor(
     val codeGenerator: CodeGenerator,
-    val indent: Int = 4
+    val logger: KSPLogger,
+    val indent: Int = 4,
+    /** Generate for every data class, rather than only those annotated @DeepPrint. */
+    val processAllDataClasses: Boolean = false,
+    val overrideToString: Boolean = false,
 ) : SymbolProcessor {
 
     companion object {
@@ -58,6 +65,13 @@ class DeepPrintProcessor(
         /** Indent levels, relative to the property, for a block that a value opens. */
         private const val ENTRY_INDENT_MULTIPLIER = 2
         private const val CLOSING_INDENT_MULTIPLIER = 1
+
+        /** Visibilities a top level extension in another file cannot reach. */
+        private val UNREACHABLE_VISIBILITIES = setOf(
+            Visibility.PRIVATE,
+            Visibility.PROTECTED,
+            Visibility.LOCAL,
+        )
 
         private val PRIMITIVE_TYPES = setOf(
             "String", "Byte", "Short", "Int", "Long", "Boolean", "Char", "Double", "Float",
@@ -124,12 +138,22 @@ class DeepPrintProcessor(
      */
     private val writtenFiles = mutableSetOf<String>()
 
+    private var warnedAboutOverrideToString = false
+
     /** Set at the start of each round; needed to build substituted type arguments. */
     private lateinit var resolver: Resolver
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         this.resolver = resolver
-        val symbols = resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
+        if (overrideToString && !warnedAboutOverrideToString) {
+            warnedAboutOverrideToString = true
+            logger.warn(
+                "DeepPrint: overrideToString is set, but replacing toString() cannot be done " +
+                    "by a symbol processor -- KSP only adds new files, it cannot alter an " +
+                    "existing class. deepPrint() is being generated instead. See the README."
+            )
+        }
+        val symbols = symbolsToProcess(resolver)
         if (!symbols.iterator().hasNext()) return emptyList()
         symbols.forEach { declaration ->
             val containingFile = declaration.containingFile
@@ -156,9 +180,70 @@ class DeepPrintProcessor(
         return symbols.filterNot { it.validate() }.toList()
     }
 
+    /**
+     * Either every eligible data class, or only the annotated symbols.
+     *
+     * Walking every declaration reaches classes the annotated path never saw, so this is
+     * where the cases that path never had to handle get filtered out. See [isEligible].
+     */
+    private fun symbolsToProcess(resolver: Resolver): Sequence<KSAnnotated> =
+        if (processAllDataClasses) {
+            resolver.getAllFiles()
+                .flatMap { it.declarations }
+                .flatMap { it.withNestedDeclarations() }
+                .filterIsInstance<KSClassDeclaration>()
+                .filter { it.isEligible() }
+        } else {
+            resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
+        }
+
+    /** A declaration and, recursively, anything declared inside it. */
+    private fun KSDeclaration.withNestedDeclarations(): Sequence<KSDeclaration> =
+        sequenceOf(this) + when (this) {
+            is KSClassDeclaration -> declarations.flatMap { it.withNestedDeclarations() }
+            else -> emptySequence()
+        }
+
+    @OptIn(KspExperimental::class)
+    private fun KSClassDeclaration.isEligible(): Boolean = when {
+        !modifiers.contains(DATA) -> false
+        isAnnotationPresent(NoDeepPrint::class) -> false
+        // The generated extension lives in a separate file in the same package, so it
+        // cannot reach a private, protected or local class.
+        getVisibility() in UNREACHABLE_VISIBILITIES -> false
+        // Anonymous or otherwise unnameable.
+        qualifiedName == null -> false
+        else -> true
+    }
+
+    /**
+     * How the class is named from inside its own package, so `Outer.Inner` rather than
+     * `Inner`. Both the generated extension's receiver and the constructor call it prints
+     * need this, since a bare `Inner` resolves to nothing at package level.
+     */
+    private fun KSClassDeclaration.receiverName(): String? {
+        val qualified = qualifiedName?.asString() ?: return null
+        val packagePrefix = packageName.asString()
+        return if (packagePrefix.isEmpty()) qualified else qualified.removePrefix("$packagePrefix.")
+    }
+
+    /**
+     * Whether DeepPrint generates a deepPrint() for [declaration], and so whether a
+     * property of that type can be printed as a constructor call rather than toString().
+     * With processAllDataClasses the annotation is no longer what decides this.
+     */
+    @OptIn(KspExperimental::class)
+    private fun generatesDeepPrintFor(declaration: KSDeclaration?): Boolean {
+        val classDeclaration = declaration as? KSClassDeclaration ?: return false
+        return classDeclaration.isEligible() &&
+            (processAllDataClasses || classDeclaration.isAnnotationPresent(DeepPrint::class))
+    }
+
     private fun getFileName(declaration: KSAnnotated): String? { 
         return when (declaration) {
-            is KSClassDeclaration ->  declaration.simpleName.asString()
+            // A nested class carries its outer names, or Outer.Inner and a top level
+            // Inner would both want to write DeepPrintInner.kt.
+            is KSClassDeclaration -> declaration.receiverName()?.replace('.', '_')
             is KSPropertyDeclaration -> declaration.simpleName.asString() 
             else -> null
         }
@@ -171,7 +256,7 @@ class DeepPrintProcessor(
         @OptIn(KspExperimental::class)
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit): String {
             val packageName = classDeclaration.containingFile!!.packageName.asString()
-            val className = classDeclaration.simpleName.asString()
+            val className = classDeclaration.receiverName() ?: return ""
             val props = classDeclaration.getDeclaredProperties()
             return visitDeepPrintAnnotated(classDeclaration, packageName, className, props)
         }
@@ -198,7 +283,13 @@ class DeepPrintProcessor(
                 packageStringBuilder.append("package $packageName\n\n")
 
                 functionStringBuilder.append("\n")
-                functionStringBuilder.append("fun ${className}.deepPrint(currentIndent: Int = 0): String {\n")
+                // A public extension on an internal receiver does not compile, so the
+                // generated function matches the visibility of the class it prints.
+                val visibility =
+                    if (classDeclaration.getVisibility() == Visibility.INTERNAL) "internal " else ""
+                functionStringBuilder.append(
+                    "${visibility}fun ${className}.deepPrint(currentIndent: Int = 0): String {\n"
+                )
                 functionStringBuilder.append("val indentWidth = $indent\n")
                 functionStringBuilder.append("return \"\"\"")
 
@@ -279,7 +370,7 @@ class DeepPrintProcessor(
         /** True when [type] deep prints, ie. it opens a nested constructor block. */
         @OptIn(KspExperimental::class)
         private fun isAnnotatedDataClass(type: KSType): Boolean =
-            type.declaration.isAnnotationPresent(DeepPrint::class)
+            generatesDeepPrintFor(type.declaration)
 
         /**
          * Renders [accessor] according to its static [type], wrapping the result so that a
@@ -411,8 +502,8 @@ class DeepPrintProcessor(
             val propClassDeclaration = type.declaration as? KSClassDeclaration ?: return null
             val propPackageName = propClassDeclaration.packageName.asString()
             // TODO(Support properties defined outside of the module)
-            val annotated = propClassDeclaration.isDataClass() &&
-                (propClassDeclaration.isAnnotationPresent(DeepPrint::class) ||
+            val annotated = generatesDeepPrintFor(propClassDeclaration) ||
+                (propClassDeclaration.isDataClass() &&
                     propertyDeclaration?.isAnnotationPresent(DeepPrint::class) == true)
             return if (annotated) {
                 imports.add("import $propPackageName.deepPrint")
@@ -543,9 +634,8 @@ class DeepPrintProcessor(
             return "\"$arrayConstructor(\" + $receiver.deepPrintContents() + \")\""
         }
 
-        private fun KSDeclaration.isDeepPrintAnnotatedDataClass(): Boolean {
-            return isDataClass() && isAnnotationPresent(DeepPrint::class)
-        }
+        private fun KSDeclaration.isDeepPrintAnnotatedDataClass(): Boolean =
+            generatesDeepPrintFor(this)
         
 //        private fun KSClassDeclaration.isDeepPrintAnnotatedDataClass(): Boolean {
 //            return isDataClass() && isAnnotationPresent(DeepPrint::class) 
