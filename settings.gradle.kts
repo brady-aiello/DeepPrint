@@ -18,10 +18,12 @@ rootProject.name = "deep-print"
 include(
     ":deep-print-annotations",
     ":deep-print-processor",
+    ":deep-print-compiler-plugin",
     ":deep-print-reflection",
     ":test-project",
     ":test-project-multiplatform",
     ":test-project-no-annotations",
+    ":test-project-tostring",
     ":external-module",
 )
 

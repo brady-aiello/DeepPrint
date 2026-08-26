@@ -1,0 +1,88 @@
+package com.bradyaiello.deepprint.compiler
+
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irGet
+import org.jetbrains.kotlin.ir.builders.irInt
+import org.jetbrains.kotlin.ir.builders.irReturn
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.util.functions
+import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
+import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.name.CallableId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
+
+/**
+ * Spike: rewrites the compiler-synthesised toString() of every data class to delegate to
+ * the deepPrint() extension KSP generates for it.
+ *
+ * Delegating rather than building the printed string in IR keeps the version-specific
+ * surface to a single call, and works on every Kotlin target, since deepPrint() is
+ * ordinary Kotlin generated into the same module.
+ */
+class DeepPrintIrGenerationExtension : IrGenerationExtension {
+
+    override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
+        moduleFragment.acceptChildrenVoid(object : IrVisitorVoid() {
+            override fun visitElement(element: org.jetbrains.kotlin.ir.IrElement) {
+                element.acceptChildrenVoid(this)
+            }
+
+            override fun visitClass(declaration: IrClass) {
+                if (declaration.isData) {
+                    rewriteToString(declaration, pluginContext)
+                }
+                declaration.acceptChildrenVoid(this)
+            }
+        })
+    }
+
+    private fun rewriteToString(irClass: IrClass, pluginContext: IrPluginContext) {
+        val toStringFunction = irClass.functions.firstOrNull {
+            it.name.asString() == "toString" &&
+                it.parameters.none { parameter -> parameter.kind == IrParameterKind.Regular }
+        }
+        val deepPrint = findDeepPrintFor(irClass, pluginContext)
+        val dispatchReceiver = toStringFunction?.dispatchReceiverParameter
+        if (toStringFunction == null || deepPrint == null || dispatchReceiver == null) {
+            return
+        }
+
+        toStringFunction.body =
+            DeclarationIrBuilder(pluginContext, toStringFunction.symbol).irBlockBody {
+                +irReturn(
+                    irCall(deepPrint).apply {
+                        // Kotlin 2.4 unified the receivers and value arguments into one
+                        // positional list: extension receiver first, then the parameters.
+                        arguments[0] = irGet(dispatchReceiver)
+                        arguments[1] = irInt(0)
+                    }
+                )
+            }
+    }
+
+    /** The generated `fun <ThisClass>.deepPrint(currentIndent: Int = 0): String`. */
+    private fun findDeepPrintFor(
+        irClass: IrClass,
+        pluginContext: IrPluginContext,
+    ): IrSimpleFunction? {
+        val packageName = irClass.kotlinFqName.parent()
+        val candidates = pluginContext.referenceFunctions(
+            CallableId(FqName(packageName.asString()), Name.identifier("deepPrint"))
+        )
+        return candidates.firstOrNull { candidate ->
+            val receiver = candidate.owner.parameters
+                .firstOrNull { parameter -> parameter.kind == IrParameterKind.ExtensionReceiver }
+            receiver?.type == irClass.defaultType
+        }?.owner
+    }
+}
