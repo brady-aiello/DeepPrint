@@ -393,6 +393,52 @@ data class SamplePersonClass(val name: String, val sampleClass: SampleClass)
 @DeepPrint
 data class ThreeClassesDeep(val person: SamplePersonClass, val age: Int)
 ```
+## No-Annotation Mode
+
+Annotating every class gets tedious, and the requirement that *every* class in a
+hierarchy be annotated makes it easy to get a half-deep print. Turn that off:
+
+```kotlin
+ksp {
+    arg("processAllDataClasses", "true")
+}
+```
+
+Every `data class` in the source set now gets a `deepPrint()`, with no annotation
+anywhere, and nested `data class` properties print in full rather than falling back to
+`toString()`.
+
+To exclude a class, annotate it — the annotation is now only needed by the exceptions:
+
+```kotlin
+@NoDeepPrint
+data class HugePayload(val bytes: List<Byte>)
+```
+
+Some classes are skipped automatically, because a generated top level extension in
+another file could not reach them:
+
+| Skipped | Why |
+| --- | --- |
+| `private` and local classes | Not visible outside their own file or scope |
+| `protected` nested classes | Not visible outside the class hierarchy |
+
+`internal` classes are included, and their generated function is `internal` too — a
+public extension on an internal receiver does not compile.
+
+Nested classes are qualified, so `Outer.Inner` prints as `Outer.Inner(...)` and the
+generated file is `DeepPrintOuter_Inner.kt` rather than colliding with a top level
+`Inner`.
+
+### Overriding toString()
+
+`arg("overrideToString", "true")` is accepted but currently only emits a warning.
+Replacing `toString()` cannot be done by a symbol processor: KSP adds new files, it
+cannot alter an existing class, and neither an extension nor an interface can supply
+`toString()` — a member always wins over an extension, and Kotlin forbids interfaces
+from implementing `Any`'s methods. Doing it properly needs a Kotlin compiler plugin,
+which is not built yet.
+
 ## KSP Quick Start
 
 ### Add KSP
@@ -511,9 +557,11 @@ That is not true for single source projects, like [test-project](./test-project)
 
 ## Current Limitations
 - DeepPrint only works on `data class`es.
-- For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated.
-- For KSP, if an annotated data class has a property of a non-annotated class, the property's value is printed with a 
-  standard `toString()`.
+- For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated,
+  and a property of a non-annotated class is printed with a standard `toString()`. Neither applies in
+  [No-Annotation Mode](#No-Annotation-Mode).
+- For KSP, `overrideToString` does not work yet; it needs a compiler plugin. See
+  [Overriding toString()](#Overriding-toString).
 - A `Sequence` property is not reconstructed; it prints with `toString()`. Printing one
   would have to iterate it, which consumes a single-use sequence and exhausts the heap
   on an infinite one. `Collection` and `Iterable` are supported, on the assumption that
