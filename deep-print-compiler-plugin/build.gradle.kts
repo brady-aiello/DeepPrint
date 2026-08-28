@@ -9,6 +9,7 @@ plugins {
     `java-library`
     kotlin("jvm")
     id("io.gitlab.arturbosch.detekt")
+    id("deepprint.publication")
 }
 
 val kotlinVersion = versionFor("version.kotlin")

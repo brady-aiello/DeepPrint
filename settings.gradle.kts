@@ -19,11 +19,13 @@ include(
     ":deep-print-annotations",
     ":deep-print-processor",
     ":deep-print-compiler-plugin",
+    ":deep-print-gradle-plugin",
     ":deep-print-reflection",
     ":test-project",
     ":test-project-multiplatform",
     ":test-project-no-annotations",
     ":test-project-tostring",
+    ":test-project-tostring-mpp",
     ":external-module",
 )
 

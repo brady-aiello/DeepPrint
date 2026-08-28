@@ -280,7 +280,11 @@ class DeepPrintProcessor(
             val functionStringBuilder = StringBuilder()
 
             if (classDeclaration.isDataClass()) {
-                packageStringBuilder.append("package $packageName\n\n")
+                // A class in the default package has no package name, and `package `
+                // on its own is a syntax error.
+                if (packageName.isNotEmpty()) {
+                    packageStringBuilder.append("package $packageName\n\n")
+                }
 
                 functionStringBuilder.append("\n")
                 // A public extension on an internal receiver does not compile, so the
@@ -506,7 +510,11 @@ class DeepPrintProcessor(
                 (propClassDeclaration.isDataClass() &&
                     propertyDeclaration?.isAnnotationPresent(DeepPrint::class) == true)
             return if (annotated) {
+                // Nothing to import from the default package, and `import .deepPrint`
+            // would not parse.
+            if (propPackageName.isNotEmpty()) {
                 imports.add("import $propPackageName.deepPrint")
+            }
                 "\"\\n\" + $receiver.deepPrint(currentIndent + 2 * indentWidth)"
             } else {
                 null
