@@ -32,3 +32,32 @@ gradlePlugin {
 
 group = "com.bradyaiello.deepprint"
 version = providers.gradleProperty("version").get()
+
+/*
+ * The plugin resolves the compiler plugin by Maven coordinate, so its version has to be
+ * the version being built. Hardcoding it means that after a bump the Gradle plugin
+ * quietly asks for the previous compiler plugin, which resolves and misbehaves rather
+ * than failing.
+ */
+val generateVersionSource by tasks.registering {
+    val outputDirectory = layout.buildDirectory.dir("generated/version")
+    val projectVersion = version.toString()
+    inputs.property("version", projectVersion)
+    outputs.dir(outputDirectory)
+    doLast {
+        val file = outputDirectory.get()
+            .file("com/bradyaiello/deepprint/gradle/DeepPrintVersion.kt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            """
+            package com.bradyaiello.deepprint.gradle
+
+            internal const val DEEP_PRINT_VERSION: String = "$projectVersion"
+            """.trimIndent() + "\n"
+        )
+    }
+}
+
+kotlin.sourceSets.named("main") {
+    kotlin.srcDir(generateVersionSource)
+}

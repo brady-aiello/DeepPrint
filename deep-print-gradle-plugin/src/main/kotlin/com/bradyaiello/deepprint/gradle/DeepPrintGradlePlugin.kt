@@ -35,7 +35,7 @@ class DeepPrintGradlePlugin : KotlinCompilerPluginSupportPlugin {
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
         groupId = "com.bradyaiello.deepprint",
         artifactId = "deep-print-compiler-plugin",
-        version = VERSION,
+        version = DEEP_PRINT_VERSION,
     )
 
     override fun applyToCompilation(
@@ -51,10 +51,5 @@ class DeepPrintGradlePlugin : KotlinCompilerPluginSupportPlugin {
                 )
             )
         }
-    }
-
-    private companion object {
-        /** Kept in step with the published compiler plugin by the build. */
-        const val VERSION = "0.3.0"
     }
 }
