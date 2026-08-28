@@ -63,7 +63,7 @@ The reflection implementation is only for Kotlin on the JVM, but its benefits ar
 If you're using Kotlin on the JVM or Android, just add the dependency:
 
 ```kotlin
-implementation("com.bradyaiello.deepprint:deep-print-reflection:0.2.0")
+implementation("com.bradyaiello.deepprint:deep-print-reflection:0.3.0")
 ```
 
 Now, calling `deepPrintReflection()` on a `data class` will return a readable `String`
@@ -472,14 +472,14 @@ plugins {
 ```kotlin
 dependencies {
     // @DeepPrint annotation and a few helper functions
-    implementation("com.bradyaiello.deepprint:deep-print-annotations:0.2.0")
+    implementation("com.bradyaiello.deepprint:deep-print-annotations:0.3.0")
     // Where all the DeepPrint code generation logic resides
-    implementation("com.bradyaiello.deepprint:deep-print-processor:0.2.0")
+    implementation("com.bradyaiello.deepprint:deep-print-processor:0.3.0")
     // Run the processor over your main source set
-    ksp("com.bradyaiello.deepprint:deep-print-processor:0.2.0")
+    ksp("com.bradyaiello.deepprint:deep-print-processor:0.3.0")
     // KSP 2 no longer fans `ksp` out to every source set, so annotate-in-tests
     // needs the processor wired up for the test source set too
-    kspTest("com.bradyaiello.deepprint:deep-print-processor:0.2.0")
+    kspTest("com.bradyaiello.deepprint:deep-print-processor:0.3.0")
 }
 ```
 3. Tell Gradle where to find the KSP-generated code.
@@ -518,7 +518,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("com.bradyaiello.deepprint:deep-print-annotations:0.2.0")
+                implementation("com.bradyaiello.deepprint:deep-print-annotations:0.3.0")
             }
             kotlin.srcDir(layout.buildDirectory.dir("generated/ksp/metadata/commonMain/kotlin"))
         }
