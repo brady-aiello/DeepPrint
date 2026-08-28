@@ -432,12 +432,51 @@ generated file is `DeepPrintOuter_Inner.kt` rather than colliding with a top lev
 
 ### Overriding toString()
 
-`arg("overrideToString", "true")` is accepted but currently only emits a warning.
-Replacing `toString()` cannot be done by a symbol processor: KSP adds new files, it
-cannot alter an existing class, and neither an extension nor an interface can supply
-`toString()` — a member always wins over an extension, and Kotlin forbids interfaces
-from implementing `Any`'s methods. Doing it properly needs a Kotlin compiler plugin,
-which is not built yet.
+A `data class` can print itself. Apply the Gradle plugin and turn it on:
+
+```kotlin
+plugins {
+    kotlin("multiplatform") // or kotlin("jvm")
+    id("com.google.devtools.ksp")
+    id("com.bradyaiello.deepprint")
+}
+
+deepPrint {
+    overrideToString.set(true)
+}
+```
+
+`toString()` then returns the deep printed form, which means so do string templates, log
+statements, assertion failures, and the elements of any collection you print:
+
+```kotlin
+println(point)
+// Point(
+//     x = 1,
+//     y = 2,
+// )
+```
+
+This works on JVM, JS and Native. It is a Kotlin compiler plugin that rewrites the
+`toString()` the compiler synthesises for a `data class` so that it calls the
+`deepPrint()` KSP generates, so the printing itself is the same ordinary Kotlin on every
+target.
+
+**It is off by default, and worth a moment's thought before turning on.** It changes
+every log line, every string template and every debugger view in the module, including
+when a data class is nested inside something else being printed.
+
+Two things it will not touch:
+
+| | |
+| --- | --- |
+| A `toString()` you wrote yourself | Only the compiler-synthesised one is replaced |
+| A class annotated `@NoDeepPrint` | Opted out, as in [No-Annotation Mode](#No-Annotation-Mode) |
+
+`ksp { arg("overrideToString", "true") }` is **not** how to enable this, and warns if you
+try. A symbol processor can only add new files; it cannot alter an existing class, and
+neither an extension nor an interface can supply `toString()` — a member always wins over
+an extension, and Kotlin forbids interfaces from implementing `Any`'s methods.
 
 ## KSP Quick Start
 
@@ -560,8 +599,8 @@ That is not true for single source projects, like [test-project](./test-project)
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated,
   and a property of a non-annotated class is printed with a standard `toString()`. Neither applies in
   [No-Annotation Mode](#No-Annotation-Mode).
-- For KSP, `overrideToString` does not work yet; it needs a compiler plugin. See
-  [Overriding toString()](#Overriding-toString).
+- Overriding `toString()` needs the `com.bradyaiello.deepprint` Gradle plugin, not a KSP
+  option. See [Overriding toString()](#Overriding-toString).
 - A `Sequence` property is not reconstructed; it prints with `toString()`. Printing one
   would have to iterate it, which consumes a single-use sequence and exhausts the heap
   on an infinite one. `Collection` and `Iterable` are supported, on the assumption that

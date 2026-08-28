@@ -148,9 +148,11 @@ class DeepPrintProcessor(
         if (overrideToString && !warnedAboutOverrideToString) {
             warnedAboutOverrideToString = true
             logger.warn(
-                "DeepPrint: overrideToString is set, but replacing toString() cannot be done " +
-                    "by a symbol processor -- KSP only adds new files, it cannot alter an " +
-                    "existing class. deepPrint() is being generated instead. See the README."
+                "DeepPrint: overrideToString is a Gradle plugin option, not a KSP one -- a " +
+                    "symbol processor can only add files, it cannot alter an existing class. " +
+                    "Apply the com.bradyaiello.deepprint Gradle plugin and set " +
+                    "deepPrint { overrideToString.set(true) }. deepPrint() is being " +
+                    "generated as usual."
             )
         }
         val symbols = symbolsToProcess(resolver)
