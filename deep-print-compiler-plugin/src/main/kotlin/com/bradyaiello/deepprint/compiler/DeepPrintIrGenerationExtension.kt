@@ -9,10 +9,12 @@ import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.util.functions
+import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
@@ -31,6 +33,10 @@ import org.jetbrains.kotlin.name.Name
  */
 class DeepPrintIrGenerationExtension : IrGenerationExtension {
 
+    private companion object {
+        val NO_DEEP_PRINT = FqName("com.bradyaiello.deepprint.NoDeepPrint")
+    }
+
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         moduleFragment.acceptChildrenVoid(object : IrVisitorVoid() {
             override fun visitElement(element: org.jetbrains.kotlin.ir.IrElement) {
@@ -47,9 +53,16 @@ class DeepPrintIrGenerationExtension : IrGenerationExtension {
     }
 
     private fun rewriteToString(irClass: IrClass, pluginContext: IrPluginContext) {
+        if (irClass.hasAnnotation(NO_DEEP_PRINT)) {
+            return
+        }
         val toStringFunction = irClass.functions.firstOrNull {
             it.name.asString() == "toString" &&
-                it.parameters.none { parameter -> parameter.kind == IrParameterKind.Regular }
+                it.parameters.none { parameter -> parameter.kind == IrParameterKind.Regular } &&
+                // Only the one the compiler synthesised for the data class. A toString()
+                // the author wrote is theirs, and replacing it would be a bug rather than
+                // a feature.
+                it.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER
         }
         val deepPrint = findDeepPrintFor(irClass, pluginContext)
         val dispatchReceiver = toStringFunction?.dispatchReceiverParameter

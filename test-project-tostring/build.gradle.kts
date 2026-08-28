@@ -32,8 +32,11 @@ dependencies {
 }
 
 tasks.withType<KotlinCompile>().configureEach {
-    // freeCompilerArgs is not the channel for this: the Kotlin compile task has its own
-    // pluginClasspath, which is what KotlinCompilerPluginSupportPlugin feeds in a real
-    // setup.
+    // freeCompilerArgs is not the channel for the plugin jar: the compile task has its
+    // own pluginClasspath, which is what KotlinCompilerPluginSupportPlugin feeds in a
+    // real setup. Options do go through freeCompilerArgs, in -P plugin:id:key=value form.
     pluginClasspath.from(deepPrintCompilerPlugin)
+    compilerOptions.freeCompilerArgs.addAll(
+        "-P", "plugin:com.bradyaiello.deepprint:overrideToString=true",
+    )
 }

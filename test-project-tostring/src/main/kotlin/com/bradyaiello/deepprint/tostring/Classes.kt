@@ -10,3 +10,14 @@ data class Point(val x: Int, val y: Int)
 
 @DeepPrint
 data class Line(val start: Point, val label: String)
+
+/** Declares its own toString(). The plugin must leave it alone. */
+@DeepPrint
+data class HandWritten(val value: Int) {
+    override fun toString(): String = "hand written: $value"
+}
+
+/** Opted out. Its toString() must stay the compiler's own. */
+@DeepPrint
+@com.bradyaiello.deepprint.NoDeepPrint
+data class OptedOut(val value: Int)

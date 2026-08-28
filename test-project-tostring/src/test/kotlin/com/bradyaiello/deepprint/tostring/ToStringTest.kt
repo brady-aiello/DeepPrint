@@ -42,4 +42,18 @@ class ToStringTest {
 
         assertTrue(printed.contains("x = 1,"), printed)
     }
+
+    @Test
+    fun handWrittenToStringIsLeftAlone() {
+        // Only the compiler-synthesised toString() is replaced. Overwriting one the
+        // author wrote would be a bug, not a feature.
+        assertEquals("hand written: 7", HandWritten(7).toString())
+    }
+
+    @Test
+    fun noDeepPrintOptsOutOfTheOverride() {
+        // NoDeepPrint has SOURCE retention, so this is also checking that IR can still
+        // see it during the same compilation.
+        assertEquals("OptedOut(value=9)", OptedOut(9).toString())
+    }
 }

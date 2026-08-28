@@ -12,6 +12,10 @@ class DeepPrintCompilerPluginRegistrar : CompilerPluginRegistrar() {
     override val supportsK2: Boolean = true
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
-        IrGenerationExtension.registerExtension(DeepPrintIrGenerationExtension())
+        // Off unless asked for: replacing toString() across a whole module is not
+        // something to do by default.
+        if (configuration.get(OVERRIDE_TO_STRING) == true) {
+            IrGenerationExtension.registerExtension(DeepPrintIrGenerationExtension())
+        }
     }
 }
