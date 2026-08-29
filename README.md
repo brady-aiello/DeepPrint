@@ -329,6 +329,34 @@ typealias Mapping<V> = Map<String, V>   // the parameter is not the first argume
 typealias Grid<T> = List<List<T>>       // the parameter is nested
 ```
 
+### Data Classes From Other Modules
+
+A `data class` from a dependency prints in full, with no annotation and no configuration:
+
+```kotlin
+@DeepPrint
+data class Order(val customer: CustomerFromAnotherModule, val id: String)
+```
+
+```kotlin
+Order(
+    customer = 
+        CustomerFromAnotherModule(
+            name = "Bruce Wayne",
+            age = 42,
+        ),
+    id = "985270457834522",
+)
+```
+
+It cannot work through the annotation: `@DeepPrint` has `SOURCE` retention, so it is gone
+by the time a class is a dependency. The processor generates the extension for the
+external class itself, into the package of whatever referred to it rather than into the
+library's own package, so two modules doing this cannot collide.
+
+This applies in both modes. A dependency's class can never be annotated, so making it
+opt-in would have meant it never worked at all.
+
 ### KSP and Nullable Properties
 
 A nullable property prints as the `null` literal when it is absent, and normally when
@@ -598,7 +626,8 @@ That is not true for single source projects, like [test-project](./test-project)
 - DeepPrint only works on `data class`es.
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated,
   and a property of a non-annotated class is printed with a standard `toString()`. Neither applies in
-  [No-Annotation Mode](#No-Annotation-Mode).
+  [No-Annotation Mode](#No-Annotation-Mode), and neither applies to a `data class` from
+  another module -- see [Data Classes From Other Modules](#Data-Classes-From-Other-Modules).
 - Overriding `toString()` needs the `com.bradyaiello.deepprint` Gradle plugin, not a KSP
   option. See [Overriding toString()](#Overriding-toString).
 - A `Sequence` property is not reconstructed; it prints with `toString()`. Printing one

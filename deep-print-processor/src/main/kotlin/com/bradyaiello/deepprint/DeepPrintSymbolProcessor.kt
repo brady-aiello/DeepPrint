@@ -23,6 +23,7 @@ import com.google.devtools.ksp.symbol.KSDeclarationContainer
 import com.google.devtools.ksp.symbol.KSDefNonNullReference
 import com.google.devtools.ksp.symbol.KSDynamicReference
 import com.google.devtools.ksp.symbol.KSFile
+import com.google.devtools.ksp.symbol.Origin
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSModifierListOwner
 import com.google.devtools.ksp.symbol.KSNode
@@ -64,6 +65,7 @@ fun OutputStream.appendText(str: String) {
     this.write(str.toByteArray())
 }
 
+@Suppress("TooManyFunctions")
 class DeepPrintProcessor(
     val codeGenerator: CodeGenerator,
     val logger: KSPLogger,
@@ -154,6 +156,27 @@ class DeepPrintProcessor(
 
     private var warnedAboutOverrideToString = false
 
+    /**
+     * Data classes from other modules that a property referred to, and where to put the
+     * generated extension for each.
+     *
+     * A library class cannot carry @DeepPrint -- the annotation is SOURCE retention, so
+     * it is gone by the time the class is a dependency -- and it has no containingFile,
+     * so it is never one of the symbols this round walks. It has to be reached through
+     * whatever referred to it.
+     */
+    private val pendingExternals = mutableListOf<PendingExternal>()
+
+    /** Where the file currently being generated lives, so externals land beside it. */
+    private var currentPackageName: String = ""
+    private var currentFile: KSFile? = null
+
+    private data class PendingExternal(
+        val declaration: KSClassDeclaration,
+        val packageName: String,
+        val originatingFile: KSFile,
+    )
+
     /** Set at the start of each round; needed to build substituted type arguments. */
     private lateinit var resolver: Resolver
 
@@ -187,14 +210,61 @@ class DeepPrintProcessor(
                         packageName = packageName,
                         fileName = fullFileName
                     )
+                    currentPackageName = packageName
+                    currentFile = containingFile
                     val string = declaration.accept(DataClassVisitor(), Unit)
                     file.appendText(string)
                     file.close()
                 }
             }
         }
+        generatePendingExternals()
         return symbols.filterNot { it.validate() }.toList()
     }
+
+    /**
+     * Generates a deepPrint() for each external data class that was referred to.
+     *
+     * A worklist rather than a loop over a fixed list: generating for one external class
+     * reads its properties, which can refer to further external classes.
+     */
+    private fun generatePendingExternals() {
+        while (pendingExternals.isNotEmpty()) {
+            val pending = pendingExternals.removeAt(0)
+            val className = pending.declaration.receiverName()
+            if (className != null) {
+                generateExternal(pending, className)
+            }
+        }
+    }
+
+    private fun generateExternal(pending: PendingExternal, className: String) {
+        val fullFileName = fileNameFor(className)
+        if (!writtenFiles.add("${pending.packageName}.$fullFileName")) {
+            return
+        }
+        currentPackageName = pending.packageName
+        currentFile = pending.originatingFile
+        val source = DataClassVisitor().visitDeepPrintAnnotatedFor(
+            classDeclaration = pending.declaration,
+            packageName = pending.packageName,
+            className = className,
+        )
+        // aggregating, because this file is derived from a dependency rather than from
+        // the one source that happened to mention it first. Attributing it to that single
+        // file would have KSP drop it when an unrelated consumer changes.
+        val file = codeGenerator.createNewFile(
+            dependencies = Dependencies(aggregating = true, pending.originatingFile),
+            packageName = pending.packageName,
+            fileName = fullFileName,
+        )
+        file.appendText(source)
+        file.close()
+    }
+
+    /** A data class from another module: no source file here, and unannotatable. */
+    private fun KSClassDeclaration.isExternal(): Boolean =
+        containingFile == null && origin != Origin.KOTLIN && origin != Origin.JAVA
 
     /**
      * Either every eligible data class, or only the annotated symbols.
@@ -250,10 +320,46 @@ class DeepPrintProcessor(
      */
     @OptIn(KspExperimental::class)
     private fun generatesDeepPrintFor(declaration: KSDeclaration?): Boolean {
-        val classDeclaration = declaration as? KSClassDeclaration ?: return false
-        return classDeclaration.isEligible() &&
-            (processAllDataClasses || classDeclaration.isAnnotationPresent(DeepPrint::class))
+        val classDeclaration = declaration as? KSClassDeclaration
+        return when {
+            classDeclaration == null -> false
+            !classDeclaration.isEligible() -> false
+            // @DeepPrint has SOURCE retention, so a class from a dependency can never be
+            // annotated. Requiring the annotation would make external support impossible
+            // rather than opt-in, so an external data class qualifies on its own.
+            classDeclaration.isExternal() -> {
+                enqueueExternal(classDeclaration)
+                true
+            }
+            else -> processAllDataClasses ||
+                classDeclaration.isAnnotationPresent(DeepPrint::class)
+        }
     }
+
+    @Suppress("ReturnCount")
+    private fun enqueueExternal(classDeclaration: KSClassDeclaration) {
+        val originatingFile = currentFile ?: return
+        val className = classDeclaration.receiverName() ?: return
+        if ("$currentPackageName.${fileNameFor(className)}" in writtenFiles) {
+            return
+        }
+        val queued = pendingExternals.any {
+            it.declaration == classDeclaration && it.packageName == currentPackageName
+        }
+        if (!queued) {
+            pendingExternals += PendingExternal(
+                declaration = classDeclaration,
+                // Beside whatever referred to it, not in the library's own package: two
+                // modules generating into a shared package would collide, and the call
+                // site needs no import when it is already here.
+                packageName = currentPackageName,
+                originatingFile = originatingFile,
+            )
+        }
+    }
+
+    private fun fileNameFor(className: String): String =
+        "DeepPrint${className.replace(".", "_")}"
 
     private fun getFileName(declaration: KSAnnotated): String? { 
         return when (declaration) {
@@ -278,6 +384,17 @@ class DeepPrintProcessor(
         }
 
         @OptIn(KspExperimental::class)
+        fun visitDeepPrintAnnotatedFor(
+            classDeclaration: KSClassDeclaration,
+            packageName: String,
+            className: String,
+        ): String = visitDeepPrintAnnotated(
+            classDeclaration = classDeclaration,
+            packageName = packageName,
+            className = className,
+            props = classDeclaration.getDeclaredProperties(),
+        )
+
         private fun visitDeepPrintAnnotated(
             classDeclaration: KSClassDeclaration,
             packageName: String,
@@ -354,8 +471,6 @@ class DeepPrintProcessor(
             }
         }
 
-        private fun fileNameFor(className: String): String =
-            "DeepPrint${className.replace(".", "_")}"
 
         /**
          * Renders one property assignment, including the trailing comma and newline.
@@ -554,10 +669,14 @@ class DeepPrintProcessor(
                 (propClassDeclaration.isDataClass() &&
                     propertyDeclaration?.isAnnotationPresent(DeepPrint::class) == true)
             return if (annotated) {
-                // KotlinPoet does not guard this one: addImport("", "deepPrint") renders as
-            // `import deepPrint`. That happens to resolve for a root-package class, but
+                // An external class's extension is generated beside this file rather than in
+            // the library's package, so importing from the library's package would not
+            // resolve. Same package, so no import at all.
+            //
+            // KotlinPoet does not guard the empty case either: addImport("", "deepPrint")
+            // renders as `import deepPrint`. That resolves for a root-package class, but
             // it is noise, and nothing in the same package needs importing anyway.
-            if (propPackageName.isNotEmpty()) {
+            if (!propClassDeclaration.isExternal() && propPackageName.isNotEmpty()) {
                 imports.add(MemberImport(propPackageName, "deepPrint"))
             }
                 "\"\\n\" + $receiver.deepPrint(currentIndent + 2 * indentWidth)"

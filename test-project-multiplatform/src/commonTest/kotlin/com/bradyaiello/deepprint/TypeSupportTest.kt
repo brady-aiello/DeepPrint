@@ -2,6 +2,7 @@ package com.bradyaiello.deepprint
 
 import com.bradyaiello.deepprint.testclasses.WithASequence
 import com.bradyaiello.deepprint.testclasses.deepPrint
+import com.bradyaiello.deepprint.testobjects.usingUnannotatedDataClassFromExternalModule
 import com.bradyaiello.deepprint.testobjects.withGenericAliases
 import com.bradyaiello.deepprint.testobjects.withNestedCollections
 import com.bradyaiello.deepprint.testobjects.withNestedMaps
@@ -179,5 +180,24 @@ class TypeSupportTest {
 
         assertTrue(actual.contains("name = \"s\","))
         assertEquals(listOf(1, 2, 3), sequence.toList())
+    }
+
+    @Test
+    fun dataClassFromAnotherModuleDeepPrints() {
+        // Also exercised on js and native here, not just jvm.
+        val expected = """
+            UsingUnannotatedDataClassFromExternalModule(
+              externalDataClass = 
+                ExternalDataClass(
+                  name = "Bruce Wayne",
+                  age = 42,
+                  interests = listOf<String>( "true crime podcasts", "calisthenics", "tinkering", "puzzle solving",),
+                ),
+              id = "985270457834522",
+            )
+        """.trimIndent()
+
+        val actual = usingUnannotatedDataClassFromExternalModule.deepPrint()
+        assertEquals(expected, actual)
     }
 }
