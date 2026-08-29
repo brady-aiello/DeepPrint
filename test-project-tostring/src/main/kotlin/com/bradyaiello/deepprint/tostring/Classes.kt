@@ -21,3 +21,10 @@ data class HandWritten(val value: Int) {
 @DeepPrint
 @com.bradyaiello.deepprint.NoDeepPrint
 data class OptedOut(val value: Int)
+
+/** Holds a data class that lives in another module. */
+@DeepPrint
+data class HoldsExternal(
+    val external: com.module.external.ExternalDataClass,
+    val id: String,
+)

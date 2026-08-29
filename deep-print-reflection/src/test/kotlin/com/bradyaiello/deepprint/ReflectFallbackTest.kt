@@ -94,4 +94,32 @@ class ReflectFallbackTest {
         """.trimIndent()
         assertEquals(expected, container.deepPrintReflection())
     }
+
+    @Test
+    fun `a data class from another module reflects like any other`() {
+        // Reflection reads the runtime class, so a module boundary is invisible to it.
+        // This never needed the support KSP had to be given.
+        val holder = HoldsExternalReflect(
+            external = com.module.external.ExternalDataClass(
+                name = "Bruce Wayne",
+                age = 42,
+                interests = listOf("tinkering"),
+            ),
+            id = "id-1",
+        )
+        val expected = """
+            HoldsExternalReflect(
+                external = ExternalDataClass(
+                    name = "Bruce Wayne",
+                    age = 42,
+                    interests =  mutableListOf(
+                        "tinkering",
+                    ),
+                ),
+                id = "id-1",
+            )
+        """.trimIndent()
+
+        assertEquals(expected, holder.deepPrintReflection())
+    }
 }

@@ -17,6 +17,8 @@ dependencies {
     testRuntimeOnly(platform(Testing.Junit.bom))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(project(":deep-print-annotations"))
+    // Only to prove a data class from another module reflects the same as a local one.
+    testImplementation(project(":external-module"))
 }
 
 tasks.test {
