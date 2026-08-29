@@ -697,6 +697,31 @@ so it cannot reach one.
 [No-Annotation Mode](#No-Annotation-Mode) says nothing, and walks past anything it
 cannot print. Nobody asked for those, and a module is full of them.
 
+## Cyclic Data
+A `data class` that can reach itself -- a node holding its parent, two objects pointing
+at each other -- has no constructor call that would rebuild it, because each object would
+have to exist before the other could be written. Reflection detects it and prints a
+`TODO()` naming the class rather than recursing until the stack runs out:
+
+```kotlin
+val node = Node("a", null)
+node.next = node
+
+Node(
+    name = "a",
+    next = TODO("DeepPrint: cycle back to Node"),
+)
+```
+
+`TODO()` is `Nothing`, so this compiles wherever the property sits, nullable or not, and
+cannot be run by accident. The same object appearing twice is repetition rather than a
+cycle and still prints in full both times; only an object currently being printed further
+up counts.
+
+KSP does not do this yet -- a cyclic graph still overflows the stack there. Tracking what
+is being printed needs state threaded through the generated code, and the generated code
+is shared across all 14 targets.
+
 ## Current Limitations
 - DeepPrint only works on `data class`es.
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated,

@@ -1,6 +1,7 @@
 package com.bradyaiello.deepprint
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
@@ -211,5 +212,60 @@ class ReflectFallbackTest {
         ).deepPrintReflection()
 
         assertEquals(expected, actual)
+    }
+
+    /** A cycle used to recurse until the stack ran out. */
+    @Test
+    fun `a cycle prints a TODO instead of overflowing the stack`() {
+        val node = CycleNode("a", null)
+        node.next = node
+
+        val expected = """
+            CycleNode(
+                name = "a",
+                next = TODO("DeepPrint: cycle back to CycleNode"),
+            )
+        """.trimIndent()
+
+        assertEquals(expected, node.deepPrintReflection())
+    }
+
+    /** Collections recurse through the same entry point, so they are covered too. */
+    @Test
+    fun `a cycle through a collection is caught as well`() {
+        val parent = CycleParent("p", mutableListOf())
+        parent.children.add(parent)
+
+        val actual = CycleParent("p", mutableListOf(parent)).deepPrintReflection()
+
+        assertTrue(
+            actual.contains("""TODO("DeepPrint: cycle back to CycleParent")"""),
+            "expected a cycle marker, got:\n$actual",
+        )
+    }
+
+    /**
+     * The same object twice is repetition, not a cycle. Guarding by equality rather than
+     * by identity, or forgetting to drop the entry on the way out, would call the second
+     * one a cycle and print a TODO() where real data belongs.
+     */
+    @Test
+    fun `the same object appearing twice still prints in full`() {
+        val shared = CycleNode("shared", null)
+
+        val expected = """
+            Repeated(
+                first = CycleNode(
+                    name = "shared",
+                    next = null,
+                ),
+                second = CycleNode(
+                    name = "shared",
+                    next = null,
+                ),
+            )
+        """.trimIndent()
+
+        assertEquals(expected, Repeated(shared, shared).deepPrintReflection())
     }
 }

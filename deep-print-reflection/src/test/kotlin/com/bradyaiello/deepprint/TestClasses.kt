@@ -178,3 +178,9 @@ class EnumHost {
 }
 
 data class HoldsSealed(val shape: Marker, val level: EnumHost.Level, val id: Int)
+
+data class CycleNode(val name: String, var next: CycleNode?)
+
+data class CycleParent(val name: String, val children: MutableList<CycleParent>)
+
+data class Repeated(val first: CycleNode, val second: CycleNode)
