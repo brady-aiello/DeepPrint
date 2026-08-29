@@ -654,6 +654,9 @@ That is not true for single source projects, like [test-project](./test-project)
 - `overrideToString` cannot reach a `data class` from a dependency: that class is already
   compiled. It still prints in full as a property of one of your own classes. See
   [Data Classes From Other Modules](#Data-Classes-From-Other-Modules).
+- A generic property is printed with `toString()`. The processor runs before type
+  arguments are known, so there is nothing better it can do; `GenericBox("s")` prints
+  `boxed = s`, not `boxed = "s"`. The class itself deep prints normally.
 - A `Sequence` property is not reconstructed; it prints with `toString()`. Printing one
   would have to iterate it, which consumes a single-use sequence and exhausts the heap
   on an infinite one. `Collection` and `Iterable` are supported, on the assumption that
