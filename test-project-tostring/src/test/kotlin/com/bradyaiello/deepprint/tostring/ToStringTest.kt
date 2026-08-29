@@ -87,4 +87,38 @@ class ToStringTest {
             external.toString(),
         )
     }
+
+    /**
+     * The lookup used kotlinFqName.parent(), which on a nested class is the outer class
+     * rather than the package, so no deepPrint() was ever found and the class kept the
+     * stock toString().
+     */
+    @Test
+    fun toStringOfANestedDataClassIsRewritten() {
+        val expected = """
+            Outer.Nested(
+                n = 1,
+                s = "a",
+            )
+        """.trimIndent()
+
+        assertEquals(expected, Outer.Nested(1, "a").toString())
+    }
+
+    /**
+     * The receiver of a generic class's extension is Box<T> where T belongs to the
+     * function, while the class's own defaultType has its own T. Comparing whole types
+     * never matched, so this kept the stock toString() as well.
+     */
+    @Test
+    fun toStringOfAGenericDataClassIsRewritten() {
+        val expected = """
+            Boxed(
+                boxed = 7,
+                label = "seven",
+            )
+        """.trimIndent()
+
+        assertEquals(expected, Boxed(7, "seven").toString())
+    }
 }
