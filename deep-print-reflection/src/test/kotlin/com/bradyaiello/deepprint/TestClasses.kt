@@ -140,3 +140,19 @@ data class HoldsExternalReflect(
     val external: com.module.external.ExternalDataClass,
     val id: String,
 )
+
+data object LoneDataObject
+
+object PlainObject
+
+sealed class Marker {
+    data object Present : Marker()
+    data class Absent(val reason: String) : Marker()
+}
+
+data class HoldsObjects(
+    val dataObject: LoneDataObject,
+    val plain: PlainObject,
+    val nested: Marker,
+    val id: String,
+)

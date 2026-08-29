@@ -19,6 +19,21 @@ fun Any?.deepPrintReflection(
     if (this == null || !this::class.isData) {
         return ""
     }
+    // A `data object` reports isData like any other data class but has no constructor,
+    // so the constructor path below threw NoSuchElementException on it. There is
+    // nothing to reconstruct: an object prints as its own name.
+    val objectName = deepPrintObjectOrNull()
+    return if (objectName != null) {
+        if (initialIndentLength == 0) objectName else "${initialIndentLength.indent()}$objectName,"
+    } else {
+        deepPrintDataClassReflection(initialIndentLength, indentIncrementLength)
+    }
+}
+
+private fun Any.deepPrintDataClassReflection(
+    initialIndentLength: Int,
+    indentIncrementLength: Int,
+): String {
     val kClass = this::class
     val initialIndent = if (initialIndentLength == 0) ""
     else initialIndentLength.indent()
@@ -79,6 +94,9 @@ private fun deepPrintProperty(
     if (primitiveArray != null) {
         return "$assignment$primitiveArray,\n"
     }
+    propValue.deepPrintObjectOrNull()?.let { name ->
+        return "$assignment$name,\n"
+    }
     if (!propValue::class.isData) {
         return "$assignment${propValue.deepPrintUnsupportedReflection()},\n"
     }
@@ -109,6 +127,7 @@ internal fun Any?.printsInline(): Boolean = when {
     this == null -> true
     isPrimitive() -> true
     this is Collection<*> || this is Map<*, *> || this is Array<*> || isPrimitiveArray() -> false
+    this::class.objectInstance != null -> true
     else -> !this::class.isData
 }
 
@@ -128,6 +147,19 @@ internal fun Any.deepPrintNestedCollectionOrNull(
     is Array<*> -> deepPrintArrayReflection(startingIndent, indentSize, "arrayOf", standalone = true)
     else -> deepPrintPrimitiveArrayReflectionOrNull(startingIndent, indentSize, standalone = true)
 }
+
+/**
+ * The name of [this] if it is an `object`, otherwise null.
+ *
+ * Qualified through its nesting, because a nested object printed as `Dot` would not
+ * resolve while `Shape.Dot` does -- the same reason the enum case below prints
+ * `DayOfWeek.MONDAY` rather than `MONDAY`. Covers a plain `object` as well as a
+ * `data object`; the alternative for a plain one was `Singleton@1b2c3d`, which is
+ * never what anyone wants to paste back into source.
+ */
+internal fun Any.deepPrintObjectOrNull(): String? =
+    if (this::class.objectInstance == null) null
+    else javaClass.name.substringAfterLast('.').replace('$', '.')
 
 internal fun Any.deepPrintUnsupportedReflection(): String = when (this) {
     is Enum<*> -> {
