@@ -122,4 +122,41 @@ class ReflectFallbackTest {
 
         assertEquals(expected, holder.deepPrintReflection())
     }
+
+    /**
+     * A `data object` reports isData like any other data class but has no constructor,
+     * so this threw NoSuchElementException from constructors.first() rather than
+     * printing anything.
+     */
+    @Test
+    fun `an object prints as its name`() {
+        val expected = """
+            HoldsObjects(
+                dataObject = LoneDataObject,
+                plain = PlainObject,
+                nested = Marker.Present,
+                id = "x",
+            )
+        """.trimIndent()
+
+        val actual = HoldsObjects(
+            dataObject = LoneDataObject,
+            plain = PlainObject,
+            nested = Marker.Present,
+            id = "x",
+        ).deepPrintReflection()
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `a data object prints as its name when printed directly`() {
+        assertEquals("LoneDataObject", LoneDataObject.deepPrintReflection())
+    }
+
+    /** A nested object needs its outer name, or the output does not resolve. */
+    @Test
+    fun `a nested object is qualified through its nesting`() {
+        assertEquals("Marker.Present", Marker.Present.deepPrintReflection())
+    }
 }

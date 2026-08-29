@@ -664,6 +664,8 @@ That is not true for single source projects, like [test-project](./test-project)
 - Not every type is supported. See
   [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
   [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
+- For reflection, an `object` prints as its name, qualified through its nesting, eg.
+  `marker = Marker.Present`. This is valid Kotlin, the same as the enum case.
 - For reflection, a property that is neither a primitive, a supported collection, nor a
   `data class` is printed with `toString()`. Enums are the exception and print
   qualified, eg. `day = DayOfWeek.MONDAY`, which is valid Kotlin as long as the enum is
