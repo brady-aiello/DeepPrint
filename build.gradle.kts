@@ -47,30 +47,37 @@ allprojects {
 */
 plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
     with(the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>()) {
-        // Present at one major, so these stay inside the range the toolchain asked for.
-        resolution("body-parser", "1.20.3")
+        // The highest patched version across every advisory open against the package,
+        // not the first. Targeting the first fix is how brace-expansion landed on 2.0.2
+        // inside `>= 2.0.0, < 2.1.4`, and how tmp landed on exactly the 0.2.6 that
+        // `>= 0.2.6, < 0.2.7` names.
+        resolution("ajv", "8.18.0")
+        resolution("body-parser", "1.20.6")
+        resolution("brace-expansion", "2.1.4")
         resolution("braces", "3.0.3")
         resolution("cross-spawn", "7.0.6")
+        resolution("diff", "8.0.3")
         resolution("flatted", "3.4.2")
+        resolution("follow-redirects", "1.16.0")
         resolution("lodash", "4.18.0")
         resolution("picomatch", "2.3.2")
-        resolution("tmp", "0.2.6")
+        resolution("qs", "6.15.2")
+        resolution("serialize-javascript", "7.0.5")
+        resolution("tmp", "0.2.7")
+        resolution("webpack", "5.104.1")
 
-        // Present at two majors, so one forced version crosses a boundary for whichever
-        // consumer asked for the older line. brace-expansion survives it; its API did
-        // not change in a way karma or webpack notice.
-        resolution("brace-expansion", "2.0.2")
-
-        // minimatch is deliberately not forced. It is present at ^3 and ^9, every fix
-        // is on 3.1.3+ or the 9 line, and forcing 9 breaks karma:
+        // minimatch is present at two majors and only the 9 line is still affected, now
+        // that the 3 line resolves to 3.1.5 on its own. It cannot be forced globally:
+        // karma declares ^3.0.4 and calls minimatch as a function, which minimatch 9,
+        // exporting an object, is not:
         //     TypeError: mm is not a function
         //         at karma/lib/file-list.js:40:45
-        // minimatch 3 exports a function and 9 exports an object, and karma calls it.
-        // Two high advisories against a build-time file matcher are the better trade
-        // than no browser tests.
-
-        // All of 6.x is affected; the first fix is 7.0.3.
-        resolution("serialize-javascript", "7.0.3")
+        // Scoping karma back to 3.1.5 does not work either -- the global resolution
+        // hoists 9 to the top and karma resolves to it anyway. So only the two packages
+        // that actually asked for 9 are moved, and karma and glob keep the 3 line they
+        // were written against.
+        resolution("karma-webpack/minimatch", "9.0.7")
+        resolution("mocha/minimatch", "9.0.7")
     }
 }
 
