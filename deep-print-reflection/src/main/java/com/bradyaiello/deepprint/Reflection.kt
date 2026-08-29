@@ -1,5 +1,6 @@
 package com.bradyaiello.deepprint
 
+import java.util.IdentityHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.memberProperties
@@ -27,9 +28,52 @@ fun Any?.deepPrintReflection(
     return if (objectName != null) {
         if (initialIndentLength == 0) objectName else "${initialIndentLength.indent()}$objectName,"
     } else {
-        deepPrintDataClassReflection(initialIndentLength, indentIncrementLength)
+        withCycleGuard(initialIndentLength) {
+            deepPrintDataClassReflection(initialIndentLength, indentIncrementLength)
+        }
     }
 }
+
+/**
+ * Runs [print] unless [this] is already being printed further up the same call, in which
+ * case the graph has a cycle and printing it would recurse until the stack ran out. That
+ * is what used to happen: a `data class` holding a reference back to itself met
+ * deepPrintReflection() with a StackOverflowError.
+ *
+ * A cycle cannot be written as a constructor call at all -- the object has to exist
+ * before it can be referenced -- so there is no output that would reconstruct it. What
+ * comes out instead is a TODO() naming the class:
+ *
+ *     next = TODO("DeepPrint: cycle back to Node"),
+ *
+ * which compiles wherever the property sits, nullable or not, since TODO() is Nothing.
+ * It is deliberately something you cannot run and cannot miss, in keeping with the way
+ * an unsupported type prints a placeholder rather than throwing.
+ *
+ * Identity rather than equality: two equal data classes are ordinary repetition, and a
+ * HashSet would call the second one a cycle. The entry is removed on the way out, so the
+ * same object appearing twice side by side still prints in full both times. Only an
+ * ancestor counts.
+ */
+private fun <T : Any> T.withCycleGuard(initialIndentLength: Int, print: () -> String): String {
+    val inProgress = ancestors.get()
+    if (inProgress.containsKey(this)) {
+        val marker = "TODO(\"DeepPrint: cycle back to ${this::class.printableName()}\")"
+        return if (initialIndentLength == 0) marker
+        else "${initialIndentLength.indent()}$marker,"
+    }
+    inProgress[this] = Unit
+    return try {
+        print()
+    } finally {
+        inProgress.remove(this)
+        // Leaving an empty map on the thread would outlive the call that needed it.
+        if (inProgress.isEmpty()) ancestors.remove()
+    }
+}
+
+/** The data classes between the top of the current print and the value being printed. */
+private val ancestors = ThreadLocal.withInitial { IdentityHashMap<Any, Unit>() }
 
 private fun Any.deepPrintDataClassReflection(
     initialIndentLength: Int,
