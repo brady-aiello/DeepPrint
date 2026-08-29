@@ -680,6 +680,23 @@ Reflection deep prints the subclass it finds. KSP sees the declared type, which 
 `data class`, so it falls back to `toString()` -- there is no type to generate against.
 Annotating the subclass does not help, because the property still says `Marker`.
 
+## When DeepPrint Cannot Help
+`@DeepPrint` on something it cannot generate for is a build error naming the reason,
+rather than silence:
+
+```
+e: [ksp] Classes.kt:6: DeepPrint: cannot generate deepPrint() for Settings because it
+is a class rather than a data class, and deepPrint() prints a call to a primary
+constructor.
+```
+
+The cases are a class that is not a `data class`, and a `data class` that is `private`,
+`protected` or local -- the generated extension is a separate file in the same package,
+so it cannot reach one.
+
+[No-Annotation Mode](#No-Annotation-Mode) says nothing, and walks past anything it
+cannot print. Nobody asked for those, and a module is full of them.
+
 ## Current Limitations
 - DeepPrint only works on `data class`es.
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated,

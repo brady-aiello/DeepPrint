@@ -69,4 +69,26 @@ class NoAnnotationTest {
 
         assertEquals(expected, InternalPoint(5).deepPrint())
     }
+
+    /**
+     * Nothing here asserts an error; the point is that this module compiles with an
+     * interface, a plain class and an enum sitting beside the data classes.
+     *
+     * Being straight about how much this proves: it does not fail if the mode guard in
+     * reportIfIneligible is removed, because symbolsToProcess filters ineligible classes
+     * out before they ever reach the report. The guard is belt and braces. What this
+     * does cover is that both of those have to fail together before a no-annotation
+     * build turns into a wall of errors about classes nobody asked to print.
+     */
+    @Test
+    fun ineligibleShapesAreSkippedRatherThanReported() {
+        val expected = """
+            Point(
+                x = 1,
+                y = 2,
+            )
+        """.trimIndent()
+
+        assertEquals(expected, Point(1, 2).deepPrint())
+    }
 }
