@@ -47,18 +47,21 @@ DeepPrint publishes to Maven Central through the
 1. Set the new version in `gradle.properties`. Maven Central rejects a version that is
    already published, so this has to change — `0.1.0-alpha10` has been on Central since
    June 2023.
-2. Commit that on `main`.
-3. Tag it and push the tag. Existing tags are unprefixed:
+2. Move the `## Unreleased` entries in `CHANGELOG.md` under a heading for the new version.
+   The `Publish` workflow reads that section verbatim for the GitHub release, so a version
+   with no section gets notes generated from its merged pull requests instead.
+3. Commit both on `main`.
+4. Tag it and push the tag. Existing tags are unprefixed:
 
    ```bash
    git tag 0.2.0-alpha01
    git push origin 0.2.0-alpha01
    ```
 
-The `Publish` workflow runs on tag pushes. It builds every target, signs, and uploads a
-deployment to the Portal.
+The `Publish` workflow runs on tag pushes. It builds every target, signs, uploads a
+deployment to the Portal, and creates the GitHub release from the CHANGELOG section.
 
-4. **Finish the release in the Portal.** The upload lands as a pending deployment for
+5. **Finish the release in the Portal.** The upload lands as a pending deployment for
    you to check and publish. To have CI release it without that step, change the Gradle
    invocation in `.github/workflows/publish.yml` from `publishToMavenCentral` to
    `publishAndReleaseToMavenCentral`.
