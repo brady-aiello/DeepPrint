@@ -28,5 +28,10 @@ jobs:
       - name: Cache Konan
         uses: ./.github/actions/cache-konan
 
+      # Cheap, and it runs before the build so a stale README is not buried under
+      # twenty minutes of Kotlin/Native output.
+      - name: Check the README advertises the current version
+        run: ./.github/scripts/check-doc-versions.sh
+
       - name: Test jvm, js(node + browser), linux on Linux
         run: ./gradlew jvmTest jsTest linuxX64Test
