@@ -39,7 +39,7 @@ version = providers.gradleProperty("version").get()
  * quietly asks for the previous compiler plugin, which resolves and misbehaves rather
  * than failing.
  */
-val generateVersionSource by tasks.registering {
+val generateVersionSource = tasks.register("generateVersionSource") {
     val outputDirectory = layout.buildDirectory.dir("generated/version")
     val projectVersion = version.toString()
     inputs.property("version", projectVersion)

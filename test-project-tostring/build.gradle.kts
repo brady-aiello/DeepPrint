@@ -20,7 +20,8 @@ kotlin.sourceSets {
 // Spike wiring. A real setup would ship a KotlinCompilerPluginSupportPlugin so consumers
 // never see this; passing -Xplugin by hand is enough to find out whether the IR
 // transformation works.
-val deepPrintCompilerPlugin: Configuration by configurations.creating {
+val deepPrintCompilerPlugin: Configuration =
+    configurations.create("deepPrintCompilerPlugin") {
     isTransitive = false
 }
 
