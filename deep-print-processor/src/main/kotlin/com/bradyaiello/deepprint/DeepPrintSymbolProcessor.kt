@@ -44,7 +44,21 @@ import com.google.devtools.ksp.symbol.KSVisitor
 import com.google.devtools.ksp.symbol.Modifier.DATA
 import com.google.devtools.ksp.symbol.Visibility
 import com.google.devtools.ksp.validate
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.INT
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.STRING
+import com.squareup.kotlinpoet.joinToCode
+import com.squareup.kotlinpoet.ksp.toClassName
 import java.io.OutputStream
+
+/** An import KotlinPoet renders, and deduplicates, itself. */
+internal data class MemberImport(val packageName: String, val simpleName: String)
+
+internal const val DEEP_PRINT_PACKAGE = "com.bradyaiello.deepprint"
 
 fun OutputStream.appendText(str: String) {
     this.write(str.toByteArray())
@@ -270,50 +284,78 @@ class DeepPrintProcessor(
             className: String,
             props: Sequence<KSPropertyDeclaration>
         ): String {
-            val packageStringBuilder = StringBuilder()
-            // A set, because a class with several collection properties would otherwise
-            // repeat the same import once per property. LinkedHashSet rather than
-            // MutableSet: the generated file has to come out byte-identical every run,
-            // so insertion order has to be part of the contract.
-            val imports = linkedSetOf(
-                "import com.bradyaiello.deepprint.deepPrint",
-                "import com.bradyaiello.deepprint.indent",
-            )
-            val functionStringBuilder = StringBuilder()
-
-            if (classDeclaration.isDataClass()) {
-                // A class in the default package has no package name, and `package `
-                // on its own is a syntax error.
-                if (packageName.isNotEmpty()) {
-                    packageStringBuilder.append("package $packageName\n\n")
-                }
-
-                functionStringBuilder.append("\n")
-                // A public extension on an internal receiver does not compile, so the
-                // generated function matches the visibility of the class it prints.
-                val visibility =
-                    if (classDeclaration.getVisibility() == Visibility.INTERNAL) "internal " else ""
-                functionStringBuilder.append(
-                    "${visibility}fun ${className}.deepPrint(currentIndent: Int = 0): String {\n"
-                )
-                functionStringBuilder.append("val indentWidth = $indent\n")
-                functionStringBuilder.append("return \"\"\"")
-
-                functionStringBuilder.append("\${currentIndent.indent()}$className(\n")
-                props.forEach { propertyDeclaration ->
-                    val type: KSType = propertyDeclaration.type.resolve()
-                    functionStringBuilder.append("\${(currentIndent + indentWidth).indent()}${propertyDeclaration} = ")
-                    functionStringBuilder.append(processProperty(imports, type, propertyDeclaration))
-                }
-                functionStringBuilder.append("\${currentIndent.indent()})")
-                functionStringBuilder.append("\"\"\"\n}")
-                functionStringBuilder.append("\n")
+            if (!classDeclaration.isDataClass()) {
+                return ""
             }
+            // KotlinPoet owns the package declaration, the imports, the receiver type and
+            // the visibility. Assembling those as text is what produced a bare `package `
+            // line in the default package, `import .deepPrint`, a public extension on an
+            // internal receiver, an unqualified nested class, and one repeated import per
+            // collection property. None of those are expressible here.
+            val imports = linkedSetOf(
+                MemberImport(DEEP_PRINT_PACKAGE, "deepPrint"),
+                MemberImport(DEEP_PRINT_PACKAGE, "indent"),
+            )
 
-            return packageStringBuilder.toString() +
-                    imports.joinToString(separator = "") { "$it\n" } +
-                    functionStringBuilder.toString()
+            val lines = bodyLines(className, props, imports)
+            val body = CodeBlock.builder()
+                .addStatement("val indentWidth = %L", indent)
+                .add("return %L", lines.joinToCode(separator = " +\n"))
+                .build()
+
+            val function = FunSpec.builder("deepPrint")
+                .receiver(classDeclaration.toClassName())
+                .apply {
+                    if (classDeclaration.getVisibility() == Visibility.INTERNAL) {
+                        addModifiers(KModifier.INTERNAL)
+                    }
+                }
+                .addParameter(
+                    ParameterSpec.builder("currentIndent", INT).defaultValue("%L", 0).build()
+                )
+                .returns(STRING)
+                .addCode(body)
+                .build()
+
+            return FileSpec.builder(packageName, fileNameFor(className))
+                .apply { imports.forEach { addImport(it.packageName, it.simpleName) } }
+                .addFunction(function)
+                .build()
+                .toString()
         }
+
+        /**
+         * The printed form, one source line per printed line.
+         *
+         * Each is a single-line literal ending in a newline escape rather than one raw
+         * string spanning the function, because KotlinPoet indents a function body and
+         * that indentation would land inside a multi-line literal and show up in the
+         * output.
+         */
+        private fun bodyLines(
+            className: String,
+            props: Sequence<KSPropertyDeclaration>,
+            imports: MutableSet<MemberImport>,
+        ): List<CodeBlock> {
+            val lines = mutableListOf<String>()
+            lines += "\${currentIndent.indent()}$className("
+            props.forEach { propertyDeclaration ->
+                val type: KSType = propertyDeclaration.type.resolve()
+                lines += "\${(currentIndent + indentWidth).indent()}$propertyDeclaration = " +
+                    processProperty(imports, type, propertyDeclaration)
+            }
+            lines += "\${currentIndent.indent()})"
+
+            return lines.mapIndexed { index, line ->
+                val terminator = if (index == lines.lastIndex) "" else "\\n"
+                // %L, not %S: these are live string templates to emit verbatim, not text
+                // for KotlinPoet to escape into a literal.
+                CodeBlock.of("%L", "\"$line$terminator\"")
+            }
+        }
+
+        private fun fileNameFor(className: String): String =
+            "DeepPrint${className.replace(".", "_")}"
 
         /**
          * Renders one property assignment, including the trailing comma and newline.
@@ -325,22 +367,22 @@ class DeepPrintProcessor(
          * emitted around nothing.
          */
         private fun processProperty(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             propertyDeclaration: KSPropertyDeclaration,
         ): String {
             val typeName = type.declaration.simpleName.asString()
             // The primitive deepPrint() extensions take a nullable receiver already.
             if (typeName in PRIMITIVE_TYPES) {
-                return "\${${propertyDeclaration}.deepPrint()},\n"
+                return "\${${propertyDeclaration}.deepPrint()},"
             }
             val expression = valueExpression(imports, type, receiver = "value", propertyDeclaration)
             return when {
                 // Nothing we can render: a string template on a null prints "null" anyway.
-                expression == null -> "\$$propertyDeclaration,\n"
+                expression == null -> "\$$propertyDeclaration,"
                 type.isMarkedNullable ->
-                    "\${$propertyDeclaration?.let { value -> $expression } ?: \"null\"},\n"
-                else -> "\${$propertyDeclaration.let { value -> $expression }},\n"
+                    "\${$propertyDeclaration?.let { value -> $expression } ?: \"null\"},"
+                else -> "\${$propertyDeclaration.let { value -> $expression }},"
             }
         }
 
@@ -354,7 +396,7 @@ class DeepPrintProcessor(
          */
         @OptIn(KspExperimental::class)
         private fun valueExpression(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             receiver: String,
             propertyDeclaration: KSPropertyDeclaration? = null,
@@ -385,7 +427,7 @@ class DeepPrintProcessor(
          * receiver.
          */
         private fun nullSafeValueExpression(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             accessor: String,
             lambdaParameter: String,
@@ -405,7 +447,7 @@ class DeepPrintProcessor(
          * of collections works the same way a property of that type would.
          */
         private fun tupleExpression(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             receiver: String,
             depth: Int,
@@ -435,7 +477,7 @@ class DeepPrintProcessor(
          * not exist at the use site.
          */
         private fun typeAliasExpression(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             receiver: String,
             propertyDeclaration: KSPropertyDeclaration?,
@@ -497,7 +539,7 @@ class DeepPrintProcessor(
 
         @OptIn(KspExperimental::class)
         private fun annotatedDataClassExpression(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             receiver: String,
             propertyDeclaration: KSPropertyDeclaration?,
@@ -512,10 +554,11 @@ class DeepPrintProcessor(
                 (propClassDeclaration.isDataClass() &&
                     propertyDeclaration?.isAnnotationPresent(DeepPrint::class) == true)
             return if (annotated) {
-                // Nothing to import from the default package, and `import .deepPrint`
-            // would not parse.
+                // KotlinPoet does not guard this one: addImport("", "deepPrint") renders as
+            // `import deepPrint`. That happens to resolve for a root-package class, but
+            // it is noise, and nothing in the same package needs importing anyway.
             if (propPackageName.isNotEmpty()) {
-                imports.add("import $propPackageName.deepPrint")
+                imports.add(MemberImport(propPackageName, "deepPrint"))
             }
                 "\"\\n\" + $receiver.deepPrint(currentIndent + 2 * indentWidth)"
             } else {
@@ -524,12 +567,12 @@ class DeepPrintProcessor(
         }
 
         private fun mapExpression(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             receiver: String,
             depth: Int,
         ): String {
-            imports.add("import com.bradyaiello.deepprint.deepPrintContents")
+            imports.add(MemberImport(DEEP_PRINT_PACKAGE, "deepPrintContents"))
             val ksKeyTypeRef: KSTypeReference = type.arguments[0].type!!
             val ksValueTypeRef: KSTypeReference = type.arguments[1].type!!
             val keyType = ksKeyTypeRef.resolve()
@@ -571,7 +614,7 @@ class DeepPrintProcessor(
             return "\"$mapConstructor<$ksKeyTypeRef,$ksValueTypeRef>(\\n\" + " +
                 "$receiver.deepPrintContents(\n" +
                 "keyTransform = { $key -> " +
-                "(currentIndent + ${ENTRY_INDENT_MULTIPLIER + depth} * indentWidth).indent() + ($keyTransform) },\n" +
+                "(currentIndent + ${ENTRY_INDENT_MULTIPLIER + depth} * indentWidth).indent() + ($keyTransform) }," +
                 "valueTransform = { $value -> $valueTransform }) + " +
                 "(currentIndent + ${CLOSING_INDENT_MULTIPLIER + depth} * indentWidth).indent() + \")\""
         }
@@ -584,12 +627,12 @@ class DeepPrintProcessor(
          */
         @OptIn(KspExperimental::class)
         private fun collectionExpression(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             receiver: String,
             depth: Int,
         ): String {
-            imports.add("import com.bradyaiello.deepprint.deepPrintContents")
+            imports.add(MemberImport(DEEP_PRINT_PACKAGE, "deepPrintContents"))
             val itemType = type.arguments[0].type!!
             val resolvedItemType = itemType.resolve()
             val collectionConstructor =
@@ -634,11 +677,11 @@ class DeepPrintProcessor(
          * so the element type is baked into the factory function name.
          */
         private fun primitiveArrayExpression(
-            imports: LinkedHashSet<String>,
+            imports: MutableSet<MemberImport>,
             type: KSType,
             receiver: String,
         ): String {
-            imports.add("import com.bradyaiello.deepprint.deepPrintContents")
+            imports.add(MemberImport(DEEP_PRINT_PACKAGE, "deepPrintContents"))
             val arrayConstructor =
                 PRIMITIVE_ARRAY_CONSTRUCTORS.getValue(type.declaration.simpleName.asString())
             return "\"$arrayConstructor(\" + $receiver.deepPrintContents() + \")\""
