@@ -12,6 +12,9 @@ on:
 jobs:
   publish-all:
     runs-on: macos-latest
+    permissions:
+      # For creating the GitHub release at the end.
+      contents: write
     
     steps:
       - uses: actions/checkout@v7
@@ -48,3 +51,31 @@ jobs:
           # here: 0.2.0 published without it, and the release path is not the place to
           # introduce an untested variable. Drop this once a release has run with it.
           ./gradlew build publishToMavenCentral --no-parallel --no-configuration-cache
+
+      # Tags for 0.2.0 through 0.5.0 exist with no release against them, so the repository
+      # advertised a 2023 pre-release as its newest while 0.5.0 was on Maven Central.
+      # Doing it here rather than by hand is what stops that happening again.
+      #
+      # Central is not touched: this only records what was published. The deployment still
+      # waits for review in the Portal, so a release appearing here does not mean the
+      # artifacts are public yet.
+      - name: Record the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          notes=$(awk -v tag="$tag" '
+            $0 == "## " tag { inside = 1; next }
+            inside && /^## / { exit }
+            inside { print }
+          ' CHANGELOG.md)
+          if [ -n "$(printf '%s' "$notes" | tr -d '[:space:]')" ]; then
+            printf '%s\n' "$notes" > "$RUNNER_TEMP/notes.md"
+            gh release create "$tag" --title "$tag" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            # No section for this tag: better to generate notes from the merged pull
+            # requests than to publish an empty release.
+            echo "No CHANGELOG section for $tag; generating notes from merged PRs."
+            gh release create "$tag" --title "$tag" --generate-notes
+          fi
