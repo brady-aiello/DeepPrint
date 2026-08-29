@@ -13,10 +13,14 @@ plugins {
 }
 
 val kspVersion = versionFor("plugin.com.google.devtools.ksp")
+val kotlinPoetVersion = versionFor("version.kotlinpoet")
 
 dependencies {
     implementation(project(":deep-print-annotations"))
     implementation("com.google.devtools.ksp:symbol-processing-api:$kspVersion")
+    // Models packages, imports, visibility and type names as objects rather than text.
+    implementation("com.squareup:kotlinpoet:$kotlinPoetVersion")
+    implementation("com.squareup:kotlinpoet-ksp:$kotlinPoetVersion")
     testImplementation(platform(Testing.Junit.bom))
     testImplementation(Testing.Junit.jupiter)
     // Gradle 9 no longer puts the JUnit Platform launcher on the test runtime classpath for us.
