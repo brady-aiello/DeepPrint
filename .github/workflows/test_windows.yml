@@ -8,6 +8,7 @@ on:
   pull_request:
     paths-ignore:
       - "**.md"
+      - "consumer-smoke-test/**"
       - "deep-print-reflection/**"
 
 jobs:
