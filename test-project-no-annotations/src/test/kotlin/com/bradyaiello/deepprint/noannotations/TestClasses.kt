@@ -27,3 +27,17 @@ data class HoldsExcluded(val excluded: Excluded, val id: Int)
 
 @Suppress("UnusedPrivateProperty")
 private val keepSecretReferenced = Secret("unused")
+
+/*
+ * Shapes that cannot have a deepPrint() generated for them. In annotation mode each is
+ * a build error naming the reason, because someone wrote @DeepPrint on it and meant it.
+ * Here nobody asked, so the processor has to walk straight past them: a module is full
+ * of classes that were never meant to be printed, and erroring on those would make the
+ * mode unusable.
+ */
+interface NotPrintable
+
+class AlsoNotPrintable(val x: Int)
+
+enum class NorThis { A, B }
+

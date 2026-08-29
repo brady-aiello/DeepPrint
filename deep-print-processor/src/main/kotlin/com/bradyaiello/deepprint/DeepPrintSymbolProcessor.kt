@@ -199,28 +199,8 @@ class DeepPrintProcessor(
         val symbols = symbolsToProcess(resolver)
         if (!symbols.iterator().hasNext()) return emptyList()
         symbols.forEach { declaration ->
-            val containingFile = declaration.containingFile
-            val packageName = containingFile?.packageName?.asString()
-            val fileName: String? = getFileName(declaration)
-
-            if (containingFile != null && packageName != null && fileName != null) {
-                val fullFileName = "DeepPrint${fileName}"
-                if (writtenFiles.add("$packageName.$fullFileName")) {
-                    val file = codeGenerator.createNewFile(
-                        // Naming the source the output was derived from lets KSP keep the
-                        // file across incremental runs; without it KSP2 treats the output as
-                        // orphaned and drops it on the next build.
-                        dependencies = Dependencies(aggregating = false, containingFile),
-                        packageName = packageName,
-                        fileName = fullFileName
-                    )
-                    currentPackageName = packageName
-                    currentFile = containingFile
-                    val string = declaration.accept(DataClassVisitor(), Unit)
-                    file.appendText(string)
-                    file.close()
-                }
-            }
+            if (reportIfIneligible(declaration)) return@forEach
+            generateFor(declaration)
         }
         generatePendingExternals()
         return symbols.filterNot { it.validate() }.toList()
@@ -287,6 +267,55 @@ class DeepPrintProcessor(
             resolver.getSymbolsWithAnnotation(DeepPrint::class.qualifiedName!!)
         }
 
+    /** Writes the deepPrint() for one declaration, if there is one to write. */
+    // Four ways to have nothing to do, each clearer as an early return than as nesting.
+    @Suppress("ReturnCount")
+    private fun generateFor(declaration: KSAnnotated) {
+        val containingFile = declaration.containingFile ?: return
+        val packageName = containingFile.packageName.asString()
+        val fileName = getFileName(declaration) ?: return
+        val fullFileName = "DeepPrint$fileName"
+        if (!writtenFiles.add("$packageName.$fullFileName")) return
+        currentPackageName = packageName
+        currentFile = containingFile
+        val generated = declaration.accept(DataClassVisitor(), Unit)
+        // Generate the text first and create the file only if there is any. Creating it
+        // first left a 0-byte file behind whenever nothing came back.
+        if (generated.isEmpty()) return
+        val file = codeGenerator.createNewFile(
+            // Naming the source the output was derived from lets KSP keep the file
+            // across incremental runs; without it KSP2 treats the output as orphaned
+            // and drops it on the next build.
+            dependencies = Dependencies(aggregating = false, containingFile),
+            packageName = packageName,
+            fileName = fullFileName,
+        )
+        file.appendText(generated)
+        file.close()
+    }
+
+    /**
+     * Reports a hand-written @DeepPrint that cannot produce anything, and says whether
+     * it did.
+     *
+     * Annotation mode only. Shouting about every class in a module that is not a data
+     * class would make the no-annotation mode unusable. symbolsToProcess already filters
+     * those out before they reach here, so this check is belt and braces rather than the
+     * thing standing between that mode and a wall of errors.
+     */
+    private fun reportIfIneligible(declaration: KSAnnotated): Boolean {
+        val reason = (declaration as? KSClassDeclaration)
+            ?.takeUnless { processAllDataClasses }
+            ?.ineligibilityReason()
+            ?: return false
+        logger.error(
+            "DeepPrint: cannot generate deepPrint() for " +
+                "${declaration.simpleName.asString()} because $reason.",
+            declaration,
+        )
+        return true
+    }
+
     /** A declaration and, recursively, anything declared inside it. */
     private fun KSDeclaration.withNestedDeclarations(): Sequence<KSDeclaration> =
         sequenceOf(this) + when (this) {
@@ -295,15 +324,45 @@ class DeepPrintProcessor(
         }
 
     @OptIn(KspExperimental::class)
-    private fun KSClassDeclaration.isEligible(): Boolean = when {
-        !modifiers.contains(DATA) -> false
-        isAnnotationPresent(NoDeepPrint::class) -> false
+    private fun KSClassDeclaration.isEligible(): Boolean =
+        !isAnnotationPresent(NoDeepPrint::class) && ineligibilityReason() == null
+
+    /**
+     * Why no deepPrint() can be generated for this class, or null if one can.
+     *
+     * Only the reasons generation is impossible. @NoDeepPrint is deliberately not one:
+     * it opts a class out of the toString() override, and pairing it with @DeepPrint to
+     * get deepPrint() without the override is a supported combination.
+     *
+     * These are the rules the no-annotation mode filters on. There they are a filter, since
+     * a module is full of classes that were never meant to be printed. Where the
+     * annotation is written by hand they are a mistake worth naming: the alternative,
+     * and what this did before, is an empty generated file and `unresolved reference:
+     * deepPrint` at the call site, with nothing connecting the two.
+     */
+    /** How the class reads in a message: "an interface", "an object". */
+    private fun ClassKind.describe(): String = when (this) {
+        ClassKind.INTERFACE -> "an interface"
+        ClassKind.ENUM_CLASS -> "an enum class"
+        ClassKind.ENUM_ENTRY -> "an enum entry"
+        ClassKind.OBJECT -> "an object"
+        ClassKind.ANNOTATION_CLASS -> "an annotation class"
+        ClassKind.CLASS -> "a class"
+    }
+
+    private fun KSClassDeclaration.ineligibilityReason(): String? = when {
+        !modifiers.contains(DATA) ->
+            "it is ${classKind.describe()} rather than a data class, and deepPrint() " +
+                "prints a call to a primary constructor"
         // The generated extension lives in a separate file in the same package, so it
         // cannot reach a private, protected or local class.
-        getVisibility() in UNREACHABLE_VISIBILITIES -> false
+        getVisibility() in UNREACHABLE_VISIBILITIES ->
+            "it is ${getVisibility().name.lowercase()}, and the generated extension is a " +
+                "separate file in the same package, which cannot reach it"
         // Anonymous or otherwise unnameable.
-        qualifiedName == null -> false
-        else -> true
+        qualifiedName == null ->
+            "it has no qualified name to generate against"
+        else -> null
     }
 
     /**
@@ -871,7 +930,7 @@ class DeepPrintProcessor(
 //        }
         
         private fun KSDeclaration.isDataClass() = modifiers.contains(DATA)
-        private fun KSClassDeclaration.isDataClass() = modifiers.contains(DATA)
+            private fun KSClassDeclaration.isDataClass() = modifiers.contains(DATA)
         private fun KSTypeReference.isDataClass() = modifiers.contains(DATA)
 
         override fun visitAnnotated(annotated: KSAnnotated, data: Unit) = ""
