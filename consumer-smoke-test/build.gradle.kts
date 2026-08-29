@@ -21,6 +21,8 @@ deepPrint {
 dependencies {
     implementation("com.bradyaiello.deepprint:deep-print-annotations:$deepPrintVersion")
     ksp("com.bradyaiello.deepprint:deep-print-processor:$deepPrintVersion")
+    // Pulled in purely as a binary dependency to print a data class out of a jar.
+    implementation("com.bradyaiello.deepprint:deep-print-reflection:$deepPrintVersion")
     testImplementation(kotlin("test"))
 }
 
