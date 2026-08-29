@@ -1,0 +1,58 @@
+public abstract interface annotation class com/bradyaiello/deepprint/DeepPrint : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class com/bradyaiello/deepprint/NoDeepPrint : java/lang/annotation/Annotation {
+}
+
+public final class com/bradyaiello/deepprint/UtilsKt {
+	public static final fun deepPrint (Ljava/lang/Boolean;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/lang/Byte;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/lang/Character;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/lang/Double;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/lang/Float;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/lang/Integer;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/lang/Long;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/lang/Short;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/lang/String;I)Ljava/lang/String;
+	public static final fun deepPrint (Ljava/util/Map;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;I)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/Boolean;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/Byte;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/Character;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/Double;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/Float;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/Integer;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/Long;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/Short;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/lang/String;IILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun deepPrint$default (Ljava/util/Map;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun deepPrint-NSM0LLI (Lkotlin/UByte;I)Ljava/lang/String;
+	public static synthetic fun deepPrint-NSM0LLI$default (Lkotlin/UByte;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun deepPrint-S8_Dj7E (Lkotlin/ULong;I)Ljava/lang/String;
+	public static synthetic fun deepPrint-S8_Dj7E$default (Lkotlin/ULong;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun deepPrint-aPkLuA0 (Lkotlin/UInt;I)Ljava/lang/String;
+	public static synthetic fun deepPrint-aPkLuA0$default (Lkotlin/UInt;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun deepPrint-ux4axIE (Lkotlin/UShort;I)Ljava/lang/String;
+	public static synthetic fun deepPrint-ux4axIE$default (Lkotlin/UShort;IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun deepPrintContents (Ljava/lang/Iterable;)Ljava/lang/String;
+	public static final fun deepPrintContents (Ljava/util/List;)Ljava/lang/String;
+	public static final fun deepPrintContents (Ljava/util/Map;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/lang/String;
+	public static final fun deepPrintContents (Ljava/util/Set;)Ljava/lang/String;
+	public static final fun deepPrintContents ([B)Ljava/lang/String;
+	public static final fun deepPrintContents ([C)Ljava/lang/String;
+	public static final fun deepPrintContents ([D)Ljava/lang/String;
+	public static final fun deepPrintContents ([F)Ljava/lang/String;
+	public static final fun deepPrintContents ([I)Ljava/lang/String;
+	public static final fun deepPrintContents ([J)Ljava/lang/String;
+	public static final fun deepPrintContents ([Ljava/lang/Object;)Ljava/lang/String;
+	public static final fun deepPrintContents ([S)Ljava/lang/String;
+	public static final fun deepPrintContents ([Z)Ljava/lang/String;
+	public static final fun deepPrintContents--ajY-9A ([I)Ljava/lang/String;
+	public static final fun deepPrintContents-GBYM_sE ([B)Ljava/lang/String;
+	public static final fun deepPrintContents-QwZRm1k ([J)Ljava/lang/String;
+	public static final fun deepPrintContents-rL5Bavg ([S)Ljava/lang/String;
+	public static final fun deepPrintPrimitive (Ljava/lang/Object;)Ljava/lang/String;
+	public static final fun formatForJS (D)Ljava/lang/String;
+	public static final fun formatForJS (F)Ljava/lang/String;
+	public static final fun indent (I)Ljava/lang/String;
+}
+

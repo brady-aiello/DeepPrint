@@ -30,3 +30,11 @@ jobs:
 
       - name: Test Apple targets
         run: ./gradlew iosSimulatorArm64Test macosArm64Test watchosSimulatorArm64Test
+
+      # deep-print-annotations is what every consumer compiles against, on all 14
+      # targets, so its ABI dump covers klibs and not just the JVM. That dump can only
+      # be produced where every target builds, which is macOS -- hence this job rather
+      # than one of the Linux ones. deep-print-reflection is JVM-only and its
+      # checkKotlinAbi already runs as part of `check` in the reflection workflow.
+      - name: Check the published ABI has not changed unintentionally
+        run: ./gradlew :deep-print-annotations:checkKotlinAbi

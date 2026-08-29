@@ -21,6 +21,13 @@ dependencies {
     testImplementation(project(":external-module"))
 }
 
+// The other half of the runtime API consumers compile against.
+kotlin {
+    @OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class)
+    abiValidation {
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
 }
