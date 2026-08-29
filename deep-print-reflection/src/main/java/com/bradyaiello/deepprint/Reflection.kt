@@ -3,6 +3,7 @@ package com.bradyaiello.deepprint
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 
 /*
     List and MutableList look identical at runtime. They both are implemented by
@@ -97,6 +98,9 @@ private fun deepPrintProperty(
     propValue.deepPrintObjectOrNull()?.let { name ->
         return "$assignment$name,\n"
     }
+    propValue.deepPrintValueClassOrNull()?.let { rendered ->
+        return "$assignment$rendered,\n"
+    }
     if (!propValue::class.isData) {
         return "$assignment${propValue.deepPrintUnsupportedReflection()},\n"
     }
@@ -127,7 +131,7 @@ internal fun Any?.printsInline(): Boolean = when {
     this == null -> true
     isPrimitive() -> true
     this is Collection<*> || this is Map<*, *> || this is Array<*> || isPrimitiveArray() -> false
-    this::class.objectInstance != null -> true
+    this::class.objectInstance != null || this::class.isValue -> true
     else -> !this::class.isData
 }
 
@@ -148,27 +152,6 @@ internal fun Any.deepPrintNestedCollectionOrNull(
     else -> deepPrintPrimitiveArrayReflectionOrNull(startingIndent, indentSize, standalone = true)
 }
 
-/**
- * The name of [this] if it is an `object`, otherwise null.
- *
- * Qualified through its nesting, because a nested object printed as `Dot` would not
- * resolve while `Shape.Dot` does -- the same reason the enum case below prints
- * `DayOfWeek.MONDAY` rather than `MONDAY`. Covers a plain `object` as well as a
- * `data object`; the alternative for a plain one was `Singleton@1b2c3d`, which is
- * never what anyone wants to paste back into source.
- */
-internal fun Any.deepPrintObjectOrNull(): String? =
-    if (this::class.objectInstance == null) null
-    else javaClass.name.substringAfterLast('.').replace('$', '.')
-
-internal fun Any.deepPrintUnsupportedReflection(): String = when (this) {
-    is Enum<*> -> {
-        // An enum constant with a body is an anonymous subclass of the enum itself.
-        val enumClass = if (javaClass.isEnum) javaClass else javaClass.superclass
-        "${enumClass.simpleName}.$name"
-    }
-    else -> toString()
-}
 
 private fun Any.getPropertyValue(kParam: KParameter): Any? {
     return javaClass

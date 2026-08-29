@@ -643,6 +643,22 @@ Check out [test-project-multiplatform](./test-project-multiplatform) and the doc
 The classes for the KMP example are defined in the `commonMain` source set because KSP does not yet support the `commonTest` source set.
 That is not true for single source projects, like [test-project](./test-project).
 
+## Value Classes
+A `value class` prints as a call to its own constructor, in both KSP and reflection:
+
+```kotlin
+data class Order(val id: UserId, val distance: Meters)
+
+Order(
+    id = UserId(raw = "abc"),
+    distance = Meters(amount = 1.5),
+)
+```
+
+The wrapped value is rendered by the same rules as any other single value, so a value
+class around a `Char` or a `String` keeps its quotes. Printing it with `toString()`
+would give `UserId(raw=abc)`, which reads correctly in a log and is not valid Kotlin.
+
 ## Current Limitations
 - DeepPrint only works on `data class`es.
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated,

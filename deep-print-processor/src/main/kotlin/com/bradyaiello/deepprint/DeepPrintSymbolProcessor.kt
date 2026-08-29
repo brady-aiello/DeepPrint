@@ -43,6 +43,7 @@ import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.KSVisitor
 import com.google.devtools.ksp.symbol.Modifier.DATA
+import com.google.devtools.ksp.symbol.Modifier.VALUE
 import com.google.devtools.ksp.symbol.Visibility
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.CodeBlock
@@ -544,6 +545,7 @@ class DeepPrintProcessor(
                 typeName in MAP_CONSTRUCTORS -> mapExpression(imports, type, receiver, depth)
                 typeName in TUPLE_COMPONENTS -> tupleExpression(imports, type, receiver, depth)
                 else -> enumExpression(type, receiver)
+                    ?: valueClassExpression(imports, type, receiver, depth)
                     ?: typeAliasExpression(imports, type, receiver, propertyDeclaration, depth)
                     ?: annotatedDataClassExpression(imports, type, receiver, propertyDeclaration)
             }
@@ -669,6 +671,40 @@ class DeepPrintProcessor(
             } else {
                 null
             }
+        }
+
+        /**
+         * A `value class` wraps exactly one property, so it prints as a call to its own
+         * constructor around that value, eg. `UserId(raw = "abc")`. Without this it fell
+         * to toString(), which renders `UserId(raw=abc)` -- close enough to look right in
+         * a log and not valid Kotlin, since the string loses its quotes.
+         *
+         * The class name is emitted as text rather than as a reference, the same way the
+         * enum case above is, so no import is needed.
+         */
+        private fun valueClassExpression(
+            imports: MutableSet<MemberImport>,
+            type: KSType,
+            receiver: String,
+            depth: Int,
+        ): String? {
+            val declaration = type.declaration as? KSClassDeclaration
+            if (declaration == null || !declaration.modifiers.contains(VALUE)) {
+                return null
+            }
+            val parameter = declaration.primaryConstructor?.parameters?.singleOrNull()
+            val parameterName = parameter?.name?.asString()
+            val inner = parameterName?.let {
+                nullSafeValueExpression(
+                    imports = imports,
+                    type = parameter.type.resolve(),
+                    accessor = "$receiver.$it",
+                    lambdaParameter = "wrapped",
+                    depth = depth,
+                )
+            }
+            val className = declaration.toClassName().simpleNames.joinToString(".")
+            return inner?.let { "\"$className($parameterName = \" + $it + \")\"" }
         }
 
         @OptIn(KspExperimental::class)

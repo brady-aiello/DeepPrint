@@ -1,6 +1,10 @@
 package com.bradyaiello.deepprint
 
 import com.bradyaiello.deepprint.testclasses.GenericBox
+import com.bradyaiello.deepprint.testclasses.HoldsValueClasses
+import com.bradyaiello.deepprint.testclasses.Initial
+import com.bradyaiello.deepprint.testclasses.Meters
+import com.bradyaiello.deepprint.testclasses.UserId
 import com.bradyaiello.deepprint.testclasses.TwoTypeParams
 import com.bradyaiello.deepprint.testclasses.WithASequence
 import com.bradyaiello.deepprint.testclasses.deepPrint
@@ -231,5 +235,26 @@ class TypeSupportTest {
         """.trimIndent()
 
         assertEquals(expected, TwoTypeParams(1, 2, "pair").deepPrint())
+    }
+
+    @Test
+    fun valueClassPrintsAsACallToItsOwnConstructor() {
+        val expected = """
+            HoldsValueClasses(
+                id = UserId(raw = "abc"),
+                distance = Meters(amount = 1.5),
+                initial = Initial(letter = 'K'),
+                label = "x",
+            )
+        """.trimIndent()
+
+        val actual = HoldsValueClasses(
+            id = UserId("abc"),
+            distance = Meters(1.5),
+            initial = Initial('K'),
+            label = "x",
+        ).deepPrint()
+
+        assertEquals(expected, actual)
     }
 }

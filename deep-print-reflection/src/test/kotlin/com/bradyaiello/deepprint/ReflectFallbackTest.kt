@@ -159,4 +159,31 @@ class ReflectFallbackTest {
     fun `a nested object is qualified through its nesting`() {
         assertEquals("Marker.Present", Marker.Present.deepPrintReflection())
     }
+
+    /**
+     * A value class fell through to toString() and printed `UserId(raw=abc)`, which
+     * reads correctly in a log and is not valid Kotlin -- the string lost its quotes.
+     * Char had the same problem, and Double had it in reverse: `1.5` is fine but only
+     * by accident.
+     */
+    @Test
+    fun `a value class prints as a call to its own constructor`() {
+        val expected = """
+            HoldsValueClasses(
+                id = UserId(raw = "abc"),
+                distance = Meters(amount = 1.5),
+                initial = Initial(letter = 'K'),
+                label = "x",
+            )
+        """.trimIndent()
+
+        val actual = HoldsValueClasses(
+            id = UserId("abc"),
+            distance = Meters(1.5),
+            initial = Initial('K'),
+            label = "x",
+        ).deepPrintReflection()
+
+        assertEquals(expected, actual)
+    }
 }
