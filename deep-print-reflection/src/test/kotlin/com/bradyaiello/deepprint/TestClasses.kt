@@ -135,3 +135,8 @@ data class NestedContainer(
     val mapOfMaps: Map<String, Map<String, Int>>,
     val setOfLists: Set<List<Int>>,
 )
+
+data class HoldsExternalReflect(
+    val external: com.module.external.ExternalDataClass,
+    val id: String,
+)

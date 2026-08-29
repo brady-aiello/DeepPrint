@@ -56,4 +56,35 @@ class ToStringTest {
         // see it during the same compilation.
         assertEquals("OptedOut(value=9)", OptedOut(9).toString())
     }
+
+    @Test
+    fun toStringOfALocalClassPrintsItsExternalPropertyDeeply() {
+        val holder = HoldsExternal(
+            external = com.module.external.ExternalDataClass(
+                name = "Bruce Wayne",
+                age = 42,
+                interests = listOf("tinkering"),
+            ),
+            id = "id-1",
+        )
+
+        assertTrue(holder.toString().contains("""name = "Bruce Wayne","""), holder.toString())
+    }
+
+    @Test
+    fun toStringOfAnExternalClassItselfIsNotOverridden() {
+        // The plugin rewrites toString() while compiling this module. A dependency's
+        // class is already compiled, so its own toString() is out of reach. Printing it
+        // through a local class still deep prints, via the generated deepPrint().
+        val external = com.module.external.ExternalDataClass(
+            name = "Bruce Wayne",
+            age = 42,
+            interests = listOf("tinkering"),
+        )
+
+        assertEquals(
+            "ExternalDataClass(name=Bruce Wayne, age=42, interests=[tinkering])",
+            external.toString(),
+        )
+    }
 }

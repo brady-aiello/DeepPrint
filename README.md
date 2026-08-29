@@ -357,6 +357,27 @@ library's own package, so two modules doing this cannot collide.
 This applies in both modes. A dependency's class can never be annotated, so making it
 opt-in would have meant it never worked at all.
 
+Across the three ways of using DeepPrint:
+
+| | A data class from another module |
+| --- | --- |
+| Reflection | Works, and always did. It reads the runtime class, so a module boundary is invisible to it |
+| KSP `deepPrint()` | Works |
+| `overrideToString` | Works when printing *your* class; see below |
+
+With `overrideToString`, a local class prints its external property in full, because that
+goes through the generated `deepPrint()`. Printing the dependency's class **directly**
+gives its own `toString()`:
+
+```kotlin
+println(order)             // deep printed, external customer included
+println(order.customer)    // CustomerFromAnotherModule(name=Bruce Wayne, age=42)
+```
+
+The plugin rewrites `toString()` while compiling your module. A class that arrived as a
+jar is already compiled, so its `toString()` is out of reach — no compiler plugin can
+reach back into a dependency.
+
 ### KSP and Nullable Properties
 
 A nullable property prints as the `null` literal when it is absent, and normally when
@@ -630,6 +651,9 @@ That is not true for single source projects, like [test-project](./test-project)
   another module -- see [Data Classes From Other Modules](#Data-Classes-From-Other-Modules).
 - Overriding `toString()` needs the `com.bradyaiello.deepprint` Gradle plugin, not a KSP
   option. See [Overriding toString()](#Overriding-toString).
+- `overrideToString` cannot reach a `data class` from a dependency: that class is already
+  compiled. It still prints in full as a property of one of your own classes. See
+  [Data Classes From Other Modules](#Data-Classes-From-Other-Modules).
 - A `Sequence` property is not reconstructed; it prints with `toString()`. Printing one
   would have to iterate it, which consumes a single-use sequence and exhausts the heap
   on an infinite one. `Collection` and `Iterable` are supported, on the assumption that

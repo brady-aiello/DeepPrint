@@ -26,6 +26,7 @@ val deepPrintCompilerPlugin: Configuration by configurations.creating {
 
 dependencies {
     implementation(project(":deep-print-annotations"))
+    implementation(project(":external-module"))
     ksp(project(":deep-print-processor"))
     deepPrintCompilerPlugin(project(":deep-print-compiler-plugin"))
     testImplementation(kotlin("test"))
