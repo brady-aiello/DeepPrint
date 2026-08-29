@@ -664,14 +664,13 @@ class DeepPrintProcessor(
             // the same way an unannotated class does, rather than throwing.
             val propClassDeclaration = type.declaration as? KSClassDeclaration ?: return null
             val propPackageName = propClassDeclaration.packageName.asString()
-            // TODO(Support properties defined outside of the module)
             val annotated = generatesDeepPrintFor(propClassDeclaration) ||
                 (propClassDeclaration.isDataClass() &&
                     propertyDeclaration?.isAnnotationPresent(DeepPrint::class) == true)
             return if (annotated) {
-                // An external class's extension is generated beside this file rather than in
-            // the library's package, so importing from the library's package would not
-            // resolve. Same package, so no import at all.
+                // An external class's extension is generated beside this file rather
+                // than in the library's package, so importing from the library's package
+                // would not resolve. Same package, so no import at all.
             //
             // KotlinPoet does not guard the empty case either: addImport("", "deepPrint")
             // renders as `import deepPrint`. That resolves for a root-package class, but

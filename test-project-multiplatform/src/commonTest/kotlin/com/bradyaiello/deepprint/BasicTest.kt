@@ -616,10 +616,4 @@ class BasicTest {
         val actual = withAMutableMapDataClasses.deepPrint()
         assertEquals(expected, actual)
     }
-    /*  TODO(finish this test when external data classes supported)
-        @Test
-        fun externalDataClass() {
-            val actual = usingUnannotatedDataClassFromExternalModule.deepPrint()
-            println(actual)
-        }*/
 }
