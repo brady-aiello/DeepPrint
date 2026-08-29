@@ -78,6 +78,10 @@ class DeepPrintIrGenerationExtension : IrGenerationExtension {
                         // positional list: extension receiver first, then the parameters.
                         arguments[0] = irGet(dispatchReceiver)
                         arguments[1] = irInt(0)
+                        // deepPrint() also takes the cycle guard, left unset so the
+                        // default applies and it allocates its own. A toString() is
+                        // always the top of a print, so there is never anything to
+                        // inherit from further up.
                     }
                 )
             }

@@ -718,9 +718,17 @@ cannot be run by accident. The same object appearing twice is repetition rather 
 cycle and still prints in full both times; only an object currently being printed further
 up counts.
 
-KSP does not do this yet -- a cyclic graph still overflows the stack there. Tracking what
-is being printed needs state threaded through the generated code, and the generated code
-is shared across all 14 targets.
+KSP does the same. The generated `deepPrint()` takes the list of data classes already
+being printed as a second parameter, defaulted so nothing calling `deepPrint()` has to
+know about it:
+
+```kotlin
+public fun Node.deepPrint(currentIndent: Int = 0, ancestors: MutableList<Any>? = null): String
+```
+
+The collection helpers needed no change: the recursion into elements happens inside
+lambdas the processor writes, so they close over the same list. `overrideToString` is
+covered too, since it delegates to the same function.
 
 ## Current Limitations
 - DeepPrint only works on `data class`es.
