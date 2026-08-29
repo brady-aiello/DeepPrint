@@ -156,3 +156,19 @@ data class HoldsObjects(
     val nested: Marker,
     val id: String,
 )
+
+@JvmInline
+value class UserId(val raw: String)
+
+@JvmInline
+value class Meters(val amount: Double)
+
+@JvmInline
+value class Initial(val letter: Char)
+
+data class HoldsValueClasses(
+    val id: UserId,
+    val distance: Meters,
+    val initial: Initial,
+    val label: String,
+)

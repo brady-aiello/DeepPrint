@@ -4,6 +4,7 @@ import com.bradyaiello.deepprint.DeepPrint
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
 import com.module.external.ExternalDataClass
+import kotlin.jvm.JvmInline
 
 @DeepPrint
 data class SampleClass(val x: Float, val y: Float, val name: String)
@@ -268,3 +269,20 @@ data class GenericBox<T>(val boxed: T, val label: String)
 
 @DeepPrint
 data class TwoTypeParams<A, B>(val first: A, val second: B, val note: String)
+
+@JvmInline
+value class UserId(val raw: String)
+
+@JvmInline
+value class Meters(val amount: Double)
+
+@JvmInline
+value class Initial(val letter: Char)
+
+@DeepPrint
+data class HoldsValueClasses(
+    val id: UserId,
+    val distance: Meters,
+    val initial: Initial,
+    val label: String,
+)
