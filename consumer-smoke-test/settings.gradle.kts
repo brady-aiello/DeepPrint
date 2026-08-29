@@ -7,7 +7,7 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
-    val deepPrintVersion: String by settings
+    val deepPrintVersion = providers.gradleProperty("deepPrintVersion").get()
     plugins {
         id("com.bradyaiello.deepprint") version deepPrintVersion
     }

@@ -4,7 +4,7 @@ plugins {
     id("com.bradyaiello.deepprint")
 }
 
-val deepPrintVersion: String by project
+val deepPrintVersion = providers.gradleProperty("deepPrintVersion").get()
 
 repositories {
     mavenCentral()
