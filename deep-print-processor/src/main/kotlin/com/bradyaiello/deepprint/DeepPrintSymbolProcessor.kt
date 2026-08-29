@@ -667,7 +667,10 @@ class DeepPrintProcessor(
         private fun enumExpression(type: KSType, receiver: String): String? {
             val declaration = type.declaration as? KSClassDeclaration
             return if (declaration?.classKind == ClassKind.ENUM_CLASS) {
-                "\"${declaration.simpleName.asString()}.\" + $receiver.name"
+                // Qualified through any nesting: a nested enum printed bare would not
+                // resolve, the same reason a nested data class is printed Outer.Inner.
+                val enumName = declaration.toClassName().simpleNames.joinToString(".")
+                "\"$enumName.\" + $receiver.name"
             } else {
                 null
             }

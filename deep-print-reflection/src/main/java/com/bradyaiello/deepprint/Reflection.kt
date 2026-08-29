@@ -40,7 +40,11 @@ private fun Any.deepPrintDataClassReflection(
     else initialIndentLength.indent()
     val builder = StringBuilder()
     val constructor = kClass.constructors.first()
-    val constructorCall = "${kClass.simpleName!!}(\n"
+    // Qualified through any nesting. A sealed subclass reached through its parent type
+    // is the common case: printing `Circle(` rather than `Shape.Circle(` produces output
+    // that does not resolve, and reflection is the one implementation that can see which
+    // subclass it actually has.
+    val constructorCall = "${kClass.printableName()}(\n"
     builder.append("$initialIndent$constructorCall")
     val params = constructor.parameters
 

@@ -659,6 +659,27 @@ The wrapped value is rendered by the same rules as any other single value, so a 
 class around a `Char` or a `String` keeps its quotes. Printing it with `toString()`
 would give `UserId(raw=abc)`, which reads correctly in a log and is not valid Kotlin.
 
+## Sealed Classes and Nesting
+A nested class prints qualified through its nesting, so the output resolves:
+
+```
+shape = Marker.Absent(
+    reason = "gone",
+),
+level = EnumHost.Level.HIGH,
+```
+
+This is where the two implementations genuinely differ. A property declared as a sealed
+*parent* type holds one of its subclasses at runtime, and only reflection can see which:
+
+```kotlin
+data class Diagram(val shape: Marker)
+```
+
+Reflection deep prints the subclass it finds. KSP sees the declared type, which is not a
+`data class`, so it falls back to `toString()` -- there is no type to generate against.
+Annotating the subclass does not help, because the property still says `Marker`.
+
 ## Current Limitations
 - DeepPrint only works on `data class`es.
 - For KSP, for the entire printed object to be a valid constructor call, all classes in the hierarchy must be annotated,
@@ -680,6 +701,9 @@ would give `UserId(raw=abc)`, which reads correctly in a log and is not valid Ko
 - Not every type is supported. See
   [KSP and Collection Types](#KSP-and-Collection-Types) for what KSP handles, and
   [Reflection and Collection Types](#Reflection-and-Collection-Types) for reflection.
+- For KSP, a property declared as a sealed parent type prints with `toString()`. The
+  runtime subclass is not knowable when the processor runs. See
+  [Sealed Classes and Nesting](#Sealed-Classes-and-Nesting).
 - For reflection, an `object` prints as its name, qualified through its nesting, eg.
   `marker = Marker.Present`. This is valid Kotlin, the same as the enum case.
 - For reflection, a property that is neither a primitive, a supported collection, nor a

@@ -172,3 +172,9 @@ data class HoldsValueClasses(
     val initial: Initial,
     val label: String,
 )
+
+class EnumHost {
+    enum class Level { LOW, HIGH }
+}
+
+data class HoldsSealed(val shape: Marker, val level: EnumHost.Level, val id: Int)

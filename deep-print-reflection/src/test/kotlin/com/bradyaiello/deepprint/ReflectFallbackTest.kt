@@ -186,4 +186,30 @@ class ReflectFallbackTest {
 
         assertEquals(expected, actual)
     }
+
+    /**
+     * Reflection sees the runtime subclass, so it can deep print through a sealed
+     * parent type -- but the name has to carry its nesting or the output does not
+     * resolve. `Absent(` alone is not a thing; `Marker.Absent(` is.
+     */
+    @Test
+    fun `a sealed subclass is qualified through its parent`() {
+        val expected = """
+            HoldsSealed(
+                shape = Marker.Absent(
+                    reason = "gone",
+                ),
+                level = EnumHost.Level.HIGH,
+                id = 7,
+            )
+        """.trimIndent()
+
+        val actual = HoldsSealed(
+            shape = Marker.Absent("gone"),
+            level = EnumHost.Level.HIGH,
+            id = 7,
+        ).deepPrintReflection()
+
+        assertEquals(expected, actual)
+    }
 }

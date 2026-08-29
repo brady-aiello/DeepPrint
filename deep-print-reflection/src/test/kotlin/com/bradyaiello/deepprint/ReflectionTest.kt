@@ -463,7 +463,7 @@ class ReflectionTest {
         val expected = """
             mapOf(
                 "Monday" to
-                    Dish(
+                    ReflectionTest.Dish(
                         name = "Pizza",
                         ingredients =  mutableListOf(
                             "dough",
@@ -472,7 +472,7 @@ class ReflectionTest {
                         ),
                     ),
                 "Tuesday" to
-                    Dish(
+                    ReflectionTest.Dish(
                         name = "Mac n Cheese",
                         ingredients =  mutableListOf(
                             "mac",
@@ -520,11 +520,11 @@ class ReflectionTest {
             id = 12345,
         )
         val expected = """
-            MapContainer(
+            ReflectionTest.MapContainer(
                 name = "my map",
                 mapToHold =  mutableMapOf(
                     "Monday" to
-                        Dish(
+                        ReflectionTest.Dish(
                             name = "Pizza",
                             ingredients =  mutableListOf(
                                 "dough",
@@ -533,7 +533,7 @@ class ReflectionTest {
                             ),
                         ),
                     "Tuesday" to
-                        Dish(
+                        ReflectionTest.Dish(
                             name = "Mac n Cheese",
                             ingredients =  mutableListOf(
                                 "mac",

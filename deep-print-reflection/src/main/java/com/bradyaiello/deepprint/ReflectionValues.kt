@@ -69,7 +69,7 @@ internal fun Any.deepPrintUnsupportedReflection(): String = when (this) {
     is Enum<*> -> {
         // An enum constant with a body is an anonymous subclass of the enum itself.
         val enumClass = if (javaClass.isEnum) javaClass else javaClass.superclass
-        "${enumClass.simpleName}.$name"
+        "${enumClass.kotlin.printableName()}.$name"
     }
     else -> toString()
 }
