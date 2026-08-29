@@ -13,6 +13,15 @@ on:
   schedule:
     # Weekly. This guards released artifacts, which only change when we release.
     - cron: "0 6 * * 1"
+  # This build is not in settings.gradle.kts, so no other workflow compiles it. Without
+  # this trigger a change to it is only exercised on the next cron or dispatch, which is
+  # how a smoke test that did not compile shipped in the 0.5.0 release PR. It runs
+  # against the latest release rather than the one being cut, which is the point: it
+  # catches breakage in the smoke test itself while the change is still in review.
+  pull_request:
+    paths:
+      - "consumer-smoke-test/**"
+      - ".github/workflows/consumer_smoke_test.yml"
 
 jobs:
   smoke:

@@ -1,3 +1,4 @@
+import com.example.consumer.HoldsBinaryExternal
 import com.example.consumer.Packaged
 import com.example.consumer.deepPrint
 import kotlin.test.Test
