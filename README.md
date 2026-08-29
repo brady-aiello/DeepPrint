@@ -668,6 +668,28 @@ That is not true for single source projects, like [test-project](./test-project)
 - In KMP projects, KSP [does not yet support](https://github.com/google/ksp/issues/567) generating code from the 
   `commonTest` source set. Hence, test classes for the KMP test project are in `commonMain`.
 
+## Changing the Public API
+`deep-print-annotations` and `deep-print-reflection` are what consumers compile and link
+against, so their public ABI is checked into `api/` and verified on every PR. A change
+that alters it fails the build with:
+
+```
+ABI check failed for project deep-print-annotations
+  <<<ABI has changed>>>
+```
+
+That is not necessarily wrong -- it is asking you to confirm the change is intended.
+Regenerate the dumps and commit them alongside the change:
+
+```
+./gradlew :deep-print-annotations:updateKotlinAbi :deep-print-reflection:updateKotlinAbi
+```
+
+The annotations dump covers klibs for all 14 targets, so regenerating it needs a macOS
+host. The diff on those files is the review: an added declaration is additive and safe,
+while a changed or removed signature breaks consumers at link time rather than at
+compile time, which is the failure this is here to prevent.
+
 ## Thanks
 Thank you Pavlo Stavytskyi for the sample KSP project and its accompanying article.
 https://github.com/Morfly/ksp-sample

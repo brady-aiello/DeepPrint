@@ -1,0 +1,51 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, watchosArm32, watchosArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <com.bradyaiello.deepprint:deep-print-annotations>
+open annotation class com.bradyaiello.deepprint/DeepPrint : kotlin/Annotation { // com.bradyaiello.deepprint/DeepPrint|null[0]
+    constructor <init>() // com.bradyaiello.deepprint/DeepPrint.<init>|<init>(){}[0]
+}
+
+open annotation class com.bradyaiello.deepprint/NoDeepPrint : kotlin/Annotation { // com.bradyaiello.deepprint/NoDeepPrint|null[0]
+    constructor <init>() // com.bradyaiello.deepprint/NoDeepPrint.<init>|<init>(){}[0]
+}
+
+final fun (kotlin/Boolean?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.Boolean?(kotlin.Int){}[0]
+final fun (kotlin/BooleanArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.BooleanArray(){}[0]
+final fun (kotlin/Byte?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.Byte?(kotlin.Int){}[0]
+final fun (kotlin/ByteArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.ByteArray(){}[0]
+final fun (kotlin/Char?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.Char?(kotlin.Int){}[0]
+final fun (kotlin/CharArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.CharArray(){}[0]
+final fun (kotlin/Double).com.bradyaiello.deepprint/formatForJS(): kotlin/String // com.bradyaiello.deepprint/formatForJS|formatForJS@kotlin.Double(){}[0]
+final fun (kotlin/Double?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.Double?(kotlin.Int){}[0]
+final fun (kotlin/DoubleArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.DoubleArray(){}[0]
+final fun (kotlin/Float).com.bradyaiello.deepprint/formatForJS(): kotlin/String // com.bradyaiello.deepprint/formatForJS|formatForJS@kotlin.Float(){}[0]
+final fun (kotlin/Float?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.Float?(kotlin.Int){}[0]
+final fun (kotlin/FloatArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.FloatArray(){}[0]
+final fun (kotlin/Int).com.bradyaiello.deepprint/indent(): kotlin/String // com.bradyaiello.deepprint/indent|indent@kotlin.Int(){}[0]
+final fun (kotlin/Int?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.Int?(kotlin.Int){}[0]
+final fun (kotlin/IntArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.IntArray(){}[0]
+final fun (kotlin/Long?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.Long?(kotlin.Int){}[0]
+final fun (kotlin/LongArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.LongArray(){}[0]
+final fun (kotlin/Short?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.Short?(kotlin.Int){}[0]
+final fun (kotlin/ShortArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.ShortArray(){}[0]
+final fun (kotlin/String?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.String?(kotlin.Int){}[0]
+final fun (kotlin/UByte?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.UByte?(kotlin.Int){}[0]
+final fun (kotlin/UByteArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.UByteArray(){}[0]
+final fun (kotlin/UInt?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.UInt?(kotlin.Int){}[0]
+final fun (kotlin/UIntArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.UIntArray(){}[0]
+final fun (kotlin/ULong?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.ULong?(kotlin.Int){}[0]
+final fun (kotlin/ULongArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.ULongArray(){}[0]
+final fun (kotlin/UShort?).com.bradyaiello.deepprint/deepPrint(kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.UShort?(kotlin.Int){}[0]
+final fun (kotlin/UShortArray).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.UShortArray(){}[0]
+final fun <#A: kotlin/Any?, #B: kotlin/Any?> (kotlin.collections/Map<#A, #B>).com.bradyaiello.deepprint/deepPrint(kotlin/Function1<#A, kotlin/String>, kotlin/Function1<#B, kotlin/String>, kotlin/Int = ...): kotlin/String // com.bradyaiello.deepprint/deepPrint|deepPrint@kotlin.collections.Map<0:0,0:1>(kotlin.Function1<0:0,kotlin.String>;kotlin.Function1<0:1,kotlin.String>;kotlin.Int){0§<kotlin.Any?>;1§<kotlin.Any?>}[0]
+final fun <#A: kotlin/Any?, #B: kotlin/Any?> (kotlin.collections/Map<#A, #B>).com.bradyaiello.deepprint/deepPrintContents(kotlin/Function1<#A, kotlin/String>, kotlin/Function1<#B, kotlin/String>): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.collections.Map<0:0,0:1>(kotlin.Function1<0:0,kotlin.String>;kotlin.Function1<0:1,kotlin.String>){0§<kotlin.Any?>;1§<kotlin.Any?>}[0]
+final fun <#A: kotlin/Any?> (kotlin.collections/Iterable<#A>).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.collections.Iterable<0:0>(){0§<kotlin.Any?>}[0]
+final fun <#A: kotlin/Any?> (kotlin.collections/List<#A>).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.collections.List<0:0>(){0§<kotlin.Any?>}[0]
+final fun <#A: kotlin/Any?> (kotlin.collections/Set<#A>).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.collections.Set<0:0>(){0§<kotlin.Any?>}[0]
+final fun <#A: kotlin/Any?> (kotlin/Array<#A>).com.bradyaiello.deepprint/deepPrintContents(): kotlin/String // com.bradyaiello.deepprint/deepPrintContents|deepPrintContents@kotlin.Array<0:0>(){0§<kotlin.Any?>}[0]
+final fun <#A: kotlin/Any?> com.bradyaiello.deepprint/deepPrintPrimitive(#A): kotlin/String // com.bradyaiello.deepprint/deepPrintPrimitive|deepPrintPrimitive(0:0){0§<kotlin.Any?>}[0]

@@ -10,6 +10,11 @@ plugins {
 }
 
 kotlin{
+    // Every consumer compiles against this module, on every target. Enabling the
+    // block is what turns validation on; there is nothing to set inside it.
+    @OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class)
+    abiValidation {
+    }
     jvm()
     iosX64()
     iosArm64()
