@@ -53,7 +53,10 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.STRING
 import com.squareup.kotlinpoet.joinToCode
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
+import com.squareup.kotlinpoet.ksp.toTypeVariableName
 import java.io.OutputStream
 
 /** An import KotlinPoet renders, and deduplicates, itself. */
@@ -420,8 +423,24 @@ class DeepPrintProcessor(
                 .add("return %L", lines.joinToCode(separator = " +\n"))
                 .build()
 
+            // A generic data class needs its parameters on both the function and the
+            // receiver. Without them KotlinPoet renders `fun Box.deepPrint()`, which does
+            // not compile -- and because the extension is then unresolvable, it becomes a
+            // candidate for every other deepPrint() call in the package, so one generic
+            // class turns into "overload resolution ambiguity" errors in unrelated files.
+            val typeParamResolver = classDeclaration.typeParameters.toTypeParameterResolver()
+            val typeVariables = classDeclaration.typeParameters.map {
+                it.toTypeVariableName(typeParamResolver)
+            }
+            val receiverType = if (typeVariables.isEmpty()) {
+                classDeclaration.toClassName()
+            } else {
+                classDeclaration.toClassName().parameterizedBy(typeVariables)
+            }
+
             val function = FunSpec.builder("deepPrint")
-                .receiver(classDeclaration.toClassName())
+                .receiver(receiverType)
+                .addTypeVariables(typeVariables)
                 .apply {
                     if (classDeclaration.getVisibility() == Visibility.INTERNAL) {
                         addModifiers(KModifier.INTERNAL)

@@ -254,3 +254,16 @@ data class UsingUnannotatedDataClassFromExternalModule(
 data class SomeExternalClass(val name: String, val age: Int)
 
 data class MyClass(val externalClass: SomeExternalClass)
+
+/**
+ * A generic data class. T cannot be deep printed -- it is erased at the point the
+ * processor runs -- so it falls back to toString() the way any unsupported type does.
+ * What matters here is that the generated extension carries <T> at all: without it the
+ * extension does not compile, and the unresolvable candidate makes every other
+ * deepPrint() call in the package ambiguous.
+ */
+@DeepPrint
+data class GenericBox<T>(val boxed: T, val label: String)
+
+@DeepPrint
+data class TwoTypeParams<A, B>(val first: A, val second: B, val note: String)

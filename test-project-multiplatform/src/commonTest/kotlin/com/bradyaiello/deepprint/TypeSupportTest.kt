@@ -1,5 +1,7 @@
 package com.bradyaiello.deepprint
 
+import com.bradyaiello.deepprint.testclasses.GenericBox
+import com.bradyaiello.deepprint.testclasses.TwoTypeParams
 import com.bradyaiello.deepprint.testclasses.WithASequence
 import com.bradyaiello.deepprint.testclasses.deepPrint
 import com.bradyaiello.deepprint.testobjects.usingUnannotatedDataClassFromExternalModule
@@ -199,5 +201,33 @@ class TypeSupportTest {
 
         val actual = usingUnannotatedDataClassFromExternalModule.deepPrint()
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun genericDataClassGeneratesAnExtensionThatCompiles() {
+        // The assertion is almost beside the point: if the generated extension were
+        // missing its <T>, this file would not compile, and neither would any other
+        // generated deepPrint() in the package.
+        val expected = """
+            GenericBox(
+              boxed = 7,
+              label = "seven",
+            )
+        """.trimIndent()
+
+        assertEquals(expected, GenericBox(7, "seven").deepPrint())
+    }
+
+    @Test
+    fun aDataClassWithTwoTypeParametersAlsoCompiles() {
+        val expected = """
+            TwoTypeParams(
+              first = 1,
+              second = 2,
+              note = "pair",
+            )
+        """.trimIndent()
+
+        assertEquals(expected, TwoTypeParams(1, 2, "pair").deepPrint())
     }
 }
