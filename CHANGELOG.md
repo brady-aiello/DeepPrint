@@ -5,6 +5,10 @@ under **Changed**: those alter output or fail a build that used to pass.
 
 ## Unreleased
 
+Nothing yet.
+
+## 0.6.0
+
 ### Added
 - Value classes print as a call to their own constructor, in KSP and reflection:
   `id = UserId(raw = "abc")` rather than `UserId(raw=abc)`, which is not valid Kotlin
