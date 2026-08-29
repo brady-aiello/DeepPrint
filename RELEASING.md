@@ -84,6 +84,25 @@ Reproduce either locally without going through CI. This runs the same code path:
 Also check that the key has not expired. Central rejects signatures from an expired key,
 and a two-year expiry is a common default.
 
+## After a release
+
+`consumer-smoke-test/` is a separate Gradle build that consumes the published artifacts
+from Maven Central, as someone outside this repository would. It runs weekly, and can be
+run on demand from the Actions tab against any version.
+
+Run it against a fresh release once the artifacts appear on
+`repo1.maven.org`, which takes a few minutes after publishing:
+
+```bash
+./gradlew --project-dir consumer-smoke-test test -PdeepPrintVersion=0.4.0
+```
+
+It covers what the library's own tests cannot: the plugin marker resolving, the POMs
+being usable, and generated code compiling in a project that does not share this
+repository's conventions. The default-package bug that shipped in 0.2.0 and 0.3.0 was
+found this way -- every test in the library is in a package, so nothing here could have
+caught it.
+
 ## Checking it locally
 
 `./gradlew publishToMavenLocal` publishes every module and target to `~/.m2`, which

@@ -8,6 +8,7 @@ on:
   pull_request:
     paths-ignore:
       - "**.md"
+      - "consumer-smoke-test/**"
       - "external-module/**"
       - "test-project/**"
       - "test-project-multiplatform/**"

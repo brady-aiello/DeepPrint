@@ -1,0 +1,50 @@
+name: Consumer Smoke Test
+
+# Consumes the published artifacts from Maven Central the way a stranger would, rather
+# than from inside this build. That is a different question from "do the tests pass":
+# it covers the plugin marker, the POMs, artifact resolution, and whether generated code
+# compiles in a project that does not share this repository's conventions.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to test (default: latest on Maven Central)"
+        required: false
+  schedule:
+    # Weekly. This guards released artifacts, which only change when we release.
+    - cron: "0 6 * * 1"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Resolve the version to test
+        id: resolve
+        run: |
+          version="${{ github.event.inputs.version }}"
+          if [ -z "$version" ]; then
+            version=$(curl -sSf --max-time 30 \
+              https://repo1.maven.org/maven2/com/bradyaiello/deepprint/deep-print-gradle-plugin/maven-metadata.xml \
+              | grep -oE '<release>[^<]+' | sed 's/<release>//')
+          fi
+          if [ -z "$version" ]; then
+            echo "Could not determine a version to test" >&2
+            exit 1
+          fi
+          echo "Testing $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Consume it from Maven Central
+        run: >
+          ./gradlew --project-dir consumer-smoke-test test
+          -PdeepPrintVersion=${{ steps.resolve.outputs.version }}
