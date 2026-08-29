@@ -28,3 +28,11 @@ data class HoldsExternal(
     val external: com.module.external.ExternalDataClass,
     val id: String,
 )
+
+class Outer {
+    @DeepPrint
+    data class Nested(val n: Int, val s: String)
+}
+
+@DeepPrint
+data class Boxed<T>(val boxed: T, val label: String)

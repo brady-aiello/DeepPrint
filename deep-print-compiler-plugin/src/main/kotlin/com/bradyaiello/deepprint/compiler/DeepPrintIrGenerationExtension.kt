@@ -13,10 +13,10 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.hasAnnotation
-import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.kotlinFqName
+import org.jetbrains.kotlin.ir.util.getPackageFragment
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.name.CallableId
@@ -88,14 +88,22 @@ class DeepPrintIrGenerationExtension : IrGenerationExtension {
         irClass: IrClass,
         pluginContext: IrPluginContext,
     ): IrSimpleFunction? {
-        val packageName = irClass.kotlinFqName.parent()
+        // The package, not the enclosing declaration. kotlinFqName.parent() on a nested
+        // class gives the outer class -- com.example.Outer for com.example.Outer.Inner --
+        // and KSP generates deepPrint() into the package, so nothing was ever found and
+        // nested data classes kept their stock toString().
+        val packageName = irClass.getPackageFragment().packageFqName
         val candidates = pluginContext.referenceFunctions(
             CallableId(FqName(packageName.asString()), Name.identifier("deepPrint"))
         )
         return candidates.firstOrNull { candidate ->
             val receiver = candidate.owner.parameters
                 .firstOrNull { parameter -> parameter.kind == IrParameterKind.ExtensionReceiver }
-            receiver?.type == irClass.defaultType
+            // Compare the classifier rather than the whole type. For a generic class the
+            // receiver is Box<T> where T belongs to the function while irClass.defaultType
+            // has the class's own T, so the types are never equal and generic data classes
+            // kept their stock toString() too.
+            receiver?.type?.classifierOrNull == irClass.symbol
         }?.owner
     }
 }

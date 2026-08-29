@@ -667,7 +667,9 @@ would give `UserId(raw=abc)`, which reads correctly in a log and is not valid Ko
   another module -- see [Data Classes From Other Modules](#Data-Classes-From-Other-Modules).
 - Overriding `toString()` needs the `com.bradyaiello.deepprint` Gradle plugin, not a KSP
   option. See [Overriding toString()](#Overriding-toString).
-- `overrideToString` cannot reach a `data class` from a dependency: that class is already
+- `overrideToString` rewrites `toString()` for the data classes in your own module,
+  including nested and generic ones. The one thing it cannot reach is a `data class`
+  from a dependency: that class is already
   compiled. It still prints in full as a property of one of your own classes. See
   [Data Classes From Other Modules](#Data-Classes-From-Other-Modules).
 - A generic property is printed with `toString()`. The processor runs before type
