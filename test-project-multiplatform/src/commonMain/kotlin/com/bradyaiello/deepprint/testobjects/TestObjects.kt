@@ -11,6 +11,7 @@ import com.bradyaiello.deepprint.testclasses.ThreeClassesDeep2
 import com.bradyaiello.deepprint.testclasses.ThreeClassesDeep3
 import com.bradyaiello.deepprint.testclasses.ThreeDimCoordinate
 import com.bradyaiello.deepprint.testclasses.ThreeDimLine
+import com.bradyaiello.deepprint.testclasses.UsingUnannotatedDataClassFromExternalModule
 import com.bradyaiello.deepprint.testclasses.Weather
 import com.bradyaiello.deepprint.testclasses.WithAList
 import com.bradyaiello.deepprint.testclasses.WithAMap
@@ -42,6 +43,7 @@ import com.bradyaiello.deepprint.testclasses.WithTypedCollectionItems
 import com.bradyaiello.deepprint.testclasses.WithUnsigned
 import com.bradyaiello.deepprint.testclasses.otherpackage.Surfboard
 import com.bradyaiello.deepprint.testclasses.otherpackage.Temperature
+import com.module.external.ExternalDataClass
 
 val sample = SampleClass(0.5f, 2.6f, "A point")
 
@@ -263,7 +265,6 @@ val withAnnotatedProperty = WithAnnotatedProperty(
     name = Name("some name")
 )
 
-/* TODO(finish this test when external data classes supported)
 val usingUnannotatedDataClassFromExternalModule = UsingUnannotatedDataClassFromExternalModule(
     externalDataClass = ExternalDataClass(
         name = "Bruce Wayne",
@@ -272,4 +273,3 @@ val usingUnannotatedDataClassFromExternalModule = UsingUnannotatedDataClassFromE
     ),
     id = "985270457834522"
 )
-*/
