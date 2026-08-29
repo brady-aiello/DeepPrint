@@ -1,0 +1,31 @@
+# The project went three years between releases and came back needing Gradle, Kotlin,
+# the Actions and the publishing setup all moved at once. This is here so that does not
+# happen again by default.
+version: 2
+updates:
+  # Actions are the case this covers properly. checkout, setup-java and cache were all
+  # a major or more behind and running on a deprecated Node, and nothing said so until
+  # a workflow log mentioned it in passing.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+
+  # Gradle reaches less far here than it looks. Versions live in versions.properties and
+  # are referenced as `$kotlinVersion` or through refreshVersions accessors, neither of
+  # which Dependabot resolves, so in practice this sees only the dependencies written as
+  # a literal coordinate. `./gradlew refreshVersions` remains the way to find the rest;
+  # it writes what is available into versions.properties as comments.
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "deps"
+
+# kotlin-js-store/yarn.lock is deliberately absent. The Kotlin plugin regenerates that
+# file from its own pinned toolchain, so a Dependabot PR against it would be undone by
+# the next build. The versions that can be moved are forced by yarn resolutions in the
+# root build instead.
