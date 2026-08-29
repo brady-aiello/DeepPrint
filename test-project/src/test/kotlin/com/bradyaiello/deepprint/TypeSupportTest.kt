@@ -1,6 +1,9 @@
 package com.bradyaiello.deepprint
 
+import com.bradyaiello.deepprint.testclasses.CycleNode
+import com.bradyaiello.deepprint.testclasses.CycleParent
 import com.bradyaiello.deepprint.testclasses.EnumHost
+import com.bradyaiello.deepprint.testclasses.RepeatedNodes
 import com.bradyaiello.deepprint.testclasses.GenericBox
 import com.bradyaiello.deepprint.testclasses.HoldsNestedEnum
 import com.bradyaiello.deepprint.testclasses.HoldsValueClasses
@@ -271,5 +274,67 @@ class TypeSupportTest {
         """.trimIndent()
 
         assertEquals(expected, HoldsNestedEnum(EnumHost.Level.HIGH, 7).deepPrint())
+    }
+
+    /** A cycle used to recurse until the stack ran out. */
+    @Test
+    fun aCyclePrintsATodoInsteadOfOverflowing() {
+        val node = CycleNode("a", null)
+        node.next = node
+
+        val expected = """
+            CycleNode(
+                name = "a",
+                next = 
+                    TODO("DeepPrint: cycle back to CycleNode"),
+            )
+        """.trimIndent()
+
+        assertEquals(expected, node.deepPrint())
+    }
+
+    /** The guard is passed into the lambdas the generator writes for collections. */
+    @Test
+    fun aCycleThroughACollectionIsCaughtAsWell() {
+        val parent = CycleParent("p", mutableListOf())
+        parent.children.add(parent)
+
+        val expected = """
+            CycleParent(
+                name = "p",
+                children = mutableListOf<CycleParent>(
+                    TODO("DeepPrint: cycle back to CycleParent"),
+                ),
+            )
+        """.trimIndent()
+
+        assertEquals(expected, parent.deepPrint())
+    }
+
+    /**
+     * The same object twice is repetition, not a cycle. Comparing by equality, or
+     * forgetting to drop the entry on the way out, would put a TODO() where real data
+     * belongs.
+     */
+    @Test
+    fun theSameObjectTwiceStillPrintsInFull() {
+        val shared = CycleNode("shared", null)
+
+        val expected = """
+            RepeatedNodes(
+                first = 
+                    CycleNode(
+                        name = "shared",
+                        next = null,
+                    ),
+                second = 
+                    CycleNode(
+                        name = "shared",
+                        next = null,
+                    ),
+            )
+        """.trimIndent()
+
+        assertEquals(expected, RepeatedNodes(shared, shared).deepPrint())
     }
 }

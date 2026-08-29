@@ -49,7 +49,9 @@ import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.ANY
 import com.squareup.kotlinpoet.INT
+import com.squareup.kotlinpoet.MUTABLE_LIST
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.STRING
@@ -87,6 +89,25 @@ class DeepPrintProcessor(
         private const val CLOSING_INDENT_MULTIPLIER = 1
 
         /** Visibilities a top level extension in another file cannot reach. */
+        /**
+         * The parameter carrying the data classes already being printed, and the local
+         * the body works with. A cycle cannot be written as a constructor call, so the
+         * alternative to tracking them is recursing until the stack runs out.
+         *
+         * Nullable with a null default rather than defaulting to an empty list: it keeps
+         * the list off every top-level call that does not need one, and gives the
+         * compiler plugin something explicit to pass from IR.
+         */
+        private const val ANCESTORS = "ancestors"
+        private const val PRINTED = "printed"
+
+        // Assembled either side of the class name. Written as constants because the
+        // escaping is otherwise unreadable: the generated line is
+        //     return "${currentIndent.indent()}TODO(\"DeepPrint: cycle back to Node\")"
+        private const val CYCLE_MARKER_PREFIX =
+            "\"\${currentIndent.indent()}TODO(\\\"DeepPrint: cycle back to "
+        private const val CYCLE_MARKER_SUFFIX = "\\\")\""
+
         private val UNREACHABLE_VISIBILITIES = setOf(
             Visibility.PRIVATE,
             Visibility.PROTECTED,
@@ -480,7 +501,23 @@ class DeepPrintProcessor(
             val lines = bodyLines(className, props, imports)
             val body = CodeBlock.builder()
                 .addStatement("val indentWidth = %L", indent)
-                .add("return %L", lines.joinToCode(separator = " +\n"))
+                .addStatement("val %L = %L ?: mutableListOf()", PRINTED, ANCESTORS)
+                // Identity, not equality: two equal data classes are ordinary repetition
+                // and contains() would call the second one a cycle. The list is short --
+                // it holds the current depth, not everything printed -- so a scan is
+                // cheaper than anything that would need an identity hash, which common
+                // Kotlin does not have.
+                .beginControlFlow("if (%L.any { it === this })", PRINTED)
+                .addStatement("return %L", CYCLE_MARKER_PREFIX + className + CYCLE_MARKER_SUFFIX)
+                .endControlFlow()
+                .addStatement("%L.add(this)", PRINTED)
+                .beginControlFlow("try")
+                .add("return %L\n", lines.joinToCode(separator = " +\n"))
+                // Dropped on the way out so the same object twice side by side still
+                // prints in full. Only an ancestor is a cycle.
+                .nextControlFlow("finally")
+                .addStatement("%L.removeAt(%L.lastIndex)", PRINTED, PRINTED)
+                .endControlFlow()
                 .build()
 
             // A generic data class needs its parameters on both the function and the
@@ -508,6 +545,12 @@ class DeepPrintProcessor(
                 }
                 .addParameter(
                     ParameterSpec.builder("currentIndent", INT).defaultValue("%L", 0).build()
+                )
+                .addParameter(
+                    ParameterSpec.builder(
+                        ANCESTORS,
+                        MUTABLE_LIST.parameterizedBy(ANY).copy(nullable = true),
+                    ).defaultValue("%L", "null").build()
                 )
                 .returns(STRING)
                 .addCode(body)
@@ -795,7 +838,7 @@ class DeepPrintProcessor(
             if (!propClassDeclaration.isExternal() && propPackageName.isNotEmpty()) {
                 imports.add(MemberImport(propPackageName, "deepPrint"))
             }
-                "\"\\n\" + $receiver.deepPrint(currentIndent + 2 * indentWidth)"
+                "\"\\n\" + $receiver.deepPrint(currentIndent + 2 * indentWidth, $PRINTED)"
             } else {
                 null
             }
@@ -820,7 +863,7 @@ class DeepPrintProcessor(
             // other key is rendered from its static type: a primitive has deepPrint(), an
             // enum and a collection do not, and used to generate code that did not compile.
             val keyTransform = if (isAnnotatedDataClass(keyType)) {
-                "$key.deepPrint()"
+                "$key.deepPrint(0, $PRINTED)"
             } else {
                 nullSafeValueExpression(
                     imports = imports,
@@ -835,7 +878,8 @@ class DeepPrintProcessor(
                 // A data class value opens a block, so it sits a level deeper than a
                 // value that prints inline next to its key.
                 "\"\\n\" + " +
-                    "$value.deepPrint(currentIndent + ${DATACLASS_MAP_VAL_INDENT_MULTIPLIER + depth} * indentWidth)"
+                    "$value.deepPrint(currentIndent + " +
+                    "${DATACLASS_MAP_VAL_INDENT_MULTIPLIER + depth} * indentWidth, $PRINTED)"
             } else {
                 nullSafeValueExpression(
                     imports = imports,
@@ -881,7 +925,8 @@ class DeepPrintProcessor(
                 return "\"$collectionConstructor<${itemType}>(\\n\" + " +
                     "$receiver.joinToString(separator = \"\") " +
                     "{ $item -> $item.deepPrint(" +
-                    "currentIndent = currentIndent + ${ENTRY_INDENT_MULTIPLIER + depth} * indentWidth" +
+                    "currentIndent = currentIndent + ${ENTRY_INDENT_MULTIPLIER + depth} * indentWidth, " +
+                        "$ANCESTORS = $PRINTED" +
                     ") + \",\\n\" } + " +
                     "(currentIndent + ${CLOSING_INDENT_MULTIPLIER + depth} * indentWidth).indent() + \")\""
             }

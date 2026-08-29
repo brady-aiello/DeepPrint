@@ -293,3 +293,12 @@ class EnumHost {
 
 @DeepPrint
 data class HoldsNestedEnum(val level: EnumHost.Level, val id: Int)
+
+@DeepPrint
+data class CycleNode(val name: String, var next: CycleNode?)
+
+@DeepPrint
+data class CycleParent(val name: String, val children: MutableList<CycleParent>)
+
+@DeepPrint
+data class RepeatedNodes(val first: CycleNode, val second: CycleNode)
