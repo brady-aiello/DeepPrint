@@ -1,6 +1,8 @@
 package com.bradyaiello.deepprint
 
+import com.bradyaiello.deepprint.testclasses.EnumHost
 import com.bradyaiello.deepprint.testclasses.GenericBox
+import com.bradyaiello.deepprint.testclasses.HoldsNestedEnum
 import com.bradyaiello.deepprint.testclasses.HoldsValueClasses
 import com.bradyaiello.deepprint.testclasses.Initial
 import com.bradyaiello.deepprint.testclasses.Meters
@@ -254,5 +256,18 @@ class TypeSupportTest {
         ).deepPrint()
 
         assertEquals(expected, actual)
+    }
+
+    /** A nested enum printed bare would not resolve. */
+    @Test
+    fun nestedEnumIsQualifiedThroughItsNesting() {
+        val expected = """
+            HoldsNestedEnum(
+              level = EnumHost.Level.HIGH,
+              id = 7,
+            )
+        """.trimIndent()
+
+        assertEquals(expected, HoldsNestedEnum(EnumHost.Level.HIGH, 7).deepPrint())
     }
 }

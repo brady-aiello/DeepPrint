@@ -284,3 +284,10 @@ data class HoldsValueClasses(
     val initial: Initial,
     val label: String,
 )
+
+class EnumHost {
+    enum class Level { LOW, HIGH }
+}
+
+@DeepPrint
+data class HoldsNestedEnum(val level: EnumHost.Level, val id: Int)
