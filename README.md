@@ -10,7 +10,9 @@ Don't print with the default `toString()` like this in your logs:
 ```
 ThreeClassesDeep3(age=55, person=SamplePersonClass(name=Dave, sampleClass=SampleClass(x=0.5, y=2.6, name=A point)), sampleClass=SampleClass(x=0.5, y=2.6, name=A point))
 ```
-Use `deepPrint()` or `deepPrintReflection()` to print this instead:
+Call `deepPrint()` or `deepPrintReflection()` to print this instead -- or apply the
+[compiler plugin](#Compiler-Plugin) and get it from `toString()` without calling
+anything:
 ```kotlin
 ThreeClassesDeep3(
   age = 55,
@@ -43,7 +45,7 @@ because some features have not been added yet.
 | --- | --- | --- |
 | [KSP](#KSP) | `deepPrint()` | Every target, generated at compile time |
 | [Reflection](#Reflection) | `deepPrintReflection()` | JVM only, at runtime |
-| [Overriding `toString()`](#Overriding-toString) | `toString()`, or nothing at all | JVM, JS and Native; builds on KSP |
+| [Compiler plugin](#Compiler-Plugin) | nothing -- `toString()` does it | JVM, JS and Native; builds on KSP |
 
 ### KSP
 [Kotlin Symbol Processing](https://github.com/google/ksp) is a configurable
@@ -485,61 +487,6 @@ Nested classes are qualified, so `Outer.Inner` prints as `Outer.Inner(...)` and 
 generated file is `DeepPrintOuter_Inner.kt` rather than colliding with a top level
 `Inner`.
 
-## Overriding toString()
-
-A `data class` can print itself, so nothing has to call `deepPrint()` at all.
-
-This is the Gradle plugin, and it works either way round: with `@DeepPrint` on your
-classes, or with [No-Annotation Mode](#No-Annotation-Mode) and no annotation anywhere.
-It needs KSP applied as well, because what it rewrites `toString()` to call is the
-`deepPrint()` KSP generates.
-
-Apply it and turn it on:
-
-```kotlin
-plugins {
-    kotlin("multiplatform") // or kotlin("jvm")
-    id("com.google.devtools.ksp")
-    id("com.bradyaiello.deepprint") version "0.6.0"
-}
-
-deepPrint {
-    overrideToString.set(true)
-}
-```
-
-`toString()` then returns the deep printed form, which means so do string templates, log
-statements, assertion failures, and the elements of any collection you print:
-
-```kotlin
-println(point)
-// Point(
-//     x = 1,
-//     y = 2,
-// )
-```
-
-This works on JVM, JS and Native. It is a Kotlin compiler plugin that rewrites the
-`toString()` the compiler synthesises for a `data class` so that it calls the
-`deepPrint()` KSP generates, so the printing itself is the same ordinary Kotlin on every
-target.
-
-**It is off by default, and worth a moment's thought before turning on.** It changes
-every log line, every string template and every debugger view in the module, including
-when a data class is nested inside something else being printed.
-
-Two things it will not touch:
-
-| | |
-| --- | --- |
-| A `toString()` you wrote yourself | Only the compiler-synthesised one is replaced |
-| A class annotated `@NoDeepPrint` | Opted out, as in [No-Annotation Mode](#No-Annotation-Mode) |
-
-`ksp { arg("overrideToString", "true") }` is **not** how to enable this, and warns if you
-try. A symbol processor can only add new files; it cannot alter an existing class, and
-neither an extension nor an interface can supply `toString()` — a member always wins over
-an extension, and Kotlin forbids interfaces from implementing `Any`'s methods.
-
 ## KSP Quick Start
 
 ### Add KSP
@@ -650,6 +597,65 @@ ksp {
     arg("indent", "2")
 }
 ```
+
+## Compiler Plugin
+
+The third way to use DeepPrint, alongside [KSP](#KSP) and [Reflection](#Reflection): a
+`data class` prints itself, and nothing in your code calls anything.
+
+It is a Kotlin compiler plugin, shipped as a Gradle plugin, and it builds on KSP rather
+than replacing it -- what it rewrites `toString()` to call is the `deepPrint()` KSP
+generates, which is why both are applied below. It works either way round: with
+`@DeepPrint` on your classes, or with [No-Annotation Mode](#No-Annotation-Mode) and no
+annotation anywhere.
+
+### Compiler Plugin Quick Start
+
+Apply it and turn it on:
+
+```kotlin
+plugins {
+    kotlin("multiplatform") // or kotlin("jvm")
+    id("com.google.devtools.ksp")
+    id("com.bradyaiello.deepprint") version "0.6.0"
+}
+
+deepPrint {
+    overrideToString.set(true)
+}
+```
+
+`toString()` then returns the deep printed form, which means so do string templates, log
+statements, assertion failures, and the elements of any collection you print:
+
+```kotlin
+println(point)
+// Point(
+//     x = 1,
+//     y = 2,
+// )
+```
+
+This works on JVM, JS and Native. What it replaces is the `toString()` the compiler
+synthesises for a `data class`; the printing it replaces it with is the same ordinary
+Kotlin on every target, so there is nothing target-specific in the output.
+
+**It is off by default, and worth a moment's thought before turning on.** It changes
+every log line, every string template and every debugger view in the module, including
+when a data class is nested inside something else being printed.
+
+Two things it will not touch:
+
+| | |
+| --- | --- |
+| A `toString()` you wrote yourself | Only the compiler-synthesised one is replaced |
+| A class annotated `@NoDeepPrint` | Opted out, as in [No-Annotation Mode](#No-Annotation-Mode) |
+
+`ksp { arg("overrideToString", "true") }` is **not** how to enable this, and warns if you
+try. A symbol processor can only add new files; it cannot alter an existing class, and
+neither an extension nor an interface can supply `toString()` — a member always wins over
+an extension, and Kotlin forbids interfaces from implementing `Any`'s methods.
+
 ## Multiplatform Support 
 This project supports JVM, iOS, watchOS, macOS, Linux, Windows, NodeJS and JS for the browser.
 Check out [test-project-multiplatform](./test-project-multiplatform) and the docs above for setup.
@@ -750,7 +756,7 @@ covered too, since it delegates to the same function.
   [No-Annotation Mode](#No-Annotation-Mode), and neither applies to a `data class` from
   another module -- see [Data Classes From Other Modules](#Data-Classes-From-Other-Modules).
 - Overriding `toString()` needs the `com.bradyaiello.deepprint` Gradle plugin, not a KSP
-  option. See [Overriding toString()](#Overriding-toString).
+  option. See [Compiler Plugin](#Compiler-Plugin).
 - `overrideToString` rewrites `toString()` for the data classes in your own module,
   including nested and generic ones. The one thing it cannot reach is a `data class`
   from a dependency: that class is already
