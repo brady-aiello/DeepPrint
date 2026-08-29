@@ -30,4 +30,32 @@ class SmokeTest {
 
         assertEquals(expected, Packaged("a", listOf(1, 2)).deepPrint())
     }
+
+    @Test
+    fun aDataClassFromAJarDeepPrints() {
+        val expected = """
+            HoldsBinaryExternal(
+                config = 
+                    DeepPrintReflectConfig(
+                        startingIndent = 2,
+                        indentSize = 4,
+                        constructor = "listOf",
+                        standalone = true,
+                    ),
+                note = "from a jar",
+            )
+        """.trimIndent()
+
+        val actual = HoldsBinaryExternal(
+            config = com.bradyaiello.deepprint.DeepPrintReflectConfig(
+                startingIndent = 2,
+                indentSize = 4,
+                constructor = "listOf",
+                standalone = true,
+            ),
+            note = "from a jar",
+        ).deepPrint()
+
+        assertEquals(expected, actual)
+    }
 }
